@@ -2,6 +2,7 @@
 
 #include "debug/log.h"
 #include "entry/entry.h"
+#include "platform/platform.h"
 
 namespace iodine::core {
     Application::Application(u32 framerate) : status(Application::Status::Done), metrics({.framerateTarget = framerate}) {}
@@ -12,11 +13,13 @@ namespace iodine::core {
         u64 delta = 1000000 / metrics.framerateTarget, acc = 0, frametime = 0, counter = 0;
         u32 frames = 0;
         struct timespec start, end;
-        while (status == Application::Status::Ok || status == Application::Status::Pause /*&& !shutdownInterrupt*/) {
+        while (status == Application::Status::Ok || status == Application::Status::Pause) {
             clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 
             while (acc >= delta) {
-                tick();
+                if (status == Application::Status::Ok) {
+                    tick();
+                }
                 acc -= delta;
             }
 
@@ -35,7 +38,7 @@ namespace iodine::core {
             frametime = (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_nsec - start.tv_nsec) / 1000;
             acc += frametime;
 
-            if (shutdownInterrupt) {
+            if (Platform::signalStatus.bitmask & Platform::SignalStatus::INT) {
                 stop();
             }
         }
