@@ -2,9 +2,17 @@
 
 #ifdef IO_WINDOWS
 
+#include <chrono>
+
+#include "debug/log.h"
+
 namespace iodine::core {
-    void Platform::init() {
-        // Set up signal listeners
+    static u32 signalState;                  ///< The current signal status.
+    static std::chrono::steady_clock clock;  ///< The current clock.
+
+    static void handleSignal(i32 signal);
+
+    Platform::Platform() {
         signal(SIGINT, handleSignal);
         signal(SIGTERM, handleSignal);
         signal(SIGABRT, handleSignal);
@@ -31,41 +39,47 @@ namespace iodine::core {
 
     b8 Platform::isUnixLike() { return false; }
 
-    void Platform::handleSignal(i32 signal) {
+    static void handleSignal(i32 signal) {
         switch (signal) {
             case SIGINT:
                 IO_INFO("Caught signal SIGINT - raised by user on ctrl-c, alt-f4 or window close");
-                signalStatus.bitmask |= SignalStatus::INT;
+                signalState |= Platform::Signal::INT;
                 break;
             case SIGTERM:
                 IO_INFO("Caught signal SIGTERM - raised by an external process to terminate the program");
-                signalStatus.bitmask |= SignalStatus::TERM;
+                signalState |= Platform::Signal::TERM;
                 break;
             case SIGABRT:
                 IO_INFO("Caught signal SIGABRT - assertion failed");
-                signalStatus.bitmask |= SignalStatus::ABRT;
+                signalState |= Platform::Signal::ABRT;
                 break;
             case SIGSEGV:
                 IO_INFO("Caught signal SIGSEGV - segmentation fault detected, dumping memory log");  // TODO: Implement memory tracking
-                signalStatus.bitmask |= SignalStatus::SEGV;
+                signalState |= Platform::Signal::SEGV;
                 break;
             case SIGFPE:
                 IO_INFO("Caught signal SIGFPE - invalid math operation");
-                signalStatus.bitmask |= SignalStatus::FPE;
+                signalState |= Platform::Signal::FPE;
                 break;
             case SIGILL:
                 IO_INFO("Caught signal SIGILL - illegal instruction");
-                signalStatus.bitmask |= SignalStatus::ILL;
+                signalState |= Platform::Signal::ILL;
                 break;
             case SIGHUP:
                 IO_INFO("Caught signal SIGHUP - hangup detected, reloading engine");  // TODO: Implement hot reloading (plugins etc.)
-                signalStatus.bitmask |= SignalStatus::HUP;
+                signalState |= Platform::Signal::HUP;
                 break;
             default:
                 IO_WARNV("Caught unhandled signal {0}", signal);
                 break;
         }
     }
+
+    void Platform::clearSignal(Signal signal) { signalState &= ~static_cast<u32>(signal); }
+
+    b8 Platform::isSignal(Signal signal) { return signalState & static_cast<u32>(signal); }
+
+    u64 Platform::getTime() { return std::chrono::duration_cast<std::chrono::microseconds>(clock.now().time_since_epoch()).count(); }
 }  // namespace iodine::core
 
 #endif

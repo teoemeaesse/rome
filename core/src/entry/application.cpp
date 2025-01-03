@@ -38,8 +38,9 @@ namespace iodine::core {
             frametime = (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_nsec - start.tv_nsec) / 1000;
             acc += frametime;
 
-            if (Platform::signalStatus.bitmask & Platform::SignalStatus::INT) {
+            if (Platform::getInstance().isSignal(Platform::Signal::INT)) {
                 stop();
+                Platform::getInstance().clearSignal(Platform::Signal::INT);
             }
         }
     }

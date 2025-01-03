@@ -7,8 +7,8 @@
 
 iodine::i32 main(iodine::i32 argc, char** argv) {
     // Initialize the engine.
-    iodine::core::Platform::assertCompatible();
-    iodine::core::Platform::log();
+    iodine::core::Platform::getInstance().assertCompatible();
+    iodine::core::Platform::getInstance().log();
 
     // Create the application.
     auto app = iodine::core::createApplication();

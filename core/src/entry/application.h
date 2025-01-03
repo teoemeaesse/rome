@@ -35,7 +35,7 @@ namespace iodine::core {
          * @return The application.
          */
         Application(u32 framerate = 60);
-        virtual ~Application();
+        virtual ~Application() = default;
 
         /**
          * @brief Initializes the application.
