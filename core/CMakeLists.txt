@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.14)
 
 project(core LANGUAGES CXX)
 
@@ -7,6 +7,10 @@ set(CMAKE_CXX_STANDARD 20)
 option(BUILD_TESTS "Build unit tests" OFF)
 
 file(GLOB_RECURSE CORE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
+
+if(BUILD_TESTS)
+    list(REMOVE_ITEM CORE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/entry/entry.cpp)
+endif()
 
 add_library(core STATIC ${CORE_SOURCES})
 
@@ -44,25 +48,23 @@ if(APPLE)
             "-framework IOKit"
             pthread
             dl
-            m)
+            m
+            )
 endif()
 
 if(BUILD_TESTS)
+    include(FetchContent)
+    FetchContent_Declare(
+        googletest
+        URL https://github.com/google/googletest/archive/b514bdc898e2951020cbdca1304b75f5950d1f59.zip
+    )
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+    FetchContent_MakeAvailable(googletest)
     enable_testing()
-    include(CTest)
 
     file(GLOB_RECURSE TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
-    add_library(unity STATIC ${CMAKE_CURRENT_SOURCE_DIR}/include/unity/unity.c)
-    
-    foreach(TEST_SOURCE ${TEST_SOURCES})
-        get_filename_component(TEST_NAME ${TEST_SOURCE} NAME_WE)
-        add_executable(${TEST_NAME}_test ${TEST_SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/include/unity/unity.c)
-        target_include_directories(${TEST_NAME}_test PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-        target_link_libraries(${TEST_NAME}_test PRIVATE core)
-        set_target_properties(${TEST_NAME}_test PROPERTIES
-            RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin/tests
-        )
 
-        add_test(NAME ${TEST_NAME}_test COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/bin/tests/${TEST_NAME}_test)
-    endforeach()
+    add_executable(core_tests ${TEST_SOURCES})
+    target_link_libraries(core_tests PRIVATE core gtest gtest_main)
+    add_test(NAME CoreTests COMMAND core_tests)
 endif()

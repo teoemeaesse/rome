@@ -7,18 +7,12 @@
 
 iodine::i32 main(iodine::i32 argc, char** argv) {
     // Initialize the engine.
+    iodine::core::Platform::getInstance().init();
     iodine::core::Platform::getInstance().assertCompatible();
     iodine::core::Platform::getInstance().log();
 
     // Create the application.
-    auto app = iodine::core::createApplication();
-
-    // Handle interrupts.
-    struct sigaction sigIntHandler;
-    sigIntHandler.sa_handler = iodine::core::handleCtrlC;
-    sigemptyset(&sigIntHandler.sa_mask);
-    sigIntHandler.sa_flags = 0;
-    sigaction(SIGINT, &sigIntHandler, NULL);
+    auto app = createApplication();
 
     // Run the application.
     app->setup();

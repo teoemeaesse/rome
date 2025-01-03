@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 #include "prelude.h"
 
 namespace iodine::core {
@@ -7,34 +9,15 @@ namespace iodine::core {
      * @brief The base class for all iodine applications.
      */
     class Application {
-        /**
-         * @brief The status of the application.
-         */
-        enum class Status {
-            Ok,     ///< The application is running.
-            Error,  ///< An error occurred.
-            Pause,  ///< The application is paused - render but don't tick.
-            Stop,   ///< The application has stopped.
-            Done    ///< The application has finished.
-        };
-        /**
-         * @brief Performance metrics for the application.
-         */
-        struct Metrics {
-            u32 framerateTarget;    ///< The target framerate.
-            u32 framerateEstimate;  ///< The estimated framerate.
-            f32 framerateWindow;    ///< How long to average the framerate over (in seconds).
-            u32 frameCount;         ///< The number of frames rendered within the window.
-            f32 frameTime;          ///< The time taken to render a frame.
-        };
-
         public:
+        struct Config;
+
         /**
          * @brief Creates a new application.
-         * @param framerate The target framerate for the application.
+         * @param config The configuration for the application.
          * @return The application.
          */
-        Application(u32 framerate = 60);
+        explicit Application(const Config& config);
         virtual ~Application() = default;
 
         /**
@@ -70,9 +53,72 @@ namespace iodine::core {
          */
         void finish();
 
+        /**
+         * @brief Configuration for the application.
+         */
+        struct Config {
+            std::string title = "Iodine";     ///< The title of the application. Window title should default to this.
+            u32 framerate = 60;               ///< The target framerate of the application.
+            b8 isMemoryLogging = false;       ///< Whether to log memory allocations.
+            b8 isPerformanceLogging = false;  ///< Whether to log performance metrics.
+        };
+
+        /**
+         * @brief A builder for the application configuration.
+         */
+        class Builder {
+            public:
+            Builder& setTitle(const std::string& title) {
+                config.title = title;
+                return *this;
+            }
+
+            Builder& setFramerate(u32 framerate) {
+                config.framerate = framerate;
+                return *this;
+            }
+
+            Builder& enableMemoryLogging() {
+                config.isMemoryLogging = true;
+                return *this;
+            }
+
+            Builder& enablePerformanceLogging() {
+                config.isPerformanceLogging = true;
+                return *this;
+            }
+
+            Config build() { return config; }
+
+            private:
+            Config config;
+        };
+
+        /**
+         * @brief The status of the application.
+         */
+        enum class Status {
+            Ok,     ///< The application is running.
+            Error,  ///< An error occurred.
+            Pause,  ///< The application is paused - render but don't tick.
+            Done    ///< The application has finished.
+        };
+
+        /**
+         * @brief Performance metrics for the application.
+         */
+        struct Metrics {
+            u32 framerateTarget;    ///< The target framerate.
+            u32 framerateEstimate;  ///< The estimated framerate.
+            f32 framerateWindow;    ///< How long to average the framerate over (in seconds).
+            u32 frameCount;         ///< The number of frames rendered within the window.
+            f32 frameTime;          ///< The time taken to render a frame.
+        };
+
         private:
+        Config config;
         Status status;    ///< The status of the application.
-        Metrics metrics;  ///< The performance metrics of the application.
+        Metrics metrics;  ///< The performance metrics of the application. PLACEHOLDER
 
         /**
          * @brief The main game loop. Calls tick() and render() in a loop.
@@ -80,9 +126,10 @@ namespace iodine::core {
         void loop();
     };
 
-    /**
-     * @brief Creates a new application. This function must be implemented by the user.
-     * @return A pointer to the application.
-     */
-    Application* createApplication();
 }  // namespace iodine::core
+
+/**
+ * @brief Creates a new application. This function must be implemented by the user.
+ * @return A pointer to the application.
+ */
+iodine::core::Application* createApplication();

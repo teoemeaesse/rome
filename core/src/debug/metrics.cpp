@@ -36,6 +36,8 @@ void operator delete[](void* ptr) noexcept {
 
 namespace iodine::core {
     void Metrics::registerAllocation(void* ptr, u64 size) {
+        if (!memoryLogging) return;
+
         if (!ptr) return;
 
         std::lock_guard<std::mutex> lock(registrarMutex);
@@ -53,8 +55,12 @@ namespace iodine::core {
      * @param ptr The pointer being freed.
      */
     void Metrics::registerDeallocation(void* ptr) {
+        if (!memoryLogging) return;
+
         if (!ptr) {
+            disableMemory();  // Logging will allocate memory for the string, so we need to disable it
             IO_WARN("Attempted to deallocate a null pointer");
+            enableMemory();
             return;
         }
 

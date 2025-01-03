@@ -12,7 +12,7 @@ namespace iodine::core {
 
     static void handleSignal(i32 signal);
 
-    Platform::Platform() {
+    void Platform::init() {
         signal(SIGINT, handleSignal);
         signal(SIGTERM, handleSignal);
         signal(SIGABRT, handleSignal);

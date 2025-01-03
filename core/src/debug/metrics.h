@@ -77,7 +77,18 @@ namespace iodine::core {
          */
         inline u64 getMissingDeallocations() const { return allocations.size(); }
 
+        /**
+         * @brief Disables memory logging.
+         */
+        inline void disableMemory() { memoryLogging = false; }
+
+        /**
+         * @brief Enables memory logging.
+         */
+        inline void enableMemory() { memoryLogging = true; }
+
         private:
+        bool memoryLogging = false;                  ///< Whether to log memory allocation and deallocation.
         std::unordered_map<void*, u64> allocations;  ///< Tracks each pointer's allocated size.
         mutable std::mutex registrarMutex;           ///< Protects allocations and the counters from concurrent access.
         u64 currentBytes = 0;                        ///< The current total heap-allocated bytes.

@@ -25,12 +25,6 @@ namespace iodine::core {
         };
 
         /**
-         * @brief Performs platform initialization tasks such as setting up signal listeners.
-         */
-        Platform();
-        virtual ~Platform() = default;
-
-        /**
          * @brief Gets the singleton instance of the platform.
          * @return The platform instance.
          */
@@ -38,6 +32,11 @@ namespace iodine::core {
             static Platform instance;
             return instance;
         }
+
+        /**
+         * @brief Performs platform initialization tasks such as setting up signal listeners.
+         */
+        void init();
 
         /**
          * @brief Gets the name of the current platform.

@@ -1,11 +1,16 @@
 #include "entry/application.h"
 
 #include "debug/log.h"
-#include "entry/entry.h"
+#include "debug/metrics.h"
 #include "platform/platform.h"
 
 namespace iodine::core {
-    Application::Application(u32 framerate) : status(Application::Status::Done), metrics({.framerateTarget = framerate}) {}
+    Application::Application(const Config& config)
+        : config(config), status(Application::Status::Done), metrics({.framerateTarget = config.framerate}) {
+        if (config.isMemoryLogging) {
+            iodine::core::Metrics::getInstance().enableMemory();
+        }
+    }
 
     void Application::loop() {
         IO_INFO("Starting up game loop");
@@ -42,6 +47,25 @@ namespace iodine::core {
                 stop();
                 Platform::getInstance().clearSignal(Platform::Signal::INT);
             }
+        }
+    }
+
+    void Application::start() {
+        if (status == Application::Status::Done) {
+            status = Application::Status::Ok;
+            loop();
+        } else if (status == Application::Status::Pause) {
+            status = Application::Status::Ok;
+        } else {
+            IO_WARN("Application already running");
+        }
+    }
+
+    void Application::stop() {
+        if (status == Application::Status::Ok || status == Application::Status::Pause) {
+            status = Application::Status::Done;
+        } else {
+            IO_WARN("Application is not running");
         }
     }
 }  // namespace iodine::core

@@ -16,7 +16,7 @@ namespace iodine::core {
      * @param message The message to log.
      * @param ... The arguments to format the message with.
      */
-    void logMessage(LogLevel level, std::string message, ...);
+    void logMessage(LogLevel level, const char*, ...);
 }  // namespace iodine::core
 
 /* Mute debug logs in release build */

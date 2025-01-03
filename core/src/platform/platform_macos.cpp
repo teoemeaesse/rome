@@ -10,9 +10,9 @@ namespace iodine::core {
     static u32 signalState;                  ///< The current signal status.
     static std::chrono::steady_clock clock;  ///< The current clock.
 
-    static void handleSignal(i32 signal);
+    void handleSignal(i32 signal);
 
-    Platform::Platform() {
+    void Platform::init() {
         struct sigaction sigIntHandler;
         sigIntHandler.sa_handler = handleSignal;
         sigemptyset(&sigIntHandler.sa_mask);
@@ -60,11 +60,11 @@ namespace iodine::core {
 
     const char* Platform::getName() { return PLATFORM_NAME; }
 
-    void Platform::log() { IO_INFOV("Running on {0}", getName()); }
+    void Platform::log() { IO_INFOV("Running on %s", getName()); }
 
     void Platform::assertCompatible() {
         if (!isMacOS()) {
-            IO_FATALV("Incompatible platform: {0}", getName());
+            IO_FATALV("Incompatible platform: %s", getName());
             std::exit(EXIT_FAILURE);
         }
     }
@@ -75,38 +75,40 @@ namespace iodine::core {
 
     b8 Platform::isUnixLike() { return true; }
 
-    static void handleSignal(i32 signal) {
+    void handleSignal(i32 signal) {
+        // ! if this breaks, google 'signal-safety' !
         switch (signal) {
             case SIGINT:
-                IO_INFO("Caught signal SIGINT - raised by user on ctrl-c, cmd-q or window close");
+                // IO_INFO("Caught signal SIGINT - raised by user on ctrl-c, cmd-q or window close");
                 signalState |= Platform::Signal::INT;
+                exit(0);  // TODO: Implement graceful shutdown
                 break;
             case SIGTERM:
-                IO_INFO("Caught signal SIGTERM - raised by an external process to terminate the program");
+                // IO_INFO("Caught signal SIGTERM - raised by an external process to terminate the program");
                 signalState |= Platform::Signal::TERM;
                 break;
             case SIGABRT:
-                IO_INFO("Caught signal SIGABRT - assertion failed");
+                // IO_INFO("Caught signal SIGABRT - assertion failed");
                 signalState |= Platform::Signal::ABRT;
                 break;
             case SIGSEGV:
-                IO_INFO("Caught signal SIGSEGV - segmentation fault detected, dumping memory log");  // TODO: Implement memory tracking
+                // IO_INFO("Caught signal SIGSEGV - segmentation fault detected, dumping memory log");  // TODO: Implement memory tracking
                 signalState |= Platform::Signal::SEGV;
                 break;
             case SIGFPE:
-                IO_INFO("Caught signal SIGFPE - invalid math operation");
+                // IO_INFO("Caught signal SIGFPE - invalid math operation");
                 signalState |= Platform::Signal::FPE;
                 break;
             case SIGILL:
-                IO_INFO("Caught signal SIGILL - illegal instruction");
+                // IO_INFO("Caught signal SIGILL - illegal instruction");
                 signalState |= Platform::Signal::ILL;
                 break;
             case SIGHUP:
-                IO_INFO("Caught signal SIGHUP - hangup detected, reloading engine");  // TODO: Implement hot reloading (plugins etc.)
+                // IO_INFO("Caught signal SIGHUP - hangup detected, reloading engine");  // TODO: Implement hot reloading (plugins etc.)
                 signalState |= Platform::Signal::HUP;
                 break;
             default:
-                IO_WARNV("Caught unhandled signal {0}", signal);
+                // IO_WARNV("Caught unhandled signal %d", signal);
                 break;
         }
     }
