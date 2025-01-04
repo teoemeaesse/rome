@@ -16,14 +16,17 @@ namespace iodine::core {
     void Application::loop() {
         IO_INFO("Starting up game loop");
 
-        u64 usPerFrame = 1000000 / metrics.framerateTarget, acc = 0, frametime = 0, counter = 0;
+        f64 usPerFrame = 1000000 / metrics.framerateTarget, acc = 0, frametime = 0, counter = 0;
         u32 frames = 0;
-        struct timespec start, end;
+        struct timespec prev, current;
+        clock_gettime(CLOCK_MONOTONIC_RAW, &prev);
         while (status == Application::Status::Ok || status == Application::Status::Pause) {
-            clock_gettime(CLOCK_MONOTONIC_RAW, &start);
+            clock_gettime(CLOCK_MONOTONIC_RAW, &current);
+            frametime = (current.tv_sec - prev.tv_sec) * 1000000.0f + (current.tv_nsec - prev.tv_nsec) / 1000.0f;
+            prev = current;
+            acc += frametime;
 
             while (acc >= usPerFrame) {
-                IO_INFO("Ticking application");
                 if (status == Application::Status::Ok) {
                     tick();
                 }
@@ -39,10 +42,6 @@ namespace iodine::core {
             }
 
             render(frametime / 1000000.0f);
-
-            clock_gettime(CLOCK_MONOTONIC_RAW, &end);
-            frametime = (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_nsec - start.tv_nsec) / 1000;
-            acc += frametime;
 
             if (Platform::getInstance().isSignal(Platform::Signal::INT)) {
                 stop();
