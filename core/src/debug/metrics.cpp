@@ -1,36 +1,56 @@
 #include "debug/metrics.h"
 
-#include <cstdlib>
 #include <new>
 
+static thread_local bool recursionGuard = false;  ///< Used to prevent circular new / delete calls.
+
 void* operator new(size_t size) {
-    void* ptr = std::malloc(size);
-    if (!ptr) {
-        throw std::bad_alloc();
+    if (!recursionGuard) {
+        recursionGuard = true;
+        void* ptr = std::malloc(size);
+        if (!ptr) {
+            recursionGuard = false;
+            throw std::bad_alloc();
+        }
+
+        iodine::core::Metrics::getInstance().registerAllocation(ptr, static_cast<iodine::u64>(size));
+        recursionGuard = false;
+        return ptr;
     }
-
-    iodine::core::Metrics::getInstance().registerAllocation(ptr, static_cast<iodine::u64>(size));
-
-    return ptr;
+    return std::malloc(size);
 }
 void operator delete(void* ptr) noexcept {
-    iodine::core::Metrics::getInstance().registerDeallocation(ptr);
+    if (!recursionGuard) {
+        recursionGuard = true;
+        iodine::core::Metrics::getInstance().registerDeallocation(ptr);
+        recursionGuard = false;
+    }
     std::free(ptr);
 }
 
 void* operator new[](size_t size) {
-    void* ptr = std::malloc(size);
-    if (!ptr) {
-        throw std::bad_alloc();
+    if (!recursionGuard) {
+        recursionGuard = true;
+        void* ptr = std::malloc(size);
+        if (!ptr) {
+            recursionGuard = false;
+            throw std::bad_alloc();
+        }
+
+        iodine::core::Metrics::getInstance().registerAllocation(ptr, static_cast<iodine::u64>(size));
+        recursionGuard = false;
+        return ptr;
     }
 
-    iodine::core::Metrics::getInstance().registerAllocation(ptr, size);
-
-    return ptr;
+    return std::malloc(size);
 }
 
 void operator delete[](void* ptr) noexcept {
-    iodine::core::Metrics::getInstance().registerDeallocation(ptr);
+    if (!recursionGuard) {
+        recursionGuard = true;
+        iodine::core::Metrics::getInstance().registerDeallocation(ptr);
+        recursionGuard = false;
+    }
     std::free(ptr);
 }
 
@@ -58,9 +78,7 @@ namespace iodine::core {
         if (!memoryLogging) return;
 
         if (!ptr) {
-            disableMemory();  // Logging will allocate memory for the string, so we need to disable it
             IO_WARN("Attempted to deallocate a null pointer");
-            enableMemory();
             return;
         }
 
@@ -70,6 +88,7 @@ namespace iodine::core {
             u64 size = it->second;
             currentBytes -= size;
             allocations.erase(it);
+            return;
         }
 
         IO_WARNV("Attempted to deallocate a pointer that was not allocated by the Iodine runtime: %p", ptr);

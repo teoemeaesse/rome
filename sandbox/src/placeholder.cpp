@@ -1,10 +1,12 @@
+#include "debug/log.h"
 #include "entry/entry.h"
 
 class MyApplication : public iodine::core::Application {
     public:
-    MyApplication() : iodine::core::Application(iodine::core::Application::Builder().setTitle("My Application").enableMemoryLogging().build()) {}
+    MyApplication()
+        : iodine::core::Application(iodine::core::Application::Builder().setTitle("My Application").enableMemoryLogging().setFramerate(1).build()) {}
     void setup() override {}
-    void tick() override {}
+    void tick() override { IO_INFO("Hello, world!"); }
     void render(iodine::f32 delta) override {}
 };
 

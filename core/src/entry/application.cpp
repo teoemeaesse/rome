@@ -1,5 +1,6 @@
 #include "entry/application.h"
 
+#include "chrono/timer.h"
 #include "debug/log.h"
 #include "debug/metrics.h"
 #include "platform/platform.h"
@@ -15,17 +16,18 @@ namespace iodine::core {
     void Application::loop() {
         IO_INFO("Starting up game loop");
 
-        u64 delta = 1000000 / metrics.framerateTarget, acc = 0, frametime = 0, counter = 0;
+        u64 usPerFrame = 1000000 / metrics.framerateTarget, acc = 0, frametime = 0, counter = 0;
         u32 frames = 0;
         struct timespec start, end;
         while (status == Application::Status::Ok || status == Application::Status::Pause) {
             clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 
-            while (acc >= delta) {
+            while (acc >= usPerFrame) {
+                IO_INFO("Ticking application");
                 if (status == Application::Status::Ok) {
                     tick();
                 }
-                acc -= delta;
+                acc -= usPerFrame;
             }
 
             frames++;
@@ -35,9 +37,8 @@ namespace iodine::core {
                 counter = 0;
                 frames = 0;
             }
-            f32 delta = frametime / 1000000.0f;
 
-            render(delta);
+            render(frametime / 1000000.0f);
 
             clock_gettime(CLOCK_MONOTONIC_RAW, &end);
             frametime = (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_nsec - start.tv_nsec) / 1000;
@@ -53,6 +54,7 @@ namespace iodine::core {
     void Application::start() {
         if (status == Application::Status::Done) {
             status = Application::Status::Ok;
+            IO_INFO("Starting application");
             loop();
         } else if (status == Application::Status::Pause) {
             status = Application::Status::Ok;
