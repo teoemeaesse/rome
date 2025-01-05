@@ -1,7 +1,5 @@
 #pragma once
 
-#include <chrono>
-
 #include "prelude.h"
 
 namespace iodine::core {
@@ -20,12 +18,11 @@ namespace iodine::core {
 
         /**
          * @brief Resets the timer and returns the time elapsed since the last start / tick.
-         * @return The time elapsed in microseconds.
+         * @return The time elapsed in seconds.
          */
-        u64 tick();
+        f64 tick();
 
         private:
-        std::chrono::steady_clock clock;
-        u64 lastTime;
+        f64 lastTime;
     };
 }  // namespace iodine::core

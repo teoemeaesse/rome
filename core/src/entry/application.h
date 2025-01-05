@@ -2,6 +2,7 @@
 
 #include <string>
 
+#include "chrono/rate.h"
 #include "prelude.h"
 
 namespace iodine::core {
@@ -39,7 +40,7 @@ namespace iodine::core {
          * @brief Runs as fast as possible.
          * @param delta The time since the last frame.
          */
-        virtual void render(f32 delta) = 0;
+        virtual void render(f64 delta) = 0;
 
         /**
          * @brief Starts or resumes the game loop.
@@ -62,10 +63,18 @@ namespace iodine::core {
          * @brief Configuration for the application.
          */
         struct Config {
-            std::string title = "Iodine";     ///< The title of the application. Window title should default to this.
-            u32 framerate = 60;               ///< The target framerate of the application.
+            // General settings.
+            std::string title = "Iodine";  ///< The title of the application. Window title should default to this.
+            u32 tickRate = 60;             ///< The target update rate of the application.
+            u32 renderRate = 60;           ///< The target framerate of the application. 0 will sync with tick rate.
+
+            // Metrics. Enable as needed.
             b8 isMemoryLogging = false;       ///< Whether to log memory allocations.
             b8 isPerformanceLogging = false;  ///< Whether to log performance metrics.
+
+            // These are not too important, just leave them as they are.
+            f64 tickRateWindow = 1.0f;    ///< The window to average the tick rate over (in seconds).
+            f64 renderRateWindow = 1.0f;  ///< The window to average the render rate over (in seconds).
         };
 
         /**
@@ -78,8 +87,23 @@ namespace iodine::core {
                 return *this;
             }
 
-            Builder& setFramerate(u32 framerate) {
-                config.framerate = framerate;
+            Builder& setTickRate(u32 tickRate) {
+                config.tickRate = tickRate;
+                return *this;
+            }
+
+            Builder& setTickRateWindow(f64 tickRateWindow) {
+                config.tickRateWindow = tickRateWindow;
+                return *this;
+            }
+
+            Builder& setRenderRate(u32 renderRate) {
+                config.renderRate = renderRate;
+                return *this;
+            }
+
+            Builder& setRenderRateWindow(f64 renderRateWindow) {
+                config.renderRateWindow = renderRateWindow;
                 return *this;
             }
 
@@ -109,22 +133,13 @@ namespace iodine::core {
             Done    ///< The application has finished.
         };
 
-        /**
-         * @brief Performance metrics for the application.
-         */
-        struct Metrics {
-            u32 framerateTarget;    ///< The target framerate.
-            u32 framerateEstimate;  ///< The estimated framerate.
-            f32 framerateWindow;    ///< How long to average the framerate over (in seconds).
-            u32 frameCount;         ///< The number of frames rendered within the window.
-            f32 frameTime;          ///< The time taken to render a frame.
-        };
+        protected:
+        Config config;           ///< The configuration for the application.
+        Status status;           ///< The status of the application.
+        RateTracker tickRate;    ///< The rate tracker for the tick rate.
+        RateTracker renderRate;  ///< The rate tracker for the render rate.
 
         private:
-        Config config;
-        Status status;    ///< The status of the application.
-        Metrics metrics;  ///< The performance metrics of the application. PLACEHOLDER
-
         /**
          * @brief The main game loop. Calls tick() and render() in a loop.
          */

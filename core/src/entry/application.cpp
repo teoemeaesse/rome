@@ -1,5 +1,7 @@
 #include "entry/application.h"
 
+#include <thread>
+
 #include "chrono/timer.h"
 #include "debug/log.h"
 #include "debug/metrics.h"
@@ -7,47 +9,47 @@
 
 namespace iodine::core {
     Application::Application(const Config& config)
-        : config(config), status(Application::Status::Done), metrics({.framerateTarget = config.framerate}) {
+        : config(config),
+          status(Application::Status::Done),
+          tickRate(config.tickRate, config.tickRateWindow),
+          renderRate(config.renderRate, config.renderRateWindow) {
         if (config.isMemoryLogging) {
             iodine::core::Metrics::getInstance().registerThread();
             iodine::core::Metrics::getInstance().setIsMemoryTracking(true);
         }
     }
 
+    /*if (leftover > 0) {
+        IO_INFOV("Sleeping for %f seconds", leftover);
+        std::this_thread::sleep_for(std::chrono::microseconds(static_cast<u64>(leftover * 1e6)));
+    }*/
+
     void Application::loop() {
         IO_INFO("Starting up game loop");
 
-        f64 usPerFrame = 1000000 / metrics.framerateTarget, acc = 0, frametime = 0, counter = 0;
-        u32 frames = 0;
-        struct timespec prev, current;
-        clock_gettime(CLOCK_MONOTONIC_RAW, &prev);
+        f64 targetTickTime = 1.0f / config.tickRate;
+        f64 targetRenderTime = 1.0 / config.renderRate;
+        f64 targetLoopTime = targetTickTime + targetRenderTime;
+        f64 elapsedTick, elapsedRender, loopTime;
+        Timer loopTimer;
+        loopTimer.start();
         while (status == Application::Status::Ok || status == Application::Status::Pause) {
-            clock_gettime(CLOCK_MONOTONIC_RAW, &current);
-            frametime = (current.tv_sec - prev.tv_sec) * 1000000.0f + (current.tv_nsec - prev.tv_nsec) / 1000.0f;
-            prev = current;
-            acc += frametime;
+            loopTime = loopTimer.tick();
+            elapsedTick += loopTime;
+            elapsedRender += loopTime;
 
-            while (acc >= usPerFrame) {
+            while (elapsedTick >= targetTickTime) {
                 if (status == Application::Status::Ok) {
+                    tickRate.tick(elapsedTick);
                     tick();
                 }
-                acc -= usPerFrame;
+                elapsedTick -= targetTickTime;
             }
 
-            frames++;
-            counter += frametime;
-            if (counter >= 1000000 * metrics.framerateWindow) {
-                metrics.frameCount = frames;
-                counter = 0;
-                frames = 0;
-            }
-
-            render(frametime / 1000000.0f);
-
-            if (Platform::getInstance().isSignal(Platform::Signal::INT)) {
-                stop();
-                IO_INFO("Caught SIGINT, stopping application");
-                Platform::getInstance().clearSignal(Platform::Signal::INT);
+            if (elapsedRender >= targetRenderTime) {
+                renderRate.tick(elapsedRender);
+                render(loopTime);
+                elapsedRender -= targetRenderTime;
             }
         }
 

@@ -86,9 +86,9 @@ namespace iodine::core {
         b8 isSignal(Signal signal);
 
         /**
-         * @brief Gets the current time in microseconds.
+         * @brief Gets the current time in seconds.
          * @return The current time.
          */
-        u64 getTime();
+        f64 getTime();
     };
 }  // namespace iodine::core

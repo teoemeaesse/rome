@@ -1,11 +1,13 @@
 #include "chrono/timer.h"
 
-namespace iodine::core {
-    void Timer::start() { lastTime = std::chrono::duration_cast<std::chrono::microseconds>(clock.now().time_since_epoch()).count(); }
+#include "platform/platform.h"
 
-    u64 Timer::tick() {
-        u64 currentTime = std::chrono::duration_cast<std::chrono::microseconds>(clock.now().time_since_epoch()).count();
-        u64 elapsedTime = currentTime - lastTime;
+namespace iodine::core {
+    void Timer::start() { lastTime = Platform::getInstance().getTime(); }
+
+    f64 Timer::tick() {
+        f64 currentTime = Platform::getInstance().getTime();
+        f64 elapsedTime = currentTime - lastTime;
         lastTime = currentTime;
         return elapsedTime;
     }

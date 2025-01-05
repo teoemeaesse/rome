@@ -1,14 +1,24 @@
 #include "debug/metrics.h"
 #include "entry/entry.h"
+#include "platform/platform.h"
 
-class MyApplication : public iodine::core::Application {
+using namespace iodine::core;
+
+class MyApplication : public Application {
     public:
     MyApplication()
-        : iodine::core::Application(iodine::core::Application::Builder().setTitle("My Application").enableMemoryLogging().setFramerate(1).build()) {}
+        : Application(Application::Builder().setTitle("My Application").enableMemoryLogging().setTickRate(30).setRenderRate(1000).build()) {}
     void setup() override {}
-    void shutdown() override { iodine::core::Metrics::getInstance().report(); }
-    void tick() override { IO_INFO("Hello, world!"); }
-    void render(iodine::f32 delta) override {}
+    void shutdown() override { Metrics::getInstance().report(); }
+    void tick() override {
+        IO_DEBUGV("Tick rate: %f | Framerate: %f", tickRate.getRate(), renderRate.getRate());
+        if (Platform::getInstance().isSignal(Platform::Signal::INT)) {
+            stop();
+            IO_INFO("Caught SIGINT, stopping application");
+            Platform::getInstance().clearSignal(Platform::Signal::INT);
+        }
+    }
+    void render(iodine::f64 delta) override {}
 };
 
 iodine::core::Application* createApplication() { return new MyApplication(); }

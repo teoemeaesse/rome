@@ -164,7 +164,7 @@ namespace iodine::core {
         }
     }
 
-    u64 Platform::getTime() { return std::chrono::duration_cast<std::chrono::microseconds>(clock.now().time_since_epoch()).count(); }
+    f64 Platform::getTime() { return std::chrono::duration_cast<std::chrono::microseconds>(clock.now().time_since_epoch()).count() / 1e6; }
 }  // namespace iodine::core
 
 #endif

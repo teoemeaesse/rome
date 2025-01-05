@@ -111,13 +111,12 @@ namespace iodine::core {
             IO_WARNV("Caught unhandled signal {0}", signal);
             break;
     }
-}
 
-void Platform::clearSignal(Signal signal) { signalState &= ~static_cast<u32>(signal); }
+    void Platform::clearSignal(Signal signal) { signalState &= ~static_cast<u32>(signal); }
 
-b8 Platform::isSignal(Signal signal) { return signalState & static_cast<u32>(signal); }
+    b8 Platform::isSignal(Signal signal) { return signalState & static_cast<u32>(signal); }
 
-u64 Platform::getTime() { return std::chrono::duration_cast<std::chrono::microseconds>(clock.now().time_since_epoch()).count(); }
+    f64 Platform::getTime() { return std::chrono::duration_cast<std::chrono::microseconds>(clock.now().time_since_epoch()).count() / 1000000.0f; }
 }  // namespace iodine::core
 
 #endif
