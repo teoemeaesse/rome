@@ -7,50 +7,62 @@
 #include "debug/log.h"
 
 namespace iodine::core {
-    static u32 signalState;                  ///< The current signal status.
-    static std::chrono::steady_clock clock;  ///< The current clock.
+    static volatile sig_atomic_t sigInt = 0;   ///< SIGINT signal.
+    static volatile sig_atomic_t sigTerm = 0;  ///< SIGTERM signal.
+    static volatile sig_atomic_t sigAbrt = 0;  ///< SIGABRT signal.
+    static volatile sig_atomic_t sigSegv = 0;  ///< SIGSEGV signal.
+    static volatile sig_atomic_t sigFpe = 0;   ///< SIGFPE signal.
+    static volatile sig_atomic_t sigIll = 0;   ///< SIGILL signal.
+    static volatile sig_atomic_t sigHup = 0;   ///< SIGHUP signal.
+    static std::chrono::steady_clock clock;    ///< The current clock.
 
-    void handleSignal(i32 signal);
+    void handleSigInt(i32 signal);
+    void handleSigTerm(i32 signal);
+    void handleSigAbrt(i32 signal);
+    void handleSigSegv(i32 signal);
+    void handleSigFpe(i32 signal);
+    void handleSigIll(i32 signal);
+    void handleSigHup(i32 signal);
 
     void Platform::init() {
         struct sigaction sigIntHandler;
-        sigIntHandler.sa_handler = handleSignal;
+        sigIntHandler.sa_handler = handleSigInt;
         sigemptyset(&sigIntHandler.sa_mask);
         sigIntHandler.sa_flags = 0;
         sigaction(SIGINT, &sigIntHandler, NULL);
 
         struct sigaction sigTermHandler;
-        sigTermHandler.sa_handler = handleSignal;
+        sigTermHandler.sa_handler = handleSigTerm;
         sigemptyset(&sigTermHandler.sa_mask);
         sigTermHandler.sa_flags = 0;
         sigaction(SIGTERM, &sigTermHandler, NULL);
 
         struct sigaction sigAbrtHandler;
-        sigAbrtHandler.sa_handler = handleSignal;
+        sigAbrtHandler.sa_handler = handleSigAbrt;
         sigemptyset(&sigAbrtHandler.sa_mask);
         sigAbrtHandler.sa_flags = 0;
         sigaction(SIGABRT, &sigAbrtHandler, NULL);
 
         struct sigaction sigSegvHandler;
-        sigSegvHandler.sa_handler = handleSignal;
+        sigSegvHandler.sa_handler = handleSigSegv;
         sigemptyset(&sigSegvHandler.sa_mask);
         sigSegvHandler.sa_flags = 0;
         sigaction(SIGSEGV, &sigSegvHandler, NULL);
 
         struct sigaction sigFpeHandler;
-        sigFpeHandler.sa_handler = handleSignal;
+        sigFpeHandler.sa_handler = handleSigFpe;
         sigemptyset(&sigFpeHandler.sa_mask);
         sigFpeHandler.sa_flags = 0;
         sigaction(SIGFPE, &sigFpeHandler, NULL);
 
         struct sigaction sigIllHandler;
-        sigIllHandler.sa_handler = handleSignal;
+        sigIllHandler.sa_handler = handleSigIll;
         sigemptyset(&sigIllHandler.sa_mask);
         sigIllHandler.sa_flags = 0;
         sigaction(SIGILL, &sigIllHandler, NULL);
 
         struct sigaction sigHupHandler;
-        sigHupHandler.sa_handler = handleSignal;
+        sigHupHandler.sa_handler = handleSigHup;
         sigemptyset(&sigHupHandler.sa_mask);
         sigHupHandler.sa_flags = 0;
         sigaction(SIGHUP, &sigHupHandler, NULL);
@@ -75,47 +87,82 @@ namespace iodine::core {
 
     b8 Platform::isUnixLike() { return true; }
 
-    void handleSignal(i32 signal) {
-        // ! if this breaks, google 'signal-safety' !
+    void handleSigInt(i32 signal) {
+        if (signal == SIGINT) sigInt = 1;
+    }
+
+    void handleSigTerm(i32 signal) {
+        if (signal == SIGTERM) sigTerm = 1;
+    }
+
+    void handleSigAbrt(i32 signal) {
+        if (signal == SIGABRT) sigAbrt = 1;
+    }
+
+    void handleSigSegv(i32 signal) {
+        if (signal == SIGSEGV) sigSegv = 1;
+    }
+
+    void handleSigFpe(i32 signal) {
+        if (signal == SIGFPE) sigFpe = 1;
+    }
+
+    void handleSigIll(i32 signal) {
+        if (signal == SIGILL) sigIll = 1;
+    }
+
+    void handleSigHup(i32 signal) {
+        if (signal == SIGHUP) sigHup = 1;
+    }
+
+    void Platform::clearSignal(Signal signal) {
         switch (signal) {
-            case SIGINT:
-                // IO_INFO("Caught signal SIGINT - raised by user on ctrl-c, cmd-q or window close");
-                signalState |= Platform::Signal::INT;
-                exit(0);  // TODO: Implement graceful shutdown
+            case Signal::HUP:
+                sigHup = 0;
                 break;
-            case SIGTERM:
-                // IO_INFO("Caught signal SIGTERM - raised by an external process to terminate the program");
-                signalState |= Platform::Signal::TERM;
+            case Signal::INT:
+                sigInt = 0;
                 break;
-            case SIGABRT:
-                // IO_INFO("Caught signal SIGABRT - assertion failed");
-                signalState |= Platform::Signal::ABRT;
+            case Signal::ILL:
+                sigIll = 0;
                 break;
-            case SIGSEGV:
-                // IO_INFO("Caught signal SIGSEGV - segmentation fault detected, dumping memory log");  // TODO: Implement memory tracking
-                signalState |= Platform::Signal::SEGV;
+            case Signal::ABRT:
+                sigAbrt = 0;
                 break;
-            case SIGFPE:
-                // IO_INFO("Caught signal SIGFPE - invalid math operation");
-                signalState |= Platform::Signal::FPE;
+            case Signal::FPE:
+                sigFpe = 0;
                 break;
-            case SIGILL:
-                // IO_INFO("Caught signal SIGILL - illegal instruction");
-                signalState |= Platform::Signal::ILL;
+            case Signal::SEGV:
+                sigSegv = 0;
                 break;
-            case SIGHUP:
-                // IO_INFO("Caught signal SIGHUP - hangup detected, reloading engine");  // TODO: Implement hot reloading (plugins etc.)
-                signalState |= Platform::Signal::HUP;
+            case Signal::TERM:
+                sigTerm = 0;
                 break;
             default:
-                // IO_WARNV("Caught unhandled signal %d", signal);
                 break;
         }
     }
 
-    void Platform::clearSignal(Signal signal) { signalState &= ~static_cast<u32>(signal); }
-
-    b8 Platform::isSignal(Signal signal) { return signalState & static_cast<u32>(signal); }
+    b8 Platform::isSignal(Signal signal) {
+        switch (signal) {
+            case Signal::HUP:
+                return sigHup;
+            case Signal::INT:
+                return sigInt;
+            case Signal::ILL:
+                return sigIll;
+            case Signal::ABRT:
+                return sigAbrt;
+            case Signal::FPE:
+                return sigFpe;
+            case Signal::SEGV:
+                return sigSegv;
+            case Signal::TERM:
+                return sigTerm;
+            default:
+                return false;
+        }
+    }
 
     u64 Platform::getTime() { return std::chrono::duration_cast<std::chrono::microseconds>(clock.now().time_since_epoch()).count(); }
 }  // namespace iodine::core

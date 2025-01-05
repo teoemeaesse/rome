@@ -9,7 +9,8 @@ namespace iodine::core {
     Application::Application(const Config& config)
         : config(config), status(Application::Status::Done), metrics({.framerateTarget = config.framerate}) {
         if (config.isMemoryLogging) {
-            iodine::core::Metrics::getInstance().enableMemory();
+            iodine::core::Metrics::getInstance().registerThread();
+            iodine::core::Metrics::getInstance().setIsMemoryTracking(true);
         }
     }
 
@@ -45,9 +46,12 @@ namespace iodine::core {
 
             if (Platform::getInstance().isSignal(Platform::Signal::INT)) {
                 stop();
+                IO_INFO("Caught SIGINT, stopping application");
                 Platform::getInstance().clearSignal(Platform::Signal::INT);
             }
         }
+
+        shutdown();
     }
 
     void Application::start() {

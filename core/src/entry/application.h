@@ -26,6 +26,11 @@ namespace iodine::core {
         virtual void setup() = 0;
 
         /**
+         * @brief Cleans up the application.
+         */
+        virtual void shutdown() = 0;
+
+        /**
          * @brief Runs at a fixed time step.
          */
         virtual void tick() = 0;
