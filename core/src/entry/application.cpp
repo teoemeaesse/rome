@@ -1,7 +1,5 @@
 #include "entry/application.h"
 
-#include <thread>
-
 #include "chrono/timer.h"
 #include "debug/log.h"
 #include "debug/metrics.h"
@@ -18,11 +16,6 @@ namespace iodine::core {
             iodine::core::Metrics::getInstance().setIsMemoryTracking(true);
         }
     }
-
-    /*if (leftover > 0) {
-        IO_INFOV("Sleeping for %f seconds", leftover);
-        std::this_thread::sleep_for(std::chrono::microseconds(static_cast<u64>(leftover * 1e6)));
-    }*/
 
     void Application::loop() {
         IO_INFO("Starting up game loop");

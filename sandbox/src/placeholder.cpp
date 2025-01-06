@@ -2,6 +2,7 @@
 #include "entry/entry.h"
 #include "platform/platform.h"
 
+using namespace iodine;
 using namespace iodine::core;
 
 class MyApplication : public Application {
@@ -18,7 +19,7 @@ class MyApplication : public Application {
             Platform::getInstance().clearSignal(Platform::Signal::INT);
         }
     }
-    void render(iodine::f64 delta) override {}
+    void render(f64 delta) override {}
 };
 
-iodine::core::Application* createApplication() { return new MyApplication(); }
+Application* createApplication() { return new MyApplication(); }

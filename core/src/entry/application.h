@@ -4,6 +4,7 @@
 
 #include "chrono/rate.h"
 #include "prelude.h"
+#include "thread/thread.h"
 
 namespace iodine::core {
     /**
@@ -140,6 +141,8 @@ namespace iodine::core {
         RateTracker renderRate;  ///< The rate tracker for the render rate.
 
         private:
+        Thread tickThread;    ///< The thread for the tick loop.
+        Thread renderThread;  ///< The thread for the render loop.
         /**
          * @brief The main game loop. Calls tick() and render() in a loop.
          */
