@@ -1,10 +1,8 @@
 #pragma once
 
-#include <string>
-
+#include "app/strategy.h"
 #include "chrono/rate.h"
-#include "prelude.h"
-#include "thread/thread.h"
+#include "debug/metrics.h"
 
 namespace iodine::core {
     /**
@@ -12,14 +10,20 @@ namespace iodine::core {
      */
     class Application {
         public:
+        friend class ApplicationStrategy;
         struct Config;
 
         /**
+         * @brief Creates a new application with the default strategy.
+         * @param config The configuration for the application.
+         */
+        Application(const Config& config);
+        /**
          * @brief Creates a new application.
          * @param config The configuration for the application.
-         * @return The application.
+         * @param strategy The strategy for the application.
          */
-        explicit Application(const Config& config);
+        Application(const Config& config, Unique<ApplicationStrategy>&& strategy);
         virtual ~Application() = default;
 
         /**
@@ -34,31 +38,28 @@ namespace iodine::core {
 
         /**
          * @brief Runs at a fixed time step.
+         * @param dt The time since the last tick.
          */
-        virtual void tick() = 0;
+        virtual void tick(f64 dt) = 0;
 
         /**
          * @brief Runs as fast as possible.
-         * @param delta The time since the last frame.
+         * @param dt The time since the last frame.
          */
-        virtual void render(f64 delta) = 0;
+        virtual void render(f64 dt) = 0;
 
         /**
-         * @brief Starts or resumes the game loop.
+         * @brief Starts or resumes the application.
          */
         void start();
         /**
-         * @brief Pauses the game loop.
+         * @brief Pauses the tick loop.
          */
         void pause();
         /**
-         * @brief Stops the game loop.
+         * @brief Stops the application.
          */
         void stop();
-        /**
-         * @brief Finishes the application.
-         */
-        void finish();
 
         /**
          * @brief Configuration for the application.
@@ -124,29 +125,13 @@ namespace iodine::core {
             Config config;
         };
 
-        /**
-         * @brief The status of the application.
-         */
-        enum class Status {
-            Ok,     ///< The application is running.
-            Error,  ///< An error occurred.
-            Pause,  ///< The application is paused - render but don't tick.
-            Done    ///< The application has finished.
-        };
-
         protected:
         Config config;           ///< The configuration for the application.
-        Status status;           ///< The status of the application.
         RateTracker tickRate;    ///< The rate tracker for the tick rate.
         RateTracker renderRate;  ///< The rate tracker for the render rate.
 
         private:
-        Thread tickThread;    ///< The thread for the tick loop.
-        Thread renderThread;  ///< The thread for the render loop.
-        /**
-         * @brief The main game loop. Calls tick() and render() in a loop.
-         */
-        void loop();
+        Unique<ApplicationStrategy> strategy;  ///< The strategy for the application.
     };
 
 }  // namespace iodine::core

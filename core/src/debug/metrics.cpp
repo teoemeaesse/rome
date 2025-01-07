@@ -251,7 +251,6 @@ namespace iodine::core {
     Metrics::ThreadId Metrics::registerThread() {
         std::lock_guard<std::mutex> lock(registrarMutex);
         if (threadId != -1) {
-            IO_WARN("Thread already registered");
             return threadId;
         }
 

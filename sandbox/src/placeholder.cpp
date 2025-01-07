@@ -1,3 +1,4 @@
+#include "app/twin_threads.h"
 #include "debug/metrics.h"
 #include "entry/entry.h"
 #include "platform/platform.h"
@@ -11,7 +12,8 @@ class MyApplication : public Application {
         : Application(Application::Builder().setTitle("My Application").enableMemoryLogging().setTickRate(30).setRenderRate(1000).build()) {}
     void setup() override {}
     void shutdown() override { Metrics::getInstance().report(); }
-    void tick() override {
+    void tick(f64 dt) override {
+        tickRate.tick(dt);
         IO_DEBUGV("Tick rate: %f | Framerate: %f", tickRate.getRate(), renderRate.getRate());
         if (Platform::getInstance().isSignal(Platform::Signal::INT)) {
             stop();
@@ -19,7 +21,7 @@ class MyApplication : public Application {
             Platform::getInstance().clearSignal(Platform::Signal::INT);
         }
     }
-    void render(f64 delta) override {}
+    void render(f64 dt) override { renderRate.tick(dt); }
 };
 
 Application* createApplication() { return new MyApplication(); }

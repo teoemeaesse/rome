@@ -102,6 +102,10 @@ IO_API void assertFail(const char* expression, const char* message, const char* 
 #define NULL ((void*)0)
 #endif
 
+/* Standard headers */
+#include <memory>
+#include <string>
+
 namespace iodine {
     /* Primitive types */
     using u8 = unsigned char;
@@ -133,4 +137,20 @@ namespace iodine {
     STATIC_ASSERT(sizeof(b16) == 2, "b16 type is not 2 bytes");
     STATIC_ASSERT(sizeof(b32) == 4, "b32 type is not 4 bytes");
     STATIC_ASSERT(sizeof(byte) == 1, "byte type is not 1 byte");
+
+    /* Smart pointers */
+    template <typename T>
+    using Unique = std::unique_ptr<T>;
+    template <typename T>
+    using Shared = std::shared_ptr<T>;
+
+    template <typename T, typename... Args>
+    constexpr Unique<T> MakeUnique(Args&&... args) {
+        return std::make_unique<T>(std::forward<Args>(args)...);
+    }
+    template <typename T, typename... Args>
+    constexpr Shared<T> MakeShared(Args&&... args) {
+        return std::make_shared<T>(std::forward<Args>(args)...);
+    }
+
 }  // namespace iodine

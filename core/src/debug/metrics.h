@@ -4,7 +4,6 @@
 #include <unordered_map>
 
 #include "debug/log.h"
-#include "prelude.h"
 
 namespace iodine::core {
     static inline std::atomic_bool metricsShutdown = false;  ///< Whether the metrics have been shut down. This only happens on program exit.
