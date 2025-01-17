@@ -116,7 +116,7 @@ namespace iodine::core {
 
     b8 Platform::isSignal(Signal signal) { return signalState & static_cast<u32>(signal); }
 
-    f64 Platform::getTime() { return std::chrono::duration_cast<std::chrono::microseconds>(clock.now().time_since_epoch()).count() / 1000000.0f; }
+    f64 Platform::time() { return std::chrono::duration_cast<std::chrono::microseconds>(clock.now().time_since_epoch()).count() / 1000000.0f; }
 }  // namespace iodine::core
 
 #endif

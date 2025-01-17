@@ -103,6 +103,8 @@ IO_API void assertFail(const char* expression, const char* message, const char* 
 #endif
 
 /* Standard headers */
+#include <cxxabi.h>
+
 #include <memory>
 #include <string>
 
@@ -153,4 +155,14 @@ namespace iodine {
         return std::make_shared<T>(std::forward<Args>(args)...);
     }
 
+    /**
+     * @brief Demangles the type name string (from typeid(T).name()).
+     * @param name The mangled name to demangle.
+     * @return A string containing the demangled name.
+     */
+    static inline const std::string demangle(const char* name) noexcept {
+        int status = 42;
+        std::unique_ptr<char, void (*)(void*)> res{abi::__cxa_demangle(name, nullptr, nullptr, &status), std::free};
+        return (status == 0) ? res.get() : name;
+    }
 }  // namespace iodine

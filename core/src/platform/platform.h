@@ -89,6 +89,12 @@ namespace iodine::core {
          * @brief Gets the current time in seconds.
          * @return The current time.
          */
-        f64 getTime();
+        f64 time();
+
+        /**
+         * @brief Generates a random 64-bit unsigned integer.
+         * @return The random u64.
+         */
+        u64 random_u64();
     };
 }  // namespace iodine::core
