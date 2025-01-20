@@ -28,7 +28,7 @@ namespace iodine::core {
             if (!container || !isType<T>()) {
                 return nullptr;
             }
-            return static_cast<T*>(reinterpret_cast<byte*>(container) + offset);
+            return reinterpret_cast<T*>(reinterpret_cast<byte*>(container) + offset);
         }
 
         /**
@@ -42,7 +42,7 @@ namespace iodine::core {
             if (!container || !isType<T>()) {
                 return nullptr;
             }
-            return static_cast<const T*>(reinterpret_cast<const byte*>(container) + offset);
+            return reinterpret_cast<const T*>(reinterpret_cast<const byte*>(container) + offset);
         }
 
         /**
@@ -52,6 +52,16 @@ namespace iodine::core {
          */
         template <typename T>
         inline b8 isType() noexcept {
+            return type.getUUID() == Type::getUUID<T>();
+        }
+
+        /**
+         * @brief Checks if the field is of the given type.
+         * @tparam T The contained type to check.
+         * @return True if the field is of the given type, false otherwise.
+         */
+        template <typename T>
+        inline b8 isType() const noexcept {
             return type.getUUID() == Type::getUUID<T>();
         }
 
