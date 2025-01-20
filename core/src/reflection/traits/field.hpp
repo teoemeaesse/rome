@@ -32,6 +32,20 @@ namespace iodine::core {
         }
 
         /**
+         * @brief Gets the value of the field from the given container.
+         * @tparam T The contained type of the field.
+         * @param container The container to get the value from.
+         * @return The value of the field.
+         */
+        template <typename T>
+        inline const T* getValue(const void* container) const noexcept {
+            if (!container || !isType<T>()) {
+                return nullptr;
+            }
+            return static_cast<const T*>(reinterpret_cast<const byte*>(container) + offset);
+        }
+
+        /**
          * @brief Checks if the field is of the given type.
          * @tparam T The contained type to check.
          * @return True if the field is of the given type, false otherwise.

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <atomic>
+
 #include "platform/platform.hpp"
 
 namespace iodine::core {
@@ -16,9 +18,9 @@ namespace iodine::core {
         public:
         UUIDGenerator();
         UUIDGenerator(const UUIDGenerator&) = delete;
-        UUIDGenerator(UUIDGenerator&&) = default;
+        UUIDGenerator(UUIDGenerator&&) = delete;
         UUIDGenerator& operator=(const UUIDGenerator&) = delete;
-        UUIDGenerator& operator=(UUIDGenerator&&) = default;
+        UUIDGenerator& operator=(UUIDGenerator&&) = delete;
 
         /**
          * @brief Generates a new universally unique identifier.
@@ -28,8 +30,8 @@ namespace iodine::core {
         UUID generate();
 
         private:
-        u64 key;      ///< The random key used for masking.
-        u64 counter;  ///< Monotonically increasing counter.
+        u64 key;                   ///< The random key used for masking.
+        std::atomic<u64> counter;  ///< Monotonically increasing counter.
     };
 
     static UUIDGenerator uuids;  ///< Generates internal UUIDs. Do not use for persistent storage of UUIDs.

@@ -10,7 +10,7 @@ namespace iodine::core {
     }
 
     UUID UUIDGenerator::generate() {
-        u64 val = __atomic_add_fetch(&counter, 1, __ATOMIC_RELAXED);
+        u64 val = counter.fetch_add(1, std::memory_order_relaxed) + 1;
         return val ^ key;
     }
 }  // namespace iodine::core
