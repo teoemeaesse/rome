@@ -5,26 +5,15 @@
 #include "reflection/reflect.hpp"
 
 namespace iodine::core {
+    class Fields;
+
     /**
      * @brief A reflectable struct or class field.
      */
     class Field {
-        public:
-        /**
-         * @brief Creates a new field given a name and a pointer to member.
-         * @tparam S The struct/class type that owns the member.
-         * @tparam M The type of the member.
-         * @param name The name of the field.
-         * @param member A pointer to the member (e.g. &S::myMember).
-         * @return A new Field instance with the correct offset already computed.
-         */
-        template <typename S, typename M>
-        static Field make(const char* name, M S::* member) {
-            // Ensure that the struct is standard layout to use the pointer-to-member offset trick.
-            STATIC_ASSERT(std::is_standard_layout_v<S>, "Pointer-to-member offset trick requires standard layout");
-            return Field(reflect<M>(), name, reinterpret_cast<u64>(&(reinterpret_cast<S*>(0)->*member)));
-        }
+        friend class Fields;
 
+        public:
         inline const Type& getType() const { return type; }
         inline const char* getName() const { return name; }
 
@@ -64,6 +53,21 @@ namespace iodine::core {
          * @param offset The offset of the field in its containing struct.
          */
         Field(const Type& type, const char* name, u64 offset);
+
+        /**
+         * @brief Creates a new field given a name and a pointer to member.
+         * @tparam S The struct/class type that owns the member.
+         * @tparam M The type of the member.
+         * @param name The name of the field.
+         * @param member A pointer to the member (e.g. &S::myMember).
+         * @return A new Field instance with the correct offset already computed.
+         */
+        template <typename S, typename M>
+        static Field make(const char* name, M S::* member) {
+            // Ensure that the struct is standard layout to use the pointer-to-member offset trick.
+            STATIC_ASSERT(std::is_standard_layout_v<S>, "Pointer-to-member offset trick requires standard layout");
+            return Field(reflect<M>(), name, reinterpret_cast<u64>(&(reinterpret_cast<S*>(0)->*member)));
+        }
     };
 
     /**
@@ -72,15 +76,20 @@ namespace iodine::core {
      */
     class Fields : public Trait {
         public:
+        Fields();
+
         /**
-         * @brief Creates a new list of fields with the given fields.
-         * @tparam FieldList The fields to list.
-         * @param fields The fields to list.
+         * @brief Adds a new field to the list.
+         * @tparam S The struct/class type that owns the member.
+         * @tparam M The type of the member.
+         * @param name The name of the field.
+         * @param member A pointer to the member (e.g. &S::myMember).
+         * @return A reference to this Fields instance.
          */
-        template <typename... FieldList>
-        Fields(FieldList&&... fields) : Trait("Fields") {
-            STATIC_ASSERT((std::is_base_of<Field, FieldList>::value && ...), "FieldList must inherit from Field");
-            (this->fields.emplace_back(fields), ...);
+        template <typename S, typename M>
+        Fields& with(const char* name, M S::* member) {
+            fields.emplace_back(Field::make(name, member));
+            return *this;
         }
 
         /* Non-const iterator interfaces */
