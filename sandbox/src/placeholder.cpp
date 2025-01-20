@@ -15,7 +15,7 @@ struct MyReflectedStruct {
     IO_REFLECT();
 };
 
-IO_REFLECT_IMPL(MyReflectedStruct, Fields(Field<int>("age", &age), Field<std::string>("name", &name)));
+IO_REFLECT_IMPL(MyReflectedStruct, Fields(Field::make<int>("age", &age), Field::make<std::string>("name", &name)));
 
 class MyApplication : public Application {
     public:

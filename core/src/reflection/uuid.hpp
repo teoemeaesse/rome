@@ -32,5 +32,5 @@ namespace iodine::core {
         u64 counter;  ///< Monotonically increasing counter.
     };
 
-    static UUIDGenerator uuids;  ///< The UUID generator.
+    static UUIDGenerator uuids;  ///< Generates internal UUIDs. Do not use for persistent storage of UUIDs.
 }  // namespace iodine::core
