@@ -7,13 +7,14 @@
 /**
  * @brief Implements reflection for the containing type. You should create a type with your own traits here.
  * @param type The name of the type to reflect.
+ * @param name The name of the type. This should be unique.
  * @param ... The traits of the type.
  */
-#define IO_REFLECT(type, ...)                                                             \
-    template <>                                                                           \
-    inline const iodine::core::Type& iodine::core::reflect<type>() {                      \
-        static iodine::core::Type instance = iodine::core::Type::make<type>(__VA_ARGS__); \
-        return instance;                                                                  \
+#define IO_REFLECT(type, name, ...)                                                                          \
+    template <>                                                                                              \
+    inline const iodine::core::Type& iodine::core::reflect<type>() {                                         \
+        static iodine::core::Type instance = iodine::core::Type::make<type>(name __VA_OPT__(, __VA_ARGS__)); \
+        return instance;                                                                                     \
     }
 
 namespace iodine::core {
@@ -33,13 +34,14 @@ namespace iodine::core {
          * @brief Creates a new type with the given traits.
          * @tparam T The underlying type.
          * @tparam ...Traits The trait types.
+         * @param name The name of the type.
          * @param traits The traits for the type.
          * @return The new type.
          */
         template <typename T, typename... Traits>
-        static Type make(Traits&&... traits) {
+        static Type make(const std::string& name, Traits&&... traits) {
             STATIC_ASSERT((std::is_base_of_v<Trait, std::remove_reference_t<Traits>> && ...), "Traits must inherit from Trait");
-            return Type(Type::getUUID<T>(), demangle(typeid(T).name()), std::forward<Traits>(traits)...);
+            return Type(Type::getUUID<T>(), name, std::forward<Traits>(traits)...);
         }
 
         inline const std::string& getName() const noexcept { return name; }
@@ -57,6 +59,54 @@ namespace iodine::core {
             return uuid;
         }
 
+        /**
+         * @brief Checks if the type has the given trait.
+         * @tparam T The trait type.
+         * @return True if the type has the trait, false otherwise.
+         */
+        template <typename T>
+        inline b8 hasTrait() const noexcept {
+            STATIC_ASSERT((std::is_base_of_v<Trait, T>), "T is not a trait");
+            for (const auto& trait : traits) {
+                if (Trait::is<T>(*trait)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /**
+         * @brief Gets the trait of the given type.
+         * @tparam T The type of the trait.
+         * @return The trait of the given type.
+         */
+        template <typename T>
+        inline const T& getTrait() const {
+            STATIC_ASSERT((std::is_base_of_v<Trait, T>), "T is not a trait");
+            for (const auto& trait : traits) {
+                if (Trait::is<T>(*trait)) {
+                    return static_cast<const T&>(*trait);
+                }
+            }
+            throw std::runtime_error("Type does not have trait");  // TODO: Reflection exceptions
+        }
+
+        /**
+         * @brief Gets the trait of the given type.
+         * @tparam T The type of the trait.
+         * @return The trait of the given type.
+         */
+        template <typename T>
+        inline T& getTrait() {
+            STATIC_ASSERT((std::is_base_of_v<Trait, T>), "T is not a trait");
+            for (auto& trait : traits) {
+                if (Trait::is<T>(*trait)) {
+                    return static_cast<T&>(*trait);
+                }
+            }
+            throw std::runtime_error("Type does not have trait");
+        }
+
         protected:
         /**
          * @brief Creates a new type with the given name and UUID.
@@ -66,6 +116,7 @@ namespace iodine::core {
          */
         template <typename... Traits>
         Type(UUID uuid, const std::string& name, Traits&&... traits) : uuid(uuid), name(name) {
+            STATIC_ASSERT((std::is_base_of_v<Trait, std::remove_reference_t<Traits>> && ...), "Traits must inherit from Trait");
             (this->traits.push_back(MakeUnique<std::remove_reference_t<Traits>>(std::forward<Traits>(traits))), ...);
         }
 

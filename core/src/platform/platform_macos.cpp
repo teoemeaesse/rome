@@ -74,11 +74,11 @@ namespace iodine::core {
 
     const char* Platform::getName() { return PLATFORM_NAME; }
 
-    void Platform::log() { IO_INFOV("Running on %s", getName()); }
+    void Platform::log() { IO_INFO("Running on %s", getName()); }
 
     void Platform::assertCompatible() {
         if (!isMacOS()) {
-            IO_FATALV("Incompatible platform: %s", getName());
+            IO_FATAL("Incompatible platform: %s", getName());
             std::exit(EXIT_FAILURE);
         }
     }

@@ -36,11 +36,11 @@ namespace iodine::core {
 
     const char* Platform::getName() { return PLATFORM_NAME; }
 
-    void Platform::log() { IO_INFOV("Running on {0}", getName()); }
+    void Platform::log() { IO_INFO("Running on {0}", getName()); }
 
     void Platform::assertCompatible() {
         if (!isWindows()) {
-            IO_FATALV("Incompatible platform: {0}", getName());
+            IO_FATAL("Incompatible platform: {0}", getName());
             std::exit(EXIT_FAILURE);
         }
     }
@@ -108,7 +108,7 @@ namespace iodine::core {
             signalState |= Platform::Signal::HUP;
             break;
         default:
-            IO_WARNV("Caught unhandled signal {0}", signal);
+            IO_WARN("Caught unhandled signal {0}", signal);
             break;
     }
 

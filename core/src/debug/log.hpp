@@ -30,11 +30,9 @@ namespace iodine::core {
  * @param message The message to log.
  * @param ... Log message format arguments.
  */
-#define IO_TRACEV(message, ...) iodine::core::logMessage(iodine::core::LogLevel::Trace, message, ##__VA_ARGS__)
-#define IO_TRACE(message) iodine::core::logMessage(iodine::core::LogLevel::Trace, message)
+#define IO_TRACE(message, ...) iodine::core::logMessage(iodine::core::LogLevel::Trace, message __VA_OPT__(, ##__VA_ARGS__))
 #else
-#define IO_TRACEV(message, ...)
-#define IO_TRACE(message)
+#define IO_TRACE(message, ...)
 #endif
 
 /* Enable debug logging */
@@ -44,11 +42,9 @@ namespace iodine::core {
  * @param message The message to log.
  * @param ... Log message format arguments.
  */
-#define IO_DEBUGV(message, ...) iodine::core::logMessage(iodine::core::LogLevel::Debug, message, ##__VA_ARGS__)
-#define IO_DEBUG(message) iodine::core::logMessage(iodine::core::LogLevel::Debug, message)
+#define IO_DEBUG(message, ...) iodine::core::logMessage(iodine::core::LogLevel::Debug, message __VA_OPT__(, ##__VA_ARGS__))
 #else
-#define IO_DEBUGV(message, ...)
-#define IO_DEBUG(message)
+#define IO_DEBUG(message, ...)
 #endif
 
 /* Enable info logging */
@@ -57,8 +53,7 @@ namespace iodine::core {
  * @param message The message to log.
  * @param ... Log message format arguments.
  */
-#define IO_INFOV(message, ...) iodine::core::logMessage(iodine::core::LogLevel::Info, message, ##__VA_ARGS__)
-#define IO_INFO(message) iodine::core::logMessage(iodine::core::LogLevel::Info, message)
+#define IO_INFO(message, ...) iodine::core::logMessage(iodine::core::LogLevel::Info, message __VA_OPT__(, ##__VA_ARGS__))
 
 /* Enable warn logging */
 /**
@@ -66,8 +61,7 @@ namespace iodine::core {
  * @param message The message to log.
  * @param ... Log message format arguments.
  */
-#define IO_WARNV(message, ...) iodine::core::logMessage(iodine::core::LogLevel::Warn, message, ##__VA_ARGS__)
-#define IO_WARN(message) iodine::core::logMessage(iodine::core::LogLevel::Warn, message)
+#define IO_WARN(message, ...) iodine::core::logMessage(iodine::core::LogLevel::Warn, message __VA_OPT__(, ##__VA_ARGS__))
 
 /* Always enable error and fatal logging */
 /**
@@ -75,13 +69,11 @@ namespace iodine::core {
  * @param message The message to log.
  * @param ... Log message format arguments.
  */
-#define IO_ERRORV(message, ...) iodine::core::logMessage(iodine::core::LogLevel::Error, message, ##__VA_ARGS__)
-#define IO_ERROR(message) iodine::core::logMessage(iodine::core::LogLevel::Error, message)
+#define IO_ERROR(message, ...) iodine::core::logMessage(iodine::core::LogLevel::Error, message __VA_OPT__(, ##__VA_ARGS__))
 
 /**
  * @brief Logs a fatal error.
  * @param message The message to log.
  * @param ... Log message format arguments.
  */
-#define IO_FATALV(message, ...) iodine::core::logMessage(iodine::core::LogLevel::Fatal, message, ##__VA_ARGS__)
-#define IO_FATAL(message) iodine::core::logMessage(iodine::core::LogLevel::Fatal, message)
+#define IO_FATAL(message, ...) iodine::core::logMessage(iodine::core::LogLevel::Fatal, message __VA_OPT__(, ##__VA_ARGS__))

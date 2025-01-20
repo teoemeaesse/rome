@@ -1,9 +1,9 @@
 #include "reflection/trait.hpp"
 
 namespace iodine::core {
-    Trait::Trait(const char* name) : name(name) {}
+    Trait::Trait(UUID uuid, const char* name) : uuid(uuid), name(name) {}
 
-    bool Trait::operator==(const Trait& other) const { return name == other.name; }
+    b8 Trait::operator==(const Trait& other) const noexcept { return uuid == other.uuid; }
 
-    bool Trait::operator!=(const Trait& other) const { return name != other.name; }
+    b8 Trait::operator!=(const Trait& other) const noexcept { return uuid != other.uuid; }
 }

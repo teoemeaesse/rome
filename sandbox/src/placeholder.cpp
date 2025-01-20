@@ -14,7 +14,7 @@ struct MyReflectedStruct {
     std::string name;
 };
 
-IO_REFLECT(MyReflectedStruct, Fields().with("age", &MyReflectedStruct::age).with("name", &MyReflectedStruct::name));
+IO_REFLECT(MyReflectedStruct, "MyReflectedStruct", Fields().with("age", &MyReflectedStruct::age).with("name", &MyReflectedStruct::name));
 
 class MyApplication : public Application {
     public:
