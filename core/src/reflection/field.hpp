@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include "reflection/reflect.hpp"
 
 namespace iodine::core {
@@ -9,26 +11,59 @@ namespace iodine::core {
     class Field {
         public:
         /**
-         * @brief Creates a new field with the given name and value.
-         * @tparam T The type of the field.
+         * @brief Creates a new field given a name and a pointer to member.
+         * @tparam S The struct/class type that owns the member.
+         * @tparam M The type of the member.
          * @param name The name of the field.
-         * @param value The value of the field.
-         * @return The new field.
+         * @param member A pointer to the member (e.g. &S::myMember).
+         * @return A new Field instance with the correct offset already computed.
          */
-        template <typename T>
-        static Field make(const char* name, T* value) {
-            return Field(Type::getUUID<T>(), name, value);
+        template <typename S, typename M>
+        static Field make(const char* name, M S::* member) {
+            // Ensure that the struct is standard layout to use the pointer-to-member offset trick.
+            STATIC_ASSERT(std::is_standard_layout_v<S>, "Pointer-to-member offset trick requires standard layout");
+            return Field(reflect<M>(), name, reinterpret_cast<u64>(&(reinterpret_cast<S*>(0)->*member)));
         }
 
-        inline void* getValue() { return value; }
+        inline const Type& getType() const { return type; }
         inline const char* getName() const { return name; }
 
-        private:
-        const UUID type;
-        const char* name;
-        void* value;
+        /**
+         * @brief Gets the value of the field from the given container.
+         * @tparam T The contained type of the field.
+         * @param container The container to get the value from.
+         * @return The value of the field.
+         */
+        template <typename T>
+        inline T* getValue(void* container) noexcept {
+            if (!container || !isType<T>()) {
+                return nullptr;
+            }
+            return static_cast<T*>(reinterpret_cast<byte*>(container) + offset);
+        }
 
-        Field(UUID type, const char* name, void* value) : type(type), name(name), value(value) {}
+        /**
+         * @brief Checks if the field is of the given type.
+         * @tparam T The contained type to check.
+         * @return True if the field is of the given type, false otherwise.
+         */
+        template <typename T>
+        inline b8 isType() noexcept {
+            return type.getUUID() == Type::getUUID<T>();
+        }
+
+        private:
+        const Type& type;  ///< The type of the field.
+        const char* name;  ///< The name of the field.
+        const u64 offset;  ///< The offset of the field in its containing struct.
+
+        /**
+         * @brief Creates a new field with the given type, name, and value.
+         * @param type The type of the field.
+         * @param name The name of the field.
+         * @param offset The offset of the field in its containing struct.
+         */
+        Field(const Type& type, const char* name, u64 offset);
     };
 
     /**
@@ -37,13 +72,26 @@ namespace iodine::core {
      */
     class Fields : public Trait {
         public:
+        /**
+         * @brief Creates a new list of fields with the given fields.
+         * @tparam FieldList The fields to list.
+         * @param fields The fields to list.
+         */
         template <typename... FieldList>
         Fields(FieldList&&... fields) : Trait("Fields") {
             STATIC_ASSERT((std::is_base_of<Field, FieldList>::value && ...), "FieldList must inherit from Field");
             (this->fields.emplace_back(fields), ...);
         }
 
+        /* Non-const iterator interfaces */
+        inline std::vector<Field>::iterator begin() { return fields.begin(); }
+        inline std::vector<Field>::iterator end() { return fields.end(); }
+
+        /* Const iterator interfaces */
+        inline std::vector<Field>::const_iterator begin() const { return fields.begin(); }
+        inline std::vector<Field>::const_iterator end() const { return fields.end(); }
+
         private:
-        std::vector<Field> fields;
+        std::vector<Field> fields;  ///< The list of fields.
     };
 }  // namespace iodine::core

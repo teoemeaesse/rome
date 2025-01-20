@@ -4,18 +4,17 @@
 
 #include "reflection/trait.hpp"
 
-/**a
- * @brief Declares reflection for the containing type.
- */
-#define IO_REFLECT() iodine::Unique<iodine::core::Type> reflect();
-
 /**
  * @brief Implements reflection for the containing type. You should create a type with your own traits here.
  * @param type The name of the type to reflect.
  * @param ... The traits of the type.
  */
-#define IO_REFLECT_IMPL(type, ...) \
-    iodine::Unique<iodine::core::Type> type::reflect() { return iodine::core::Type::make<type>(__VA_ARGS__); }
+#define IO_REFLECT(type, ...)                                                             \
+    template <>                                                                           \
+    inline const iodine::core::Type& iodine::core::reflect<type>() {                      \
+        static iodine::core::Type instance = iodine::core::Type::make<type>(__VA_ARGS__); \
+        return instance;                                                                  \
+    }
 
 namespace iodine::core {
     /**
@@ -24,6 +23,11 @@ namespace iodine::core {
     class Type {
         public:
         virtual ~Type() = default;
+        Type(const Type&) = default;
+        Type(Type&&) = default;
+
+        inline b8 operator==(const Type& other) const noexcept { return uuid == other.uuid; }
+        inline b8 operator!=(const Type& other) const noexcept { return uuid != other.uuid; }
 
         /**
          * @brief Creates a new type with the given traits.
@@ -33,10 +37,13 @@ namespace iodine::core {
          * @return The new type.
          */
         template <typename T, typename... Traits>
-        static Unique<Type> make(const Traits&... traits);
+        static Type make(Traits&&... traits) {
+            STATIC_ASSERT((std::is_base_of_v<Trait, std::remove_reference_t<Traits>> && ...), "Traits must inherit from Trait");
+            return Type(Type::getUUID<T>(), demangle(typeid(T).name()), std::forward<Traits>(traits)...);
+        }
 
-        inline const char* getName() const { return name; }
-        virtual inline const UUID getUUID() const = 0;
+        inline const std::string& getName() const noexcept { return name; }
+        inline const UUID getUUID() const noexcept { return uuid; }
 
         /**
          * @brief Statically queries the UUID for the given type.
@@ -44,7 +51,7 @@ namespace iodine::core {
          * @return The UUID for the type.
          */
         template <typename T>
-        static const UUID getUUID() {
+        static const UUID getUUID() noexcept {
             // This is templated to ensure that the UUID is unique for each type, primitive or not.
             static const UUID uuid = uuids.generate();
             return uuid;
@@ -52,49 +59,22 @@ namespace iodine::core {
 
         protected:
         /**
-         * @brief Creates a new type with the given name.
+         * @brief Creates a new type with the given name and UUID.
+         * @param uuid The UUID of the type.
          * @param name The name of the type.
-         */
-        Type(const char* name);
-
-        private:
-        const char* name;  ///< The name of the type.
-    };
-
-    /**
-     * @brief A concrete type.
-     * @tparam T The underlying type.
-     * @tparam Traits The traits of the type.
-     */
-    template <typename T, typename... Traits>
-    class ConcreteType : public Type {
-        STATIC_ASSERT((std::is_base_of<Trait, Traits>::value && ...), "Traits must inherit from Trait");
-
-        friend class Type;
-
-        public:
-        ~ConcreteType() = default;
-
-        b8 operator==(const ConcreteType& other) const { return uuid == other.uuid; }
-        b8 operator!=(const ConcreteType& other) const { return !(uuid == other.uuid); }
-
-        inline const UUID getUUID() const override { return uuid; }
-
-        private:
-        std::tuple<Traits...> traits;  ///< The traits of the type.
-        const UUID uuid;               ///< The UUID of the type.
-
-        /**
-         * @brief Creates a new type.
          * @param traits The traits of the type.
          */
-        ConcreteType(const Traits&... traits) : Type(demangle(typeid(T).name()).c_str()), traits(traits...), uuid(Type::getUUID<T>()) {}
+        template <typename... Traits>
+        Type(UUID uuid, const std::string& name, Traits&&... traits) : uuid(uuid), name(name) {
+            (this->traits.push_back(MakeUnique<std::remove_reference_t<Traits>>(std::forward<Traits>(traits))), ...);
+        }
+
+        private:
+        const UUID uuid;                    ///< The UUID of the type.
+        const std::string name;             ///< The name of the type.
+        std::vector<Unique<Trait>> traits;  ///< The traits of the type.
     };
 
-    template <typename T, typename... Traits>
-    Unique<Type> Type::make(const Traits&... traits) {
-        STATIC_ASSERT((std::is_base_of<Trait, Traits>::value && ...), "Traits must inherit from Trait");
-        ConcreteType<T, Traits...>* ptr = new ConcreteType<T, Traits...>(traits...);
-        return Unique<Type>(ptr);
-    }
+    template <typename T>
+    inline const Type& reflect();
 }  // namespace iodine::core

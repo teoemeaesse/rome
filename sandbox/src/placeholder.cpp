@@ -3,7 +3,8 @@
 #include "entry/entry.hpp"
 #include "platform/platform.hpp"
 #include "reflection/field.hpp"
-#include "reflection/reflect.hpp"
+#include "reflection/primitives.hpp"
+#include "reflection/string.hpp"
 
 using namespace iodine;
 using namespace iodine::core;
@@ -11,11 +12,9 @@ using namespace iodine::core;
 struct MyReflectedStruct {
     int age;
     std::string name;
-
-    IO_REFLECT();
 };
 
-IO_REFLECT_IMPL(MyReflectedStruct, Fields(Field::make<int>("age", &age), Field::make<std::string>("name", &name)));
+IO_REFLECT(MyReflectedStruct, Fields(Field::make("age", &MyReflectedStruct::age), Field::make("name", &MyReflectedStruct::name)));
 
 class MyApplication : public Application {
     public:
