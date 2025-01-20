@@ -1,4 +1,4 @@
-#include "thread/thread.h"
+#include "thread/thread.hpp"
 
 namespace iodine::core {
     Thread::~Thread() { join(); }

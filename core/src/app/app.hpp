@@ -1,8 +1,8 @@
 #pragma once
 
-#include "app/strategy.h"
-#include "chrono/rate.h"
-#include "debug/metrics.h"
+#include "app/strategy.hpp"
+#include "chrono/rate.hpp"
+#include "debug/metrics.hpp"
 
 namespace iodine::core {
     /**

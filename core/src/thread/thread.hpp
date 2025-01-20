@@ -2,7 +2,7 @@
 
 #include <thread>
 
-#include "debug/metrics.h"
+#include "debug/metrics.hpp"
 
 namespace iodine::core {
     class Thread {

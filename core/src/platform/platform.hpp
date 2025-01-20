@@ -2,7 +2,7 @@
 
 #include <signal.h>
 
-#include "prelude.h"
+#include "prelude.hpp"
 
 namespace iodine::core {
     /**

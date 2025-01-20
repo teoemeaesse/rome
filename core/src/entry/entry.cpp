@@ -1,9 +1,9 @@
-#include "entry/entry.h"
+#include "entry/entry.hpp"
 
 #include <signal.h>
 
-#include "debug/log.h"
-#include "platform/platform.h"
+#include "debug/log.hpp"
+#include "platform/platform.hpp"
 
 iodine::i32 main(iodine::i32 argc, char** argv) {
     // Initialize the engine.

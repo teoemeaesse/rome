@@ -1,10 +1,21 @@
-#include "app/twin_threads.h"
-#include "debug/metrics.h"
-#include "entry/entry.h"
-#include "platform/platform.h"
+#include "app/twin_threads.hpp"
+#include "debug/metrics.hpp"
+#include "entry/entry.hpp"
+#include "platform/platform.hpp"
+#include "reflection/field.hpp"
+#include "reflection/reflect.hpp"
 
 using namespace iodine;
 using namespace iodine::core;
+
+struct MyReflectedStruct {
+    int age;
+    std::string name;
+
+    IO_REFLECT();
+};
+
+IO_REFLECT_IMPL(MyReflectedStruct, Fields(Field<int>("age", &age), Field<std::string>("name", &name)));
 
 class MyApplication : public Application {
     public:

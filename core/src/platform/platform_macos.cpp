@@ -1,4 +1,4 @@
-#include "platform/platform.h"
+#include "platform/platform.hpp"
 
 #ifdef IO_MACOS
 
@@ -6,7 +6,7 @@
 #include <signal.h>
 #include <unistd.h>
 
-#include "debug/log.h"
+#include "debug/log.hpp"
 
 namespace iodine::core {
     static volatile sig_atomic_t sigInt = 0;   ///< SIGINT signal.

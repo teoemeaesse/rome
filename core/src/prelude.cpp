@@ -1,6 +1,6 @@
-#include "prelude.h"
+#include "prelude.hpp"
 
-#include "debug/log.h"
+#include "debug/log.hpp"
 
 void assertFail(const char* expression, const char* file, int line, const char* function) {
     if (!expression || !file || !function) IO_ERROR("\"assertFail\" called with NULL argument(s)");

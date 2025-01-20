@@ -35,3 +35,4 @@ build/
 bin/
 .vscode/
 .last_build
+.DS_Store

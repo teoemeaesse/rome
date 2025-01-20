@@ -1,6 +1,6 @@
-#include "app/app.h"
+#include "app/app.hpp"
 
-#include "app/twin_threads.h"
+#include "app/twin_threads.hpp"
 
 namespace iodine::core {
     Application::Application(const Config& config)

@@ -1,6 +1,6 @@
-#include "chrono/timer.h"
+#include "chrono/timer.hpp"
 
-#include "platform/platform.h"
+#include "platform/platform.hpp"
 
 namespace iodine::core {
     void Timer::start() { lastTime = Platform::getInstance().time(); }

@@ -1,7 +1,7 @@
-#include "app/strategy.h"
+#include "app/strategy.hpp"
 
-#include "app/app.h"
-#include "debug/log.h"
+#include "app/app.hpp"
+#include "debug/log.hpp"
 
 namespace iodine::core {
     ApplicationStrategy::ApplicationStrategy(const std::function<void(f64)>& tick, const std::function<void(f64)>& render)

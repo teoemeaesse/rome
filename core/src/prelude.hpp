@@ -145,6 +145,8 @@ namespace iodine {
     using Unique = std::unique_ptr<T>;
     template <typename T>
     using Shared = std::shared_ptr<T>;
+    template <typename T>
+    using Weak = std::weak_ptr<T>;
 
     template <typename T, typename... Args>
     constexpr Unique<T> MakeUnique(Args&&... args) {

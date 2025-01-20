@@ -1,7 +1,7 @@
-#include "app/twin_threads.h"
+#include "app/twin_threads.hpp"
 
-#include "app/app.h"
-#include "chrono/timer.h"
+#include "app/app.hpp"
+#include "chrono/timer.hpp"
 
 namespace iodine::core {
     TwinStrategy::TwinStrategy(Application& app)

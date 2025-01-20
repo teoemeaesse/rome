@@ -1,5 +1,5 @@
 #pragma once
 
-#include "app/app.h"
+#include "app/app.hpp"
 
 extern iodine::core::Application* createApplication();

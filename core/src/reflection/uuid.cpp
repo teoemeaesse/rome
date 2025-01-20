@@ -1,6 +1,6 @@
-#include "reflection/uuid.h"
+#include "reflection/uuid.hpp"
 
-#include "platform/platform.h"
+#include "platform/platform.hpp"
 
 namespace iodine::core {
     UUIDGenerator::UUIDGenerator() : key(Platform::getInstance().random_u64()), counter(0) {

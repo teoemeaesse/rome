@@ -1,6 +1,6 @@
 #pragma once
 
-#include "platform/platform.h"
+#include "platform/platform.hpp"
 
 namespace iodine::core {
     /**
@@ -31,4 +31,6 @@ namespace iodine::core {
         u64 key;      ///< The random key used for masking.
         u64 counter;  ///< Monotonically increasing counter.
     };
+
+    static UUIDGenerator uuids;  ///< The UUID generator.
 }  // namespace iodine::core

@@ -1,4 +1,4 @@
-#include "debug/log.h"
+#include "debug/log.hpp"
 
 #include <iostream>
 
