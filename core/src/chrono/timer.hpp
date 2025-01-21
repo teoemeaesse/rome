@@ -6,7 +6,7 @@ namespace iodine::core {
     /**
      * @brief A simple timer class meant to measure time between two points.
      */
-    class Timer {
+    class IO_API Timer {
         public:
         Timer() = default;
         ~Timer() = default;

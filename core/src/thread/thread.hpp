@@ -5,7 +5,7 @@
 #include "debug/metrics.hpp"
 
 namespace iodine::core {
-    class Thread {
+    class IO_API Thread {
         public:
         Thread() = default;
         ~Thread();

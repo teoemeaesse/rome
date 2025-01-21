@@ -2,9 +2,9 @@
 #include "debug/metrics.hpp"
 #include "entry/entry.hpp"
 #include "platform/platform.hpp"
-#include "reflection/field.hpp"
-#include "reflection/primitives.hpp"
-#include "reflection/string.hpp"
+#include "reflection/external/primitives.hpp"
+#include "reflection/external/string.hpp"
+#include "reflection/traits/field.hpp"
 
 using namespace iodine;
 using namespace iodine::core;
@@ -12,9 +12,11 @@ using namespace iodine::core;
 struct MyReflectedStruct {
     int age;
     std::string name;
+
+    IO_REFLECT;
 };
 
-IO_REFLECT(MyReflectedStruct, "MyReflectedStruct", Fields().with("age", &MyReflectedStruct::age).with("name", &MyReflectedStruct::name));
+IO_REFLECT_IMPL(MyReflectedStruct, "MyReflectedStruct", Fields().with("age", &MyReflectedStruct::age).with("name", &MyReflectedStruct::name));
 
 class MyApplication : public Application {
     public:
@@ -24,7 +26,7 @@ class MyApplication : public Application {
     void shutdown() override { Metrics::getInstance().report(); }
     void tick(f64 dt) override {
         tickRate.tick(dt);
-        IO_DEBUGV("Tick rate: %f | Framerate: %f", tickRate.getRate(), renderRate.getRate());
+        IO_DEBUG("Tick rate: %f | Framerate: %f", tickRate.getRate(), renderRate.getRate());
         if (Platform::getInstance().isSignal(Platform::Signal::INT)) {
             stop();
             IO_INFO("Caught SIGINT, stopping application");

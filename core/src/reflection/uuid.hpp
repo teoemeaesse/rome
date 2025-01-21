@@ -14,7 +14,7 @@ namespace iodine::core {
      * @brief Class for generating universally unique identifiers.
      * @note UUID's are only unique for their generator. Do not share them between different applications.
      */
-    class UUIDGenerator {
+    class IO_API UUIDGenerator {
         public:
         UUIDGenerator();
         UUIDGenerator(const UUIDGenerator&) = delete;

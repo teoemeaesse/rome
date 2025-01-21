@@ -26,7 +26,7 @@ namespace iodine::core {
     /**
      * @brief A generic type that can be reflected.
      */
-    class Type {
+    class IO_API Type {
         public:
         virtual ~Type() = default;
         Type(const Type&) = default;
@@ -135,7 +135,7 @@ namespace iodine::core {
      * @brief Declares a generic reflection for a given type.
      * @note Mostly just here to circumvent private member access.
      */
-    struct Reflect {
+    struct IO_API Reflect {
         template <typename T>
         inline static Type& reflect();
     };

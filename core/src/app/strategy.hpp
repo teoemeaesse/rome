@@ -9,7 +9,7 @@ namespace iodine::core {
      * @brief Defines how an application should tick and render.
      * @note Subclass this to configure your own game loop.
      */
-    class ApplicationStrategy {
+    class IO_API ApplicationStrategy {
         public:
         /**
          * @brief Creates a new application strategy.

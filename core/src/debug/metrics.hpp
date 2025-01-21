@@ -6,11 +6,11 @@
 #include "debug/log.hpp"
 
 namespace iodine::core {
-    static inline std::atomic_bool metricsShutdown = false;  ///< Whether the metrics have been shut down. This only happens on program exit.
+    static inline IO_API std::atomic_bool metricsShutdown = false;  ///< Whether the metrics have been shut down. This only happens on program exit.
     /**
      * @brief Tracks program time and memory performance over time.
      */
-    class Metrics {
+    class IO_API Metrics {
         public:
         Metrics() = default;
         ~Metrics();

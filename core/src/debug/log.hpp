@@ -6,7 +6,7 @@ namespace iodine::core {
     /**
      * @brief Log types in ascending order of importance.
      */
-    enum class LogLevel : u8 { Trace = 0, Debug = 1, Info = 2, Warn = 3, Error = 4, Fatal = 5 };
+    enum class IO_API LogLevel : u8 { Trace = 0, Debug = 1, Info = 2, Warn = 3, Error = 4, Fatal = 5 };
 
     /**
      * @brief Writes out a log message to stdout.
@@ -14,7 +14,7 @@ namespace iodine::core {
      * @param message The message to log.
      * @param ... The arguments to format the message with.
      */
-    void logMessage(LogLevel level, const char*, ...);
+    void IO_API logMessage(LogLevel level, const char*, ...);
 }  // namespace iodine::core
 
 /* Mute debug logs in release build */

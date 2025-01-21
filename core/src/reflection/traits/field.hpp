@@ -10,7 +10,7 @@ namespace iodine::core {
     /**
      * @brief A reflectable struct or class field.
      */
-    class Field {
+    class IO_API Field {
         friend class Fields;
 
         public:
@@ -98,7 +98,7 @@ namespace iodine::core {
      * @brief A list of reflectable fields. Stores any number of Field<T> objects in a tuple.
      * @tparam FieldList The fields to list.
      */
-    class Fields : public Trait {
+    class IO_API Fields : public Trait {
         public:
         Fields();
 

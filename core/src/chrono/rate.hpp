@@ -6,7 +6,7 @@ namespace iodine::core {
     /**
      * @brief Tracks the running rate of an application.
      */
-    class RateTracker {
+    class IO_API RateTracker {
         public:
         /**
          * @brief Creates a new rate tracker.

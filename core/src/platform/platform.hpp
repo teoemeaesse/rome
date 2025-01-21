@@ -8,7 +8,7 @@ namespace iodine::core {
     /**
      * @brief Class representing the current platform.
      */
-    class Platform {
+    class IO_API Platform {
         public:
         /**
          * @brief Enum representing the low-level program signals.

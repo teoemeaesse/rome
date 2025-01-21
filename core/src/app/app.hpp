@@ -8,7 +8,7 @@ namespace iodine::core {
     /**
      * @brief The base class for all iodine applications.
      */
-    class Application {
+    class IO_API Application {
         public:
         friend class ApplicationStrategy;
         struct Config;
@@ -135,9 +135,3 @@ namespace iodine::core {
     };
 
 }  // namespace iodine::core
-
-/**
- * @brief Creates a new application. This function must be implemented by the user.
- * @return A pointer to the application.
- */
-iodine::core::Application* createApplication();

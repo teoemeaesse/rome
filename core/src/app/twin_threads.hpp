@@ -9,7 +9,7 @@ namespace iodine::core {
     /**
      * @brief An application strategy consisting of one tick thread and one render thread.
      */
-    class TwinStrategy : public ApplicationStrategy {
+    class IO_API TwinStrategy : public ApplicationStrategy {
         public:
         TwinStrategy(Application& app);
         ~TwinStrategy() override = default;

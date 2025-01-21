@@ -6,7 +6,7 @@ namespace iodine::core {
     /**
      * @brief A reflectable property of a type.
      */
-    class Trait {
+    class IO_API Trait {
         public:
         /**
          * @brief Creates a new trait with the given name.
