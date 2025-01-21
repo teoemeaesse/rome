@@ -202,7 +202,7 @@ namespace iodine::core {
          * @return The reflection information and metadata for the type.
          */
         template <typename T>
-        static TypeInfo reflect() {
+        static TypeInfo& reflect() {
             static TypeInfo info = TypeInfo::make<T>(_reflect<remove_all_qualifiers_t<T>>());
             return info;
         }

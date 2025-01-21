@@ -74,6 +74,34 @@ TEST(TypeReflectionTest, ClassHasCorrectReflection) {
     EXPECT_EQ(type.getUUID(), Type::getUUID<SimpleClass>());
 }
 
+TEST(TypeReflectionTest, TypeQualifierStripping) {
+    // Obtain reflection info for various different types and check that the qualifiers are stripped
+    TypeInfo& simpleType = Reflect::reflect<iodine::u8>();
+
+    // Adding more complex type variations with multiple qualifiers
+    TypeInfo& complexType1 = Reflect::reflect<iodine::u8**>();
+    TypeInfo& complexType2 = Reflect::reflect<const volatile iodine::u8* [42]>();
+    TypeInfo& complexType3 = Reflect::reflect<iodine::u8* const volatile&>();
+    TypeInfo& complexType4 = Reflect::reflect<iodine::u8* const* volatile*>();
+    TypeInfo& complexType5 = Reflect::reflect<const iodine::u8* const volatile&>();
+    TypeInfo& complexType6 = Reflect::reflect<iodine::u8&&>();
+    TypeInfo& complexType7 = Reflect::reflect<const iodine::u8* const volatile*[]>();
+    TypeInfo& complexType8 = Reflect::reflect<iodine::u8* const volatile* const&>();
+    TypeInfo& complexType9 = Reflect::reflect<const iodine::u8* const volatile* const* volatile&>();
+    TypeInfo& complexType10 = Reflect::reflect<iodine::u8* const* volatile* const* volatile&>();
+
+    // Ensure that the base type is the same after stripping qualifiers
+    EXPECT_EQ(simpleType.getType(), complexType1.getType());
+    EXPECT_EQ(simpleType.getType(), complexType2.getType());
+    EXPECT_EQ(simpleType.getType(), complexType3.getType());
+    EXPECT_EQ(simpleType.getType(), complexType4.getType());
+    EXPECT_EQ(simpleType.getType(), complexType5.getType());
+    EXPECT_EQ(simpleType.getType(), complexType6.getType());
+    EXPECT_EQ(simpleType.getType(), complexType7.getType());
+    EXPECT_EQ(simpleType.getType(), complexType8.getType());
+    EXPECT_EQ(simpleType.getType(), complexType9.getType());
+    EXPECT_EQ(simpleType.getType(), complexType10.getType());
+}
 TEST(TypeReflectionTest, PrimitivesHaveCorrectReflection) {
     TEST_ALL_REFLECTIONS(iodine::u8);
     TEST_ALL_REFLECTIONS(iodine::u16);

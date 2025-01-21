@@ -156,23 +156,43 @@ namespace iodine {
         return std::make_shared<T>(std::forward<Args>(args)...);
     }
 
+    // Implementation struct: Handles pointers and arrays
     template <typename T>
-    struct remove_all_qualifiers {
-        using type = std::decay_t<T>;
+    struct remove_all_qualifiers_impl {
+        using type = T;
     };
 
-    // Remove pointers
+    // Primary template: Initiates the removal process
     template <typename T>
-    struct remove_all_qualifiers<T*> : remove_all_qualifiers<T> {};
+    struct remove_all_qualifiers {
+        private:
+        // Remove references and top-level cv-qualifiers
+        using NoRefNoCV = std::remove_cv_t<std::remove_reference_t<T>>;
 
-    // Remove arrays without qualifiers
+        public:
+        // Delegate to the implementation struct
+        using type = typename remove_all_qualifiers_impl<NoRefNoCV>::type;
+    };
+
+    // Specialization for pointers
     template <typename T>
-    struct remove_all_qualifiers<T[]> : remove_all_qualifiers<T> {};
+    struct remove_all_qualifiers_impl<T*> {
+        using type = typename remove_all_qualifiers<T>::type;
+    };
 
-    /**
-     * @brief Removes all qualifiers from a type, including const, volatile, references, and pointers.
-     * @tparam T The type to be processed.
-     */
+    // Specialization for arrays of unknown bound
+    template <typename T>
+    struct remove_all_qualifiers_impl<T[]> {
+        using type = typename remove_all_qualifiers<T>::type;
+    };
+
+    // Specialization for arrays of known bound
+    template <typename T, std::size_t N>
+    struct remove_all_qualifiers_impl<T[N]> {
+        using type = typename remove_all_qualifiers<T>::type;
+    };
+
+    // Type alias for convenience
     template <typename T>
     using remove_all_qualifiers_t = typename remove_all_qualifiers<T>::type;
 
