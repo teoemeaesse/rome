@@ -203,7 +203,8 @@ namespace iodine::core {
          */
         template <typename T>
         static TypeInfo reflect() {
-            return TypeInfo::make<T>(_reflect<remove_all_qualifiers_t<T>>());
+            static TypeInfo info = TypeInfo::make<T>(_reflect<remove_all_qualifiers_t<T>>());
+            return info;
         }
 
         private:
