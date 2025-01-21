@@ -158,26 +158,20 @@ namespace iodine {
 
     template <typename T>
     struct remove_all_qualifiers {
-        using type = T;
+        using type = std::decay_t<T>;
     };
-    template <typename T>
-    struct remove_all_qualifiers<T&> : remove_all_qualifiers<T> {};
-    template <typename T>
-    struct remove_all_qualifiers<T&&> : remove_all_qualifiers<T> {};
-    template <typename T>
-    struct remove_all_qualifiers<const T> : remove_all_qualifiers<T> {};
-    template <typename T>
-    struct remove_all_qualifiers<volatile T> : remove_all_qualifiers<T> {};
+
+    // Remove pointers
     template <typename T>
     struct remove_all_qualifiers<T*> : remove_all_qualifiers<T> {};
+
+    // Remove arrays without qualifiers
     template <typename T>
     struct remove_all_qualifiers<T[]> : remove_all_qualifiers<T> {};
-    template <typename T, std::size_t N>
-    struct remove_all_qualifiers<T[N]> : remove_all_qualifiers<T> {};
 
     /**
-     * @brief Recursively removes all qualifiers from a type such as const, *, or &.
-     * @tparam T The type to remove qualifiers from.
+     * @brief Removes all qualifiers from a type, including const, volatile, references, and pointers.
+     * @tparam T The type to be processed.
      */
     template <typename T>
     using remove_all_qualifiers_t = typename remove_all_qualifiers<T>::type;

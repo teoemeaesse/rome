@@ -13,13 +13,12 @@
  * @param name The name of the type. This should be unique.
  * @param ... The traits of the type.
  */
-#define IO_REFLECT_IMPL(type, name, ...)                                                                                                      \
-    template <>                                                                                                                               \
-    iodine::core::TypeInfo iodine::core::Reflect::reflect<iodine::remove_all_qualifiers_t<type>>() {                                          \
-        static iodine::core::Type instance = iodine::core::Type::make<iodine::remove_all_qualifiers_t<type>>(name __VA_OPT__(, __VA_ARGS__)); \
-        return TypeInfo::make<type>(instance);                                                                                                \
+#define IO_REFLECT_IMPL(type, name, ...)                                                                     \
+    template <>                                                                                              \
+    inline iodine::core::Type& iodine::core::Reflect::_reflect<type>() {                                     \
+        static iodine::core::Type instance = iodine::core::Type::make<type>(name __VA_OPT__(, __VA_ARGS__)); \
+        return instance;                                                                                     \
     }
-
 namespace iodine::core {
     /**
      * @brief A generic type that can be reflected.
@@ -51,15 +50,14 @@ namespace iodine::core {
         inline const UUID getUUID() const noexcept { return uuid; }
 
         /**
-         * @brief Statically queries the UUID for the given type.
-         * @tparam T The type to get the UUID for.
+         * @brief Statically queries the UUID for a fully qualified type.
+         * @tparam T The fully qualified type to get the UUID for.
          * @return The UUID for the type.
          */
         template <typename T>
         static inline const UUID getUUID() noexcept {
-            // This is templated to ensure that the UUID is unique for each type, primitive or not.
-            static const UUID uuid = uuids.generate();
-            return uuid;
+            // Remove all qualifiers from the type and then get its UUID - UUID's are unique for each *unqualified* type
+            return _getUUID<remove_all_qualifiers_t<T>>();
         }
 
         /**
@@ -127,6 +125,18 @@ namespace iodine::core {
         const UUID uuid;                    ///< The UUID of the type.
         const std::string name;             ///< The name of the type.
         std::vector<Unique<Trait>> traits;  ///< The traits of the type.
+
+        /**
+         * @brief Statically queries the UUID for the given base type.
+         * @tparam T The base type to get the UUID for.
+         * @return The UUID for the type.
+         */
+        template <typename T>
+        static inline const UUID _getUUID() noexcept {
+            // This is templated to ensure that the UUID is unique for each type
+            static const UUID uuid = uuids.generate();
+            return uuid;
+        }
     };
 
     /**
@@ -136,8 +146,10 @@ namespace iodine::core {
         public:
         ~TypeInfo() = default;
 
+        inline operator Type&() noexcept { return type; }
         inline operator const Type&() const noexcept { return type; }
 
+        inline Type& getType() noexcept { return type; }
         inline u64 getSize() const noexcept { return size; }
         inline b8 isConstType() const noexcept { return isConst; }
         inline b8 isVolatileType() const noexcept { return isVolatile; }
@@ -151,13 +163,13 @@ namespace iodine::core {
          * @return The reflection information for the type.
          */
         template <typename T>
-        static TypeInfo make(const Type& type) {
-            return TypeInfo(type, sizeof(T), std::is_const_v<T>, std::is_volatile_v<T>, std::is_pointer_v<T>, std::is_reference_v<T>,
-                            std::is_rvalue_reference_v<T>);
+        static TypeInfo make(Type& type) {
+            return TypeInfo(type, sizeof(remove_all_qualifiers_t<T>), std::is_const_v<T>, std::is_volatile_v<T>, std::is_pointer_v<T>,
+                            std::is_reference_v<T>, std::is_rvalue_reference_v<T>);
         }
 
         private:
-        const Type& type;      ///< The type that this info is for.
+        Type& type;            ///< The type that this info is for.
         const u64 size;        ///< The size of the type in bytes.
         const b8 isConst;      ///< True if the type is const, false otherwise.
         const b8 isVolatile;   ///< True if the type is volatile, false otherwise.
@@ -175,7 +187,7 @@ namespace iodine::core {
          * @param isRef True if the type is a reference, false otherwise.
          * @param isRValue True if the type is an rvalue reference, false otherwise.
          */
-        TypeInfo(const Type& type, u64 size, bool isConst, bool isVolatile, bool isPointer, bool isRef, bool isRValue)
+        TypeInfo(Type& type, u64 size, bool isConst, bool isVolatile, bool isPointer, bool isRef, bool isRValue)
             : type(type), size(size), isConst(isConst), isVolatile(isVolatile), isPointer(isPointer), isReference(isRef), isRValue(isRValue) {}
     };
 
@@ -184,7 +196,23 @@ namespace iodine::core {
      * @note Mostly just here to circumvent private member access.
      */
     struct IO_API Reflect {
+        /**
+         * @brief Reflects the given type, storing some of its metadata.
+         * @tparam T The fully-qualified type to reflect.
+         * @return The reflection information and metadata for the type.
+         */
         template <typename T>
-        static TypeInfo reflect();
+        static TypeInfo reflect() {
+            return TypeInfo::make<T>(_reflect<remove_all_qualifiers_t<T>>());
+        }
+
+        private:
+        /**
+         * @brief Reflect a type. Returns the base type's reflection information.
+         * @tparam T The type to reflect.
+         * @return The reflection information for the type.
+         */
+        template <typename T>
+        static inline Type& _reflect();
     };
 }  // namespace iodine::core

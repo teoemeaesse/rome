@@ -5,25 +5,25 @@
 
 // Automate the test for all simple types
 #define STRINGIFY(x) #x
-#define TEST_REFLECTION(type, name)                           \
-    {                                                         \
-        const auto& typeInfo = Reflect::reflect<type>();      \
-        EXPECT_EQ(typeInfo.getName(), name);                  \
-        EXPECT_EQ(typeInfo.getUUID(), Type::getUUID<type>()); \
+#define TEST_REFLECTION(type, name)                                     \
+    {                                                                   \
+        auto typeInfo = Reflect::reflect<type>();                       \
+        EXPECT_EQ(typeInfo.getType().getName(), name);                  \
+        EXPECT_EQ(typeInfo.getType().getUUID(), Type::getUUID<type>()); \
     }
-#define TEST_ALL_REFLECTIONS(type)                          \
-    TEST_REFLECTION(type, STRINGIFY(type));                 \
-    TEST_REFLECTION(type*, STRINGIFY(type*));               \
-    TEST_REFLECTION(type**, STRINGIFY(type**));             \
-    TEST_REFLECTION(type&, STRINGIFY(type&));               \
-    TEST_REFLECTION(type&&, STRINGIFY(type&&));             \
-    TEST_REFLECTION(type[], STRINGIFY(type[]));             \
-    TEST_REFLECTION(const type, STRINGIFY(const type));     \
-    TEST_REFLECTION(const type*, STRINGIFY(const type*));   \
-    TEST_REFLECTION(const type**, STRINGIFY(const type**)); \
-    TEST_REFLECTION(const type&, STRINGIFY(const type&));   \
-    TEST_REFLECTION(const type&&, STRINGIFY(const type&&)); \
-    TEST_REFLECTION(const type[], STRINGIFY(const type[]));
+#define TEST_ALL_REFLECTIONS(type)                  \
+    TEST_REFLECTION(type, STRINGIFY(type));         \
+    TEST_REFLECTION(type*, STRINGIFY(type));        \
+    TEST_REFLECTION(type**, STRINGIFY(type));       \
+    TEST_REFLECTION(type&, STRINGIFY(type));        \
+    TEST_REFLECTION(type&&, STRINGIFY(type));       \
+    TEST_REFLECTION(type[], STRINGIFY(type));       \
+    TEST_REFLECTION(const type, STRINGIFY(type));   \
+    TEST_REFLECTION(const type*, STRINGIFY(type));  \
+    TEST_REFLECTION(const type**, STRINGIFY(type)); \
+    TEST_REFLECTION(const type&, STRINGIFY(type));  \
+    TEST_REFLECTION(const type&&, STRINGIFY(type)); \
+    TEST_REFLECTION(const type[], STRINGIFY(type));
 
 using namespace iodine;
 
@@ -54,7 +54,7 @@ using namespace iodine::core;
 
 TEST(TypeReflectionTest, StructHasCorrectReflection) {
     // Obtain reflection info
-    const auto& type = Reflect::reflect<SimpleStruct>();
+    const Type& type = Reflect::reflect<SimpleStruct>();
 
     // Check that the name is as declared
     EXPECT_EQ(type.getName(), "SimpleStruct");
@@ -65,7 +65,7 @@ TEST(TypeReflectionTest, StructHasCorrectReflection) {
 
 TEST(TypeReflectionTest, ClassHasCorrectReflection) {
     // Obtain reflection info
-    const auto& type = Reflect::reflect<SimpleClass>();
+    const Type& type = Reflect::reflect<SimpleClass>();
 
     // Check that the name is as declared
     EXPECT_EQ(type.getName(), "SimpleClass");

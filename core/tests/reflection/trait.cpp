@@ -34,7 +34,7 @@ IO_REFLECT_IMPL(StandardLayoutClass, "StandardLayoutClass", Fields().with("rando
 
 TEST(TraitReflectionTest, SimpleStructFields) {
     // Obtain reflection info
-    const auto& type = Reflect::reflect<SimpleStruct>();
+    const Type& type = Reflect::reflect<SimpleStruct>();
 
     // Check that the name is as declared
     EXPECT_EQ(type.getName(), "SimpleStruct");
@@ -60,7 +60,7 @@ TEST(TraitReflectionTest, SimpleStructFields) {
         }
     }
 
-    auto& typeMut = Reflect::reflect<SimpleStruct>();
+    Type& typeMut = Reflect::reflect<SimpleStruct>();
 
     // Check that the field can be found by name
     EXPECT_EQ(typeMut.getTrait<Fields>().find("integer")->getType().getUUID(), Type::getUUID<i32>());
@@ -72,7 +72,7 @@ TEST(TraitReflectionTest, SimpleStructFields) {
 
 TEST(TraitReflectionTest, StandardLayoutClassFields) {
     // Obtain reflection info
-    const auto& type = Reflect::reflect<StandardLayoutClass>();
+    const Type& type = Reflect::reflect<StandardLayoutClass>();
 
     // Check that the name is as declared
     EXPECT_EQ(type.getName(), "StandardLayoutClass");
@@ -92,7 +92,7 @@ TEST(TraitReflectionTest, StandardLayoutClassFields) {
         }
     }
 
-    auto& typeMut = Reflect::reflect<StandardLayoutClass>();
+    Type& typeMut = Reflect::reflect<StandardLayoutClass>();
 
     // Check that the field can be found by name
     EXPECT_EQ(typeMut.getTrait<Fields>().find("randomByte")->getType().getUUID(), Type::getUUID<byte>());
