@@ -105,6 +105,7 @@ IO_API void assertFail(const char* expression, const char* message, const char* 
 /* Standard headers */
 #include <memory>
 #include <string>
+#include <type_traits>
 
 namespace iodine {
     /* Primitive types */
@@ -154,6 +155,32 @@ namespace iodine {
     constexpr Shared<T> MakeShared(Args&&... args) {
         return std::make_shared<T>(std::forward<Args>(args)...);
     }
+
+    template <typename T>
+    struct remove_all_qualifiers {
+        using type = T;
+    };
+    template <typename T>
+    struct remove_all_qualifiers<T&> : remove_all_qualifiers<T> {};
+    template <typename T>
+    struct remove_all_qualifiers<T&&> : remove_all_qualifiers<T> {};
+    template <typename T>
+    struct remove_all_qualifiers<const T> : remove_all_qualifiers<T> {};
+    template <typename T>
+    struct remove_all_qualifiers<volatile T> : remove_all_qualifiers<T> {};
+    template <typename T>
+    struct remove_all_qualifiers<T*> : remove_all_qualifiers<T> {};
+    template <typename T>
+    struct remove_all_qualifiers<T[]> : remove_all_qualifiers<T> {};
+    template <typename T, std::size_t N>
+    struct remove_all_qualifiers<T[N]> : remove_all_qualifiers<T> {};
+
+    /**
+     * @brief Recursively removes all qualifiers from a type such as const, *, or &.
+     * @tparam T The type to remove qualifiers from.
+     */
+    template <typename T>
+    using remove_all_qualifiers_t = typename remove_all_qualifiers<T>::type;
 
     /** TODO: Move into platform-specific header
      * @brief Demangles the type name string (from typeid(T).name()).
