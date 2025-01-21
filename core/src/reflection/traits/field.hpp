@@ -90,7 +90,7 @@ namespace iodine::core {
         static Field make(const char* name, M S::* member) {
             // Ensure that the struct is standard layout to use the pointer-to-member offset trick.
             STATIC_ASSERT(std::is_standard_layout_v<S>, "Pointer-to-member offset trick requires standard layout");
-            return Field(reflect<M>(), name, reinterpret_cast<u64>(&(reinterpret_cast<S*>(0)->*member)));
+            return Field(Reflect::reflect<M>(), name, reinterpret_cast<u64>(&(reinterpret_cast<S*>(0)->*member)));
         }
     };
 
@@ -123,6 +123,39 @@ namespace iodine::core {
         /* Const iterator interfaces */
         inline std::vector<Field>::const_iterator begin() const { return fields.begin(); }
         inline std::vector<Field>::const_iterator end() const { return fields.end(); }
+
+        /**
+         * @brief Finds the first Field with the given name.
+         * @param fieldName The name of the field to find.
+         * @return A pointer to the Field if found, otherwise nullptr.
+         */
+        Field* find(const char* fieldName) {
+            auto it = std::find_if(fields.begin(), fields.end(), [fieldName](const Field& f) {
+                // Protect against null names or fieldName
+                if (!fieldName || !f.getName()) return false;
+                return std::strcmp(f.getName(), fieldName) == 0;
+            });
+            if (it == fields.end()) {
+                return nullptr;
+            }
+            return &(*it);
+        }
+
+        /**
+         * @brief Finds the first Field with the given name.
+         * @param fieldName The name of the field to find.
+         * @return A pointer to the Field if found, otherwise nullptr.
+         */
+        const Field* find(const char* fieldName) const {
+            auto it = std::find_if(fields.begin(), fields.end(), [fieldName](const Field& f) {
+                if (!fieldName || !f.getName()) return false;
+                return std::strcmp(f.getName(), fieldName) == 0;
+            });
+            if (it == fields.end()) {
+                return nullptr;
+            }
+            return &(*it);
+        }
 
         private:
         std::vector<Field> fields;  ///< The list of fields.

@@ -1,14 +1,13 @@
 #include <gtest/gtest.h>
 
-#include "reflection/primitives.hpp"
-#include "reflection/reflect.hpp"
-#include "reflection/string.hpp"
+#include "reflection/external/primitives.hpp"
+#include "reflection/external/string.hpp"
 
 // Automate the test for all simple types
 #define STRINGIFY(x) #x
 #define TEST_REFLECTION(type, name)                           \
     {                                                         \
-        const auto& typeInfo = reflect<type>();               \
+        const auto& typeInfo = Reflect::reflect<type>();      \
         EXPECT_EQ(typeInfo.getName(), name);                  \
         EXPECT_EQ(typeInfo.getUUID(), Type::getUUID<type>()); \
     }
@@ -32,8 +31,10 @@ struct SimpleStruct {
     i32 integer;
     f32 floating;
     std::string name;
+
+    IO_REFLECT;
 };
-IO_REFLECT(SimpleStruct, "SimpleStruct");
+IO_REFLECT_IMPL(SimpleStruct, "SimpleStruct");
 
 class SimpleClass {
     public:
@@ -44,14 +45,16 @@ class SimpleClass {
     static i32 abc();
 
     byte data[16];
+
+    IO_REFLECT;
 };
-IO_REFLECT(SimpleClass, "SimpleClass");
+IO_REFLECT_IMPL(SimpleClass, "SimpleClass");
 
 using namespace iodine::core;
 
-TEST(ReflectionTest, StructHasCorrectReflection) {
+TEST(TypeReflectionTest, StructHasCorrectReflection) {
     // Obtain reflection info
-    const auto& type = reflect<SimpleStruct>();
+    const auto& type = Reflect::reflect<SimpleStruct>();
 
     // Check that the name is as declared
     EXPECT_EQ(type.getName(), "SimpleStruct");
@@ -60,9 +63,9 @@ TEST(ReflectionTest, StructHasCorrectReflection) {
     EXPECT_EQ(type.getUUID(), Type::getUUID<SimpleStruct>());
 }
 
-TEST(ReflectionTest, ClassHasCorrectReflection) {
+TEST(TypeReflectionTest, ClassHasCorrectReflection) {
     // Obtain reflection info
-    const auto& type = reflect<SimpleClass>();
+    const auto& type = Reflect::reflect<SimpleClass>();
 
     // Check that the name is as declared
     EXPECT_EQ(type.getName(), "SimpleClass");
@@ -71,7 +74,7 @@ TEST(ReflectionTest, ClassHasCorrectReflection) {
     EXPECT_EQ(type.getUUID(), Type::getUUID<SimpleClass>());
 }
 
-TEST(ReflectionTest, PrimitivesHaveCorrectReflection) {
+TEST(TypeReflectionTest, PrimitivesHaveCorrectReflection) {
     TEST_ALL_REFLECTIONS(iodine::u8);
     TEST_ALL_REFLECTIONS(iodine::u16);
     TEST_ALL_REFLECTIONS(iodine::u32);

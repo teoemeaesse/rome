@@ -5,14 +5,19 @@
 #include "reflection/trait.hpp"
 
 /**
- * @brief Implements reflection for the containing type. You should create a type with your own traits here.
+ * @brief Declares that a type can be reflected. Slap this on a class, struct or enum to enable reflection.
+ */
+#define IO_REFLECT friend class iodine::core::Reflect;
+
+/**
+ * @brief Implements reflection for the containing type. You list your type's traits here.
  * @param type The name of the type to reflect.
  * @param name The name of the type. This should be unique.
  * @param ... The traits of the type.
  */
-#define IO_REFLECT(type, name, ...)                                                                          \
+#define IO_REFLECT_IMPL(type, name, ...)                                                                     \
     template <>                                                                                              \
-    inline const iodine::core::Type& iodine::core::reflect<type>() {                                         \
+    inline iodine::core::Type& iodine::core::Reflect::reflect<type>() {                                      \
         static iodine::core::Type instance = iodine::core::Type::make<type>(name __VA_OPT__(, __VA_ARGS__)); \
         return instance;                                                                                     \
     }
@@ -126,6 +131,12 @@ namespace iodine::core {
         std::vector<Unique<Trait>> traits;  ///< The traits of the type.
     };
 
-    template <typename T>
-    inline const Type& reflect();
+    /**
+     * @brief Declares a generic reflection for a given type.
+     * @note Mostly just here to circumvent private member access.
+     */
+    struct Reflect {
+        template <typename T>
+        inline static Type& reflect();
+    };
 }  // namespace iodine::core
