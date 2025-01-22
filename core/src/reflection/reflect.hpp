@@ -154,8 +154,10 @@ namespace iodine::core {
         inline b8 isConstType() const noexcept { return isConst; }
         inline b8 isVolatileType() const noexcept { return isVolatile; }
         inline b8 isPointerType() const noexcept { return isPointer; }
+        inline b8 isArrayType() const noexcept { return isArray; }
         inline b8 isReferenceType() const noexcept { return isReference; }
-        inline b8 isRValueType() const noexcept { return isRValue; }
+        inline b8 isRValueReferenceType() const noexcept { return isRValue; }
+        inline b8 isLValueReferenceType() const noexcept { return isLValue; }
 
         /**
          * @brief Reflects the given type, storing some of its metadata.
@@ -165,7 +167,7 @@ namespace iodine::core {
         template <typename T>
         static TypeInfo make(Type& type) {
             return TypeInfo(type, sizeof(remove_all_qualifiers_t<T>), std::is_const_v<T>, std::is_volatile_v<T>, std::is_pointer_v<T>,
-                            std::is_reference_v<T>, std::is_rvalue_reference_v<T>);
+                            std::is_array_v<T>, std::is_reference_v<T>, std::is_rvalue_reference_v<T>, std::is_lvalue_reference_v<T>);
         }
 
         private:
@@ -174,8 +176,10 @@ namespace iodine::core {
         const b8 isConst;      ///< True if the type is const, false otherwise.
         const b8 isVolatile;   ///< True if the type is volatile, false otherwise.
         const b8 isPointer;    ///< True if the type is a pointer, false otherwise.
+        const b8 isArray;      ///< True if the type is an array, false otherwise.
         const b8 isReference;  ///< True if the type is a reference, false otherwise.
         const b8 isRValue;     ///< True if the type is an rvalue reference, false otherwise.
+        const b8 isLValue;     ///< True if the type is an lvalue reference, false otherwise.
 
         /**
          * @brief Creates a new type info for the given type.
@@ -184,11 +188,21 @@ namespace iodine::core {
          * @param isConst True if the type is const, false otherwise.
          * @param isVolatile True if the type is volatile, false otherwise.
          * @param isPointer True if the type is a pointer, false otherwise.
+         * @param isArray True if the type is an array, false otherwise.
          * @param isRef True if the type is a reference, false otherwise.
          * @param isRValue True if the type is an rvalue reference, false otherwise.
+         * @param isLValue True if the type is an lvalue reference, false otherwise.
          */
-        TypeInfo(Type& type, u64 size, bool isConst, bool isVolatile, bool isPointer, bool isRef, bool isRValue)
-            : type(type), size(size), isConst(isConst), isVolatile(isVolatile), isPointer(isPointer), isReference(isRef), isRValue(isRValue) {}
+        TypeInfo(Type& type, u64 size, b8 isConst, b8 isVolatile, b8 isPointer, b8 isArray, b8 isRef, b8 isRValue, b8 isLValue)
+            : type(type),
+              size(size),
+              isConst(isConst),
+              isVolatile(isVolatile),
+              isPointer(isPointer),
+              isArray(isArray),
+              isReference(isRef),
+              isRValue(isRValue),
+              isLValue(isLValue) {}
     };
 
     /**

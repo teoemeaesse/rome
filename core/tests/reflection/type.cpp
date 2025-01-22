@@ -102,6 +102,42 @@ TEST(TypeReflectionTest, TypeQualifierStripping) {
     EXPECT_EQ(simpleType.getType(), complexType9.getType());
     EXPECT_EQ(simpleType.getType(), complexType10.getType());
 }
+
+TEST(TypeReflectionTest, TypeInfoHasCorrectMetadata) {
+    // Basic type has no special qualifiers
+    TypeInfo& type1 = Reflect::reflect<iodine::u8>();
+
+    EXPECT_FALSE(type1.isConstType());
+    EXPECT_FALSE(type1.isVolatileType());
+    EXPECT_FALSE(type1.isPointerType());
+    EXPECT_FALSE(type1.isArrayType());
+    EXPECT_FALSE(type1.isReferenceType());
+    EXPECT_FALSE(type1.isRValueReferenceType());
+    EXPECT_FALSE(type1.isLValueReferenceType());
+
+    // Both const and the array qualifier apply to the pointee.
+    TypeInfo& type2 = Reflect::reflect<const iodine::u8[127]>();
+
+    EXPECT_TRUE(type2.isConstType());
+    EXPECT_FALSE(type2.isVolatileType());
+    EXPECT_FALSE(type2.isPointerType());
+    EXPECT_TRUE(type2.isArrayType());
+    EXPECT_FALSE(type2.isReferenceType());
+    EXPECT_FALSE(type2.isRValueReferenceType());
+    EXPECT_FALSE(type2.isLValueReferenceType());
+
+    // Volatile applies to the pointer, not the pointee. Same for the pointer.
+    TypeInfo& type3 = Reflect::reflect<volatile iodine::u8*&>();
+
+    EXPECT_FALSE(type3.isConstType());
+    EXPECT_FALSE(type3.isVolatileType());
+    EXPECT_FALSE(type3.isPointerType());
+    EXPECT_FALSE(type3.isArrayType());
+    EXPECT_TRUE(type3.isReferenceType());
+    EXPECT_FALSE(type3.isRValueReferenceType());
+    EXPECT_TRUE(type3.isLValueReferenceType());
+}
+
 TEST(TypeReflectionTest, PrimitivesHaveCorrectReflection) {
     TEST_ALL_REFLECTIONS(iodine::u8);
     TEST_ALL_REFLECTIONS(iodine::u16);
