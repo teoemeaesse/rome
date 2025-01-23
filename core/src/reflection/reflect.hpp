@@ -230,4 +230,16 @@ namespace iodine::core {
         template <typename T>
         static inline Type& _reflect();
     };
+
+    // Primary is_reflectable trait: Defaults to false
+    template <typename T, typename = void>
+    struct is_reflectable : std::false_type {};
+
+    // Specialization: Checks if Reflect::_reflect<remove_all_qualifiers_t<T>>() is valid
+    template <typename T>
+    struct is_reflectable<T, std::void_t<decltype(Reflect::_reflect<remove_all_qualifiers_t<T>>())>> : std::true_type {};
+
+    // Type alias for ease of use
+    template <typename T>
+    constexpr b8 is_reflectable_v = is_reflectable<T>::value;
 }  // namespace iodine::core
