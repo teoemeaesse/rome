@@ -16,18 +16,18 @@ namespace iodine::core {
         Entity(ID id);
         ~Entity() = default;
 
-        /**
-         * @brief Manages creation and destruction of entities.
-         */
+        inline b8 operator==(const Entity& other) const { return id == other.id; }
+        inline b8 operator!=(const Entity& other) const { return id != other.id; }
+
         class Registry;
 
         private:
         ID id;  // The entity ID.
 
-        static inline void setIndex(ID& id, u64 index) { id = (id & 0x000000000000FFFF) | (index << 16); }
-        static inline void setVersion(ID& id, u64 version) { id = (id & 0xFFFFFFFFFFFF0000) | version; }
-        static inline u64 getIndex(ID id) { return static_cast<u64>(id) & 0xFFFFFFFFFFFF0000; }
-        static inline u64 getVersion(ID id) { return static_cast<u64>(id) & 0x000000000000FFFF; }
+        static inline void setIndex(ID& id, u64 index) { id = (id & 0x000000000000FFFFULL) | (index << 16); }
+        static inline void setVersion(ID& id, u64 version) { id = (id & 0xFFFFFFFFFFFF0000ULL) | (version & 0xFFFF); }
+        static inline u64 getIndex(ID id) { return id >> 16; }
+        static inline u64 getVersion(ID id) { return id & 0xFFFF; }
     };
 
     /**
@@ -42,17 +42,17 @@ namespace iodine::core {
          * @brief Creates a new entity.
          * @return The ID of the new entity.
          */
-        Entity& create();
+        Entity create();
 
         /**
          * @brief Destroys an entity.
          * @param entity The entity to destroy.
          */
-        void destroy(Entity& entity);
+        void destroy(Entity entity);
 
         private:
-        std::vector<Entity> entities;  // The entity pool.
-        u64 next;                      // The next available entity index.
-        u64 available;                 // The number of available entities.
+        std::vector<u64> entities;  // The entity pool.
+        u64 next;                   // The next available entity index.
+        u64 available;              // The number of available entities.
     };
 }  // namespace iodine::core

@@ -5,24 +5,24 @@ namespace iodine::core {
 
     Entity::Registry::Registry() : next(0), available(0) {}
 
-    Entity& Entity::Registry::create() {
+    Entity Entity::Registry::create() {
         if (available == 0) {
             const u64 index = entities.size();
             entities.emplace_back(static_cast<ID>(index << 16));
-            return entities.back();
+            return Entity(entities.back());
         }
 
         const u64 index = next;
-        next = getIndex(entities[index].id);
-        setIndex(entities[index].id, index);
+        next = getIndex(entities[index]);
+        setIndex(entities[index], index);
         available--;
-        return entities[index];
+        return Entity(entities[index]);
     }
 
-    void Entity::Registry::destroy(Entity& entity) {
+    void Entity::Registry::destroy(Entity entity) {
         const u64 index = getIndex(entity.id);
-        setIndex(entities[index].id, next);
-        setVersion(entities[index].id, getVersion(entities[index].id) + 1);
+        setIndex(entities[index], next);
+        setVersion(entities[index], getVersion(entities[index]) + 1);
         next = index;
         available++;
     }
