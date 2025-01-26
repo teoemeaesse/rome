@@ -50,6 +50,13 @@ namespace iodine::core {
          */
         void destroy(Entity entity);
 
+        /**
+         * @brief Checks if an entity is alive.
+         * @param entity The entity to check.
+         * @return True if the entity is alive, false otherwise.
+         */
+        b8 isAlive(Entity entity) const;
+
         private:
         std::vector<u64> entities;  // The entity pool.
         u64 next;                   // The next available entity index.

@@ -26,4 +26,6 @@ namespace iodine::core {
         next = index;
         available++;
     }
+
+    b8 Entity::Registry::isAlive(Entity entity) const { return getVersion(entities[getIndex(entity.id)]) == getVersion(entity.id); }
 }  // namespace iodine::core
