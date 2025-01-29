@@ -42,6 +42,19 @@ namespace iodine::core {
             }
 
             /**
+             * @brief Gets the component for the given entity.
+             * @tparam T The component type to get.
+             * @param entity The entity to get the component for.
+             * @return The component for the given entity.
+             */
+            template <typename T>
+            const T& get(const Entity& entity) const {
+                STATIC_ASSERT(isComponent<T>(), "Component must be reflectable and copy-constructible to be stored");
+                IO_ASSERT_MSG(Reflect::reflect<T>() == getType(), "Component type mismatch");
+                return *static_cast<T*>(get(entity));
+            }
+
+            /**
              * @brief Inserts the component for the given entity.
              * @tparam T The component type to insert.
              * @param entity The entity to insert the component for.
@@ -147,6 +160,12 @@ namespace iodine::core {
                 entities.emplace(entity.getIndex(), *static_cast<T*>(component));
             }
 
+            inline std::vector<T>::iterator begin() { return entities.begin(); }
+            inline std::vector<T>::iterator end() { return entities.end(); }
+
+            inline std::vector<T>::const_iterator begin() const { return entities.begin(); }
+            inline std::vector<T>::const_iterator end() const { return entities.end(); }
+
             private:
             SparseSet<T> entities;  ///< The entities with this component.
             Type& type;             ///< The reflected type for this component.
@@ -170,17 +189,88 @@ namespace iodine::core {
             template <typename T>
             ID registerComponent() {
                 STATIC_ASSERT(isComponent<T>(), "Component must be reflectable and copy-constructible to be registered");
-                static ID id = uuids.generate();
-                if (store.find(id) != store.end()) {
-                    IO_WARN("Component already registered with ID: %ull", id);
-                    return id;
-                }
+                static ID id = Reflect::reflect<T>().getUUID();
+                IO_ASSERT_MSG(store.find(id) == store.end(), "Duplicate component registration");
                 store[id] = MakeUnique<Storage<T>>(Reflect::reflect<T>());
                 return id;
             }
 
+            /**
+             * @brief Creates a new component for the given entity.
+             * @tparam T The component type to create.
+             * @param entity The entity to create the component for.
+             * @return The created component.
+             */
+            template <typename T>
+            T& createComponent(const Entity& entity, T& component) {
+                STATIC_ASSERT(isComponent<T>(), "Component must be reflectable and copy-constructible to be created");
+                ID id = Reflect::reflect<T>().getUUID();
+                IO_ASSERT_MSG(store.find(id) != store.end(), "Component not registered");
+                store[id]->insert(entity, component);
+                return component;
+            }
+
+            /**
+             * @brief Creates a new component for the given entity.
+             * @tparam T The component type to create.
+             * @tparam Args The types of the arguments to forward to the component constructor.
+             * @param entity The entity to create the component for.
+             * @param ...args The arguments to forward to the component constructor.
+             * @return The created component.
+             */
+            template <typename T, typename... Args>
+            T& createComponent(const Entity& entity, Args&&... args) {
+                STATIC_ASSERT(isComponent<T>(), "Component must be reflectable and copy-constructible to be created");
+                ID id = Reflect::reflect<T>().getUUID();
+                IO_ASSERT_MSG(store.find(id) != store.end(), "Component not registered");
+                T component(std::forward<Args>(args)...);
+                store[id]->insert(entity, component);
+                return component;
+            }
+
+            /**
+             * @brief Removes a component from a given entity.
+             * @tparam T The component type.
+             * @param entity The entity to remove the component from.
+             */
+            template <typename T>
+            void removeComponent(const Entity& entity) {
+                STATIC_ASSERT(isComponent<T>(), "Component must be reflectable and copy-constructible to be removed");
+                ID id = Reflect::reflect<T>().getUUID();
+                IO_ASSERT_MSG(store.find(id) != store.end(), "Component not registered");
+                store[id]->remove(entity);
+            }
+
+            /**
+             * @brief Gets the component for the given entity.
+             * @tparam T The component type to get.
+             * @param entity The entity to get the component for.
+             * @return The component for the given entity.
+             */
+            template <typename T>
+            T& getComponent(const Entity& entity) {
+                STATIC_ASSERT(isComponent<T>(), "Component must be reflectable and copy-constructible to be retrieved");
+                ID id = Reflect::reflect<T>().getUUID();
+                IO_ASSERT_MSG(store.find(id) != store.end(), "Component not registered");
+                return store[id]->get<T>(entity);
+            }
+
+            /**
+             * @brief Gets the component for the given entity.
+             * @tparam T The component type to get.
+             * @param entity The entity to get the component for.
+             * @return The component for the given entity.
+             */
+            template <typename T>
+            const T& getComponent(const Entity& entity) const {
+                STATIC_ASSERT(isComponent<T>(), "Component must be reflectable and copy-constructible to be retrieved");
+                ID id = Reflect::reflect<T>().getUUID();
+                IO_ASSERT_MSG(store.find(id) != store.end(), "Component not registered");
+                return store[id]->get<T>(entity);
+            }
+
             private:
-            std::unordered_map<ID, Unique<Dashboard>> store;
+            std::unordered_map<ID, Unique<Dashboard>> store;  ///< The storage for component types.
         };
     }  // namespace Component
 }  // namespace iodine::core
