@@ -26,7 +26,6 @@ namespace iodine::core {
     class IO_API Type {
         public:
         ~Type() = default;
-        Type(const Type&) = default;
         Type(Type&&) noexcept = default;
 
         inline b8 operator==(const Type& other) const noexcept { return uuid == other.uuid; }
