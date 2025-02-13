@@ -106,6 +106,7 @@ IO_API void assertFail(const char* expression, const char* message, const char* 
 #include <memory>
 #include <string>
 #include <type_traits>
+#include <vector>
 
 namespace iodine {
     /* Primitive types */

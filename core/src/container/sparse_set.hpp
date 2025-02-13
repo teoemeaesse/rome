@@ -28,12 +28,9 @@ namespace iodine::core {
             if (size >= dense.size()) {
                 dense.resize(size + 1, 0);
             }
-            if (size >= data.size()) {
-                data.resize(size + 1);
-            }
             dense[size] = index;
-            data[size] = value;
             sparse[index] = size;
+            data.push_back(value);
             size++;
         }
 
@@ -52,12 +49,9 @@ namespace iodine::core {
             if (size >= dense.size()) {
                 dense.resize(size + 1, 0);
             }
-            if (size >= data.size()) {
-                data.resize(size + 1);
-            }
             dense[size] = index;
-            data[size] = std::move(value);
             sparse[index] = size;
+            data.emplace_back(std::move(value));
             size++;
         }
 
@@ -78,12 +72,9 @@ namespace iodine::core {
             if (size >= dense.size()) {
                 dense.resize(size + 1, 0);
             }
-            if (size >= data.size()) {
-                data.resize(size + 1);
-            }
             dense[size] = index;
-            data[size] = T(std::forward<Args>(args)...);
             sparse[index] = size;
+            data.emplace_back(std::forward<Args>(args)...);
             size++;
         }
 
@@ -104,12 +95,12 @@ namespace iodine::core {
         }
 
         inline const T& operator[](u64 index) const noexcept {
-            IO_ASSERT_MSG(contains(index), "Sparse set does not contain value at index.");
+            IO_ASSERT_MSG(contains(index), "Sparse set does not contain value at index");
             return data[sparse[index]];
         }
 
         inline T& operator[](u64 index) noexcept {
-            IO_ASSERT_MSG(contains(index), "Sparse set does not contain value at index.");
+            IO_ASSERT_MSG(contains(index), "Sparse set does not contain value at index");
             return data[sparse[index]];
         }
 
@@ -119,7 +110,7 @@ namespace iodine::core {
          * @return The value at the given index.
          */
         inline const T& at(u64 index) const noexcept {
-            IO_ASSERT_MSG(contains(index), "Sparse set does not contain value at index.");
+            IO_ASSERT_MSG(contains(index), "Sparse set does not contain value at index");
             return data[sparse[index]];
         }
 
@@ -129,7 +120,7 @@ namespace iodine::core {
          * @return The value at the given index.
          */
         inline T& at(u64 index) noexcept {
-            IO_ASSERT_MSG(contains(index), "Sparse set does not contain value at index.");
+            IO_ASSERT_MSG(contains(index), "Sparse set does not contain value at index");
             return data[sparse[index]];
         }
 

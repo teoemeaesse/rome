@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vector>
-
 #include "reflection/reflect.hpp"
 
 namespace iodine::core {
