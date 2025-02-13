@@ -174,7 +174,7 @@ namespace iodine::core {
         /**
          * @brief Manages the registration, creation, and destruction of components.
          *        Components must be registered before they can be used in the ECS.
-         *        Every component must implement reflection to be registered.
+         *        Every component must implement reflection and a copy-constructor to be registered.
          */
         class IO_API Registry {
             public:
