@@ -73,6 +73,12 @@ namespace iodine::core {
         b8 isUnixLike();
 
         /**
+         * @brief Checks if the platform is Linux.
+         * @return True if the platform is Linux, false otherwise.
+         */
+        b8 isLinux();
+
+        /**
          * @brief Clears a signal, marking it as handled.
          * @param signal The signal to clear.
          */

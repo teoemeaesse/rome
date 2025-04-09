@@ -6,8 +6,8 @@ namespace iodine::core {
     void RateTracker::tick(f64 delta) {
         elapsed += delta;
         count++;
-        if (elapsed >= window) {
-            estimate = static_cast<u32>(count / elapsed);
+        if (elapsed > window) {
+            estimate = static_cast<u32>(++count / elapsed);
             count = 0;
             elapsed = 0;
         }

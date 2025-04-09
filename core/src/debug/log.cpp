@@ -1,5 +1,6 @@
 #include "debug/log.hpp"
 
+#include <cstdarg>
 #include <iostream>
 
 namespace iodine::core {
@@ -18,10 +19,9 @@ namespace iodine::core {
     }  // namespace ANSIColors
 
     void logMessage(LogLevel level, const char* message, ...) {
-        std::string level_strings[6] = {
-            std::string(ANSIColors::White) + "[TRACE]: " + ANSIColors::Default, std::string(ANSIColors::Gray) + "[DEBUG]: " + ANSIColors::Default,
-            std::string(ANSIColors::Blue) + "[INFO]:  " + ANSIColors::Default,  std::string(ANSIColors::Orange) + "[WARN]:  " + ANSIColors::Default,
-            std::string(ANSIColors::Red) + "[ERROR]: " + ANSIColors::Default,   std::string(ANSIColors::Magenta) + "[FATAL]: " + ANSIColors::Default};
+        std::string level_strings[6] = {std::string(ANSIColors::White) + "[TRACE]: " + ANSIColors::Default, std::string(ANSIColors::Gray) + "[DEBUG]: " + ANSIColors::Default,
+                                        std::string(ANSIColors::Blue) + "[INFO]:  " + ANSIColors::Default,  std::string(ANSIColors::Orange) + "[WARN]:  " + ANSIColors::Default,
+                                        std::string(ANSIColors::Red) + "[ERROR]: " + ANSIColors::Default,   std::string(ANSIColors::Magenta) + "[FATAL]: " + ANSIColors::Default};
 
         const std::string& level_string = level_strings[static_cast<u8>(level)];
         std::cout << level_string;

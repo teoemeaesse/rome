@@ -17,7 +17,9 @@
 
 /* Static asserts */
 #ifndef STATIC_ASSERT
-#if defined(__clang__) || defined(__GNUC__)
+#ifdef __cplusplus
+#define STATIC_ASSERT static_assert
+#elif defined(__clang__) || defined(__GNUC__)
 #define STATIC_ASSERT _Static_assert
 #else
 #define STATIC_ASSERT static_assert
@@ -103,6 +105,9 @@ IO_API void assertFail(const char* expression, const char* message, const char* 
 #endif
 
 /* Standard headers */
+#include <algorithm>
+#include <atomic>
+#include <cstring>
 #include <memory>
 #include <string>
 #include <type_traits>

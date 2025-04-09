@@ -1,7 +1,5 @@
 #pragma once
 
-#include <atomic>
-
 #include "platform/platform.hpp"
 
 namespace iodine::core {

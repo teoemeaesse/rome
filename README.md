@@ -9,10 +9,16 @@ To compile and run you need the following:
 - **CMake 3.14**
 - **Clang** or **GCC**
 
-## Installation
+You will also need the following dependencies on Linux to build SDL:
+```
+libx11-dev libxrandr-dev
+```
+
+
+## Installation 
 Before anything else, run the setup script. This will get and install all the necessary dependencies.
 ```
-./setup.sh
+./configure.sh
 ```
 
 ## Build

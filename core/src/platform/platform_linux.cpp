@@ -1,9 +1,11 @@
 #include "platform/platform.hpp"
 
-#ifdef IO_MACOS
+#ifdef IO_LINUX
 
 #include <fcntl.h>
 #include <unistd.h>
+
+#include <chrono>
 
 #include "debug/log.hpp"
 
