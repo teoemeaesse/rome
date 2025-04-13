@@ -2,9 +2,8 @@
 
 #include <new>
 
-static thread_local iodine::core::Metrics::ThreadId threadId =
-    -1;                                                 ///< The ID of the current thread. Assigned on registration and indexes into threadMetrics.
-static thread_local iodine::b8 recursionGuard = false;  ///< Used to prevent circular new / delete calls.
+static thread_local iodine::core::Metrics::ThreadId threadId = -1;  ///< The ID of the current thread. Assigned on registration and indexes into threadMetrics.
+static thread_local iodine::b8 recursionGuard = false;              ///< Used to prevent circular new / delete calls.
 
 void* operator new(size_t size) {
     if (threadId == -1 || iodine::core::metricsShutdown) {
@@ -130,9 +129,8 @@ namespace iodine::core {
         return "Thread (" + std::to_string(thread) +
                ") heap metrics:\n"
                "          - Total               " +
-               std::to_string(getTotalBytes(thread)) + " B\n          - Peak                " + std::to_string(getPeakBytes(thread)) +
-               " B\n          - Current / leaked    " + std::to_string(getCurrentBytes(thread)) + " B\n          - Total allocations   " +
-               std::to_string(getTotalAllocations(thread)) + "\n          - Total deallocations " +
+               std::to_string(getTotalBytes(thread)) + " B\n          - Peak                " + std::to_string(getPeakBytes(thread)) + " B\n          - Current / leaked    " +
+               std::to_string(getCurrentBytes(thread)) + " B\n          - Total allocations   " + std::to_string(getTotalAllocations(thread)) + "\n          - Total deallocations " +
                std::to_string(getTotalAllocations(thread) - getMissingDeallocations(thread));
     }
     std::string Metrics::getMemoryMetrics() const {
@@ -152,9 +150,8 @@ namespace iodine::core {
         }
         return "Global heap metrics:\n"
                "          - Total               " +
-               std::to_string(globalMetrics.totalBytes) + " B\n          - Peak                " + std::to_string(globalMetrics.peakBytes) +
-               " B\n          - Current / leaked    " + std::to_string(globalMetrics.currentBytes) + " B\n          - Total allocations   " +
-               std::to_string(globalMetrics.totalAllocations) + "\n          - Total deallocations " +
+               std::to_string(globalMetrics.totalBytes) + " B\n          - Peak                " + std::to_string(globalMetrics.peakBytes) + " B\n          - Current / leaked    " +
+               std::to_string(globalMetrics.currentBytes) + " B\n          - Total allocations   " + std::to_string(globalMetrics.totalAllocations) + "\n          - Total deallocations " +
                std::to_string(globalMetrics.totalAllocations - globalMetrics.missingDeallocations);
     }
 

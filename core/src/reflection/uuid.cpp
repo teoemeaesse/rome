@@ -1,16 +1,11 @@
 #include "reflection/uuid.hpp"
 
-#include "platform/platform.hpp"
-
 namespace iodine::core {
-    UUIDGenerator::UUIDGenerator() : key(Platform::getInstance().random_u64()), counter(0) {
-        while (!key) {
-            key = Platform::getInstance().random_u64();
-        }
+    UUID::operator std::string() const {
+        char buffer[37];
+        snprintf(buffer, sizeof(buffer), "%08x-%04x-%04x-%04x-%012llx", *(u32*)&bytes[0], *(u16*)&bytes[4], *(u16*)&bytes[6], *(u16*)&bytes[8], *(u64*)&bytes[10]);
+        return std::string(buffer);
     }
 
-    UUID UUIDGenerator::generate() {
-        u64 val = counter.fetch_add(1, std::memory_order_relaxed) + 1;
-        return val ^ key;
-    }
-}  // namespace iodine::core
+    u8 UUID::getVersion() const { return (bytes[6] >> 4) & 0x0F; }
+}

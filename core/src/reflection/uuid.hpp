@@ -4,33 +4,40 @@
 
 namespace iodine::core {
     /**
-     * @brief A universally unique identifier. Only unique to each instance of its generator.
+     * @brief An RFC-9562 compliant UUID (Universally Unique Identifier).
+     * @note Supports UUIDv1 and UUIDv5.
      */
-    using UUID = u64;
-
-    /**
-     * @brief Class for generating universally unique identifiers.
-     * @note UUID's are only unique for their generator. Do not share them between different applications.
-     */
-    class IO_API UUIDGenerator {
+    class UUID {
         public:
-        UUIDGenerator();
-        UUIDGenerator(const UUIDGenerator&) = delete;
-        UUIDGenerator(UUIDGenerator&&) = delete;
-        UUIDGenerator& operator=(const UUIDGenerator&) = delete;
-        UUIDGenerator& operator=(UUIDGenerator&&) = delete;
+        UUID() : bytes{0} {}
+        /**
+         * @brief Create a UUID from a string.
+         * @param str The string to create the UUID from.
+         * @note The string must be in the format "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" where x is a hexadecimal digit.
+         */
+        UUID(const char* str);
+        UUID(const std::string& str);
+        UUID(const UUID&) = default;
+        UUID(UUID&&) = default;
+        UUID& operator=(const UUID&) = default;
+        UUID& operator=(UUID&&) = default;
+
+        inline b8 operator==(const UUID& other) const noexcept { return memcmp(bytes, other.bytes, sizeof(bytes)) == 0; }
+        inline b8 operator!=(const UUID& other) const noexcept { return memcmp(bytes, other.bytes, sizeof(bytes)) != 0; }
 
         /**
-         * @brief Generates a new universally unique identifier.
-         * @return The new universally unique identifier.
-         * @note Thread-safe.
+         * @brief Convert the UUID to a string.
+         * @return The UUID as a string.
          */
-        UUID generate();
+        operator std::string() const;
+
+        /**
+         * @brief Get the UUID version i.e. UUIDv4 -> 4.
+         * @return The UUID as a string.
+         */
+        u8 getVersion() const;
 
         private:
-        u64 key;                   ///< The random key used for masking.
-        std::atomic<u64> counter;  ///< Monotonically increasing counter.
+        u8 bytes[16];  ///< The bytes of the UUID.
     };
-
-    static UUIDGenerator uuids;  ///< Generates internal UUIDs. Do not use for persistent storage of UUIDs.
 }  // namespace iodine::core

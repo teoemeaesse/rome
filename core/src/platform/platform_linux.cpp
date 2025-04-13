@@ -185,6 +185,22 @@ namespace iodine::core {
         close(fd);
         return random_value;
     }
+
+    b8 Platform::isLittleEndian() {
+        i8 i = 1;
+        return *reinterpret_cast<byte*>(&i) == 1;
+    }
+
+    b8 Platform::isBigEndian() { return !isLittleEndian(); }
+
+    void Platform::swapEndian(void* data, u64 size) {
+        u8* bytes = reinterpret_cast<u8*>(data);
+        for (u64 i = 0; i < size / 2; ++i) {
+            u8 temp = bytes[i];
+            bytes[i] = bytes[size - 1 - i];
+            bytes[size - 1 - i] = temp;
+        }
+    }
 }  // namespace iodine::core
 
 #endif

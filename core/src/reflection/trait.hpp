@@ -27,7 +27,7 @@ namespace iodine::core {
         template <typename T>
         static inline UUID getUUID() noexcept {
             STATIC_ASSERT((std::is_base_of_v<Trait, T>), "T is not a trait");
-            static const UUID id = UUIDGenerator().generate();
+            static const UUID id;  // UUIDGenerator().generate();
             return id;
         }
 

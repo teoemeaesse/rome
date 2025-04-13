@@ -102,5 +102,25 @@ namespace iodine::core {
          * @return The random u64.
          */
         u64 random_u64();
+
+        /**
+         * @brief Checks if the platform is little-endian.
+         * @return True if the platform is little-endian, false otherwise.
+         */
+        b8 isLittleEndian();
+
+        /**
+         * @brief Checks if the platform is big-endian.
+         * @return True if the platform is big-endian, false otherwise.
+         */
+        b8 isBigEndian();
+
+        /**
+         * @brief Swaps the endianness of the given data.
+         * @param data The data to swap.
+         * @param size The size of the data.
+         * @return The swapped data.
+         */
+        void swapEndian(void* data, u64 size);
     };
 }  // namespace iodine::core
