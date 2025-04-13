@@ -37,10 +37,10 @@ namespace iodine::core {
             if (Platform::getInstance().isBigEndian()) {
                 Platform::getInstance().swapEndian(&temp, sizeof(u32));
             }
-            output[j] = static_cast<u8>(input[i] & 0xff);
-            output[j + 1] = static_cast<u8>((input[i] >> 8) & 0xff);
-            output[j + 2] = static_cast<u8>((input[i] >> 16) & 0xff);
-            output[j + 3] = static_cast<u8>((input[i] >> 24) & 0xff);
+            output[j] = static_cast<u8>(temp & 0xff);
+            output[j + 1] = static_cast<u8>((temp >> 8) & 0xff);
+            output[j + 2] = static_cast<u8>((temp >> 16) & 0xff);
+            output[j + 3] = static_cast<u8>((temp >> 24) & 0xff);
         }
     }
 
@@ -175,7 +175,7 @@ namespace iodine::core {
 
     MD5::MD5(const std::string& input) : MD5::MD5(input.c_str(), input.length()) {}
 
-    MD5::MD5(const char* input, u32 length) {}
+    MD5::MD5(const char* input, u32 length) { hash(input, length); }
 
     MD5::operator std::string() const {
         std::ostringstream oss;

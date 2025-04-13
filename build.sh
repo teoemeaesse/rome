@@ -73,3 +73,5 @@ else
 fi
 
 echo -e "${GREEN}Root build script completed.${NC}"
+
+cat ./core/build/Testing/Temporary/LastTest.log  
