@@ -1,6 +1,6 @@
 #pragma once
 
-#include "platform/platform.hpp"
+#include "prelude.hpp"
 
 namespace iodine::core {
     /**
@@ -9,13 +9,21 @@ namespace iodine::core {
      */
     class UUID {
         public:
-        UUID() : bytes{0} {}
         /**
-         * @brief Create a UUID from a string.
-         * @param str The string to create the UUID from.
+         * @brief Creates a UUIDv1.
+         */
+        UUID();
+        /**
+         * @brief Creates a UUIDv5 from a string.
+         * @param str The string to create the UUIDv5 from.
          * @note The string must be in the format "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" where x is a hexadecimal digit.
          */
         UUID(const char* str);
+        /**
+         * @brief Creates a UUIDv5 from a string.
+         * @param str The string to create the UUIDv5 from.
+         * @note The string must be in the format "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" where x is a hexadecimal digit.
+         */
         UUID(const std::string& str);
         UUID(const UUID&) = default;
         UUID(UUID&&) = default;
@@ -26,13 +34,18 @@ namespace iodine::core {
         inline b8 operator!=(const UUID& other) const noexcept { return memcmp(bytes, other.bytes, sizeof(bytes)) != 0; }
 
         /**
-         * @brief Convert the UUID to a string.
+         * @brief Converts the UUID to a string.
          * @return The UUID as a string.
          */
         operator std::string() const;
+        /**
+         * @brief Converts the UUID to a string.
+         * @return The UUID as a string.
+         */
+        std::string toString() const;
 
         /**
-         * @brief Get the UUID version i.e. UUIDv4 -> 4.
+         * @brief Gets the UUID version i.e. UUIDv4 -> 4.
          * @return The UUID as a string.
          */
         u8 getVersion() const;

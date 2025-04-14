@@ -57,5 +57,7 @@ namespace iodine::core {
 
         const std::function<void(f64)> tick;    ///< The tick function.
         const std::function<void(f64)> render;  ///< The render function;
+
+        b8 memoryMetrics;  ///< Whether to track memory usage.
     };
 }  // namespace iodine::core

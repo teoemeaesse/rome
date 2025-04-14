@@ -8,8 +8,8 @@ namespace iodine::core {
           strategy(std::move(MakeUnique<TwinStrategy>(*this))),
           tickRate(config.tickRate, config.tickRateWindow),
           renderRate(config.renderRate, config.renderRateWindow) {
-        iodine::core::Metrics::getInstance().registerThread();
         if (config.isMemoryLogging) {
+            iodine::core::Metrics::getInstance().registerThread();
             iodine::core::Metrics::getInstance().setIsMemoryTracking(true);
         }
     }
@@ -19,8 +19,8 @@ namespace iodine::core {
           strategy(std::move(strategy)),
           tickRate(config.tickRate, config.tickRateWindow),
           renderRate(config.renderRate, config.renderRateWindow) {
-        iodine::core::Metrics::getInstance().registerThread();
         if (config.isMemoryLogging) {
+            iodine::core::Metrics::getInstance().registerThread();
             iodine::core::Metrics::getInstance().setIsMemoryTracking(true);
         }
     }

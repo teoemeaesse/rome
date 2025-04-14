@@ -5,7 +5,7 @@
 
 namespace iodine::core {
     ApplicationStrategy::ApplicationStrategy(const std::function<void(f64)>& tick, const std::function<void(f64)>& render)
-        : tick(tick), render(render) {}
+        : tick(tick), render(render), memoryMetrics(false) {}
 
     void ApplicationStrategy::start(f64 tickRate, f64 renderRate) {
         if (status == Status::Done) {

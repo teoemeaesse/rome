@@ -74,4 +74,7 @@ fi
 
 echo -e "${GREEN}Root build script completed.${NC}"
 
-cat ./core/build/Testing/Temporary/LastTest.log  
+if [ "$TESTS" -eq 1 ]; then
+    echo -e "${GREEN}Test results.${NC}"
+    cat ./core/build/Testing/Temporary/LastTest.log  
+fi

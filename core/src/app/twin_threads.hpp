@@ -11,7 +11,7 @@ namespace iodine::core {
      */
     class IO_API TwinStrategy : public ApplicationStrategy {
         public:
-        TwinStrategy(Application& app);
+        TwinStrategy(Application& app, b8 memoryMetrics = true);
         ~TwinStrategy() override = default;
 
         /**

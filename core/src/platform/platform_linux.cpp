@@ -171,18 +171,22 @@ namespace iodine::core {
 
     f64 Platform::time() { return std::chrono::duration_cast<std::chrono::microseconds>(clock.now().time_since_epoch()).count() / 1e6; }
 
-    u64 Platform::random_u64() {
-        i32 fd = open("/dev/urandom", O_RDONLY);
-        if (fd == -1) {
-            exit(EXIT_FAILURE);
-        }
+    u64 Platform::timeNS() { return std::chrono::duration_cast<std::chrono::nanoseconds>(clock.now().time_since_epoch()).count(); }
+
+    u64 Platform::randomU64() {
+        static int fd = []() -> int {
+            int fileDesc = open("/dev/urandom", O_RDONLY);
+            if (fileDesc == -1) {
+                exit(EXIT_FAILURE);
+            }
+            return fileDesc;
+        }();
+
         u64 random_value;
-        u32 bytes_read = read(fd, &random_value, sizeof(random_value));
+        ssize_t bytes_read = read(fd, &random_value, sizeof(random_value));
         if (bytes_read != sizeof(random_value)) {
-            close(fd);
             exit(EXIT_FAILURE);
         }
-        close(fd);
         return random_value;
     }
 

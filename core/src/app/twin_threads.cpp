@@ -4,12 +4,20 @@
 #include "chrono/timer.hpp"
 
 namespace iodine::core {
-    TwinStrategy::TwinStrategy(Application& app)
-        : ApplicationStrategy([this, &app](f64 dt) { app.tick(dt); }, [this, &app](f64 dt) { app.render(dt); }) {}
+    TwinStrategy::TwinStrategy(Application& app, b8 memoryMetrics)
+        : ApplicationStrategy([this, &app](f64 dt) { app.tick(dt); }, [this, &app](f64 dt) { app.render(dt); }) {
+        this->memoryMetrics = memoryMetrics;
+    }
 
     void TwinStrategy::run(f64 tickRate, f64 renderRate) {
         tickThread.run([this, &tickRate]() {
             IO_INFO("Starting up tick thread");
+
+            if (memoryMetrics) {
+                iodine::core::Metrics::getInstance().registerThread();
+                iodine::core::Metrics::getInstance().setIsMemoryTracking(true);
+                IO_INFO("Metrics tracking ON for tick thread ID: %d", tickThread.getThreadId());
+            }
 
             f64 targetTime = 1.0 / tickRate;
             f64 elapsed = 0.0;
@@ -29,6 +37,12 @@ namespace iodine::core {
 
         renderThread.run([this, &renderRate]() {
             IO_INFO("Starting up render thread");
+
+            if (memoryMetrics) {
+                iodine::core::Metrics::getInstance().registerThread();
+                iodine::core::Metrics::getInstance().setIsMemoryTracking(true);
+                IO_INFO("Metrics tracking ON for tick thread ID: %d", renderThread.getThreadId());
+            }
 
             f64 targetTime = 1.0 / renderRate;
             f64 elapsed = 0.0;

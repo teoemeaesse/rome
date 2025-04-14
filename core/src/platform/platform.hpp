@@ -98,10 +98,16 @@ namespace iodine::core {
         f64 time();
 
         /**
+         * @brief Gets the current time in nanoseconds.
+         * @return The current time in nanoseconds.
+         */
+        u64 timeNS();
+
+        /**
          * @brief Generates a random 64-bit unsigned integer.
          * @return The random u64.
          */
-        u64 random_u64();
+        u64 randomU64();
 
         /**
          * @brief Checks if the platform is little-endian.
