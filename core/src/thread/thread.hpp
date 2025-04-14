@@ -54,16 +54,10 @@ namespace iodine::core {
         }
 
         /**
-         * @brief Gets the thread id.
-         * @return The thread id.
-         */
-        inline std::thread::id getThreadId() const { return thread.get_id(); }
-
-        /**
          * @brief Gets the metrics id for this thread.
          * @return The metrics id.
          */
-        inline Metrics::ThreadId getMetricsId() const { return metricsId; }
+        inline Metrics::ThreadId getThreadId() const { return threadId; }
 
         /**
          * @brief Checks whether the thread is running.
@@ -73,7 +67,7 @@ namespace iodine::core {
 
         private:
         std::thread thread{};              ///< The thread object.
-        Metrics::ThreadId metricsId;       ///< The metrics id for this thread.
+        Metrics::ThreadId threadId;        ///< The metrics id for this thread.
         b8 isMemoryTracking = false;       ///< Whether memory tracking is enabled.
         b8 isPerformanceTracking = false;  ///< Whether performance tracking is enabled.
         b8 isMetricsStateChanged = false;  ///< Whether the metrics state has changed.
@@ -87,8 +81,9 @@ namespace iodine::core {
          */
         template <typename Function, typename... Args>
         void start(Function&& function, Args&&... args) {
-            metricsId = Metrics::getInstance().registerThread();
-            updateMetrics();
+            if (threadId != -1) {
+                updateMetrics();
+            }
             thread = std::thread(std::forward<Function>(function), std::forward<Args>(args)...);
         }
 

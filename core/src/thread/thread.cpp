@@ -29,7 +29,7 @@ namespace iodine::core {
 
     void Thread::updateMetrics() {
         if (isMetricsStateChanged) {
-            Metrics::getInstance().setIsMemoryTracking(metricsId, isMemoryTracking);
+            Metrics::getInstance().setIsMemoryTracking(threadId, isMemoryTracking);
             // Metrics::getInstance().setIsPerformanceTracking(metricsId, isPerformanceTracking); //TODO: Implement
         }
     }

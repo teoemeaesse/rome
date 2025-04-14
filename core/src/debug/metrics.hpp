@@ -7,7 +7,6 @@
 #include "debug/log.hpp"
 
 namespace iodine::core {
-    static inline std::atomic_bool metricsShutdown = false;  ///< Whether the metrics have been shut down. This only happens on program exit.
     /**
      * @brief Tracks program time and memory performance over time.
      */
@@ -63,6 +62,18 @@ namespace iodine::core {
          * @return The memory metrics as a string.
          */
         std::string getMemoryMetrics() const;
+
+        /**
+         * @brief Gets the alias for this thread.
+         * @param thread The thread to get the alias for.
+         * @return The thread alias.
+         */
+        const std::string& getThreadAlias(ThreadId thread) const;
+        /**
+         * @brief Gets the alias for this thread.
+         * @return The thread alias.
+         */
+        const std::string& getThreadAlias() const;
 
         /**
          * @brief Gets the total number of bytes currently heap-allocated by this thread.
@@ -136,6 +147,11 @@ namespace iodine::core {
          * @note This value is thread-local.
          */
         b8 isMemoryTracking(ThreadId thread) const;
+        /**
+         * @brief Gets whether memory tracking is enabled for this thread.
+         * @return Whether memory tracking is enabled.
+         */
+        b8 isMemoryTracking() const;
 
         /**
          * @brief Enables / disables memory tracking for this thread.
@@ -150,10 +166,11 @@ namespace iodine::core {
 
         /**
          * @brief Registers the current thread for metrics.
+         * @param alias The alias to use for this thread.
          * @return This thread's ID.
          * @note This action is thread-local.
          */
-        ThreadId registerThread();
+        ThreadId registerThread(const std::string& alias);
 
         /**
          * @brief Unregisters the current thread from metrics.
@@ -168,6 +185,7 @@ namespace iodine::core {
             iodine::u64 totalBytes = 0;                          ///< The total number of bytes allocated during program execution.
             iodine::u64 totalAllocations = 0;                    ///< The total number of heap allocations.
             iodine::b8 memoryLogging = false;                    ///< Whether to log memory allocation and deallocation.
+            std::string threadAlias = "Main";                    ///< The alias for this thread.
             std::unordered_map<void*, iodine::u64> allocations;  ///< Tracks each pointer's allocated size.
         };
 

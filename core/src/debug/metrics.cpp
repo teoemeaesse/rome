@@ -2,11 +2,13 @@
 
 #include <new>
 
+static std::atomic_bool metricsShutdown = false;                    ///< Whether the metrics have been shut down. This only happens on program exit.
 static thread_local iodine::core::Metrics::ThreadId threadId = -1;  ///< The ID of the current thread. Assigned on registration and indexes into threadMetrics.
+static thread_local std::string threadAlias = "Main";               ///< The alias of the current thread. Assigned on registration and used for logging.
 static thread_local iodine::b8 recursionGuard = false;              ///< Used to prevent circular new / delete calls.
 
 void* operator new(size_t size) {
-    if (threadId == -1 || iodine::core::metricsShutdown) {
+    if (threadId == -1 || metricsShutdown) {
         return std::malloc(size);
     }
     if (!recursionGuard) {
@@ -25,7 +27,7 @@ void* operator new(size_t size) {
 }
 
 void operator delete(void* ptr) noexcept {
-    if (threadId == -1 || iodine::core::metricsShutdown) {
+    if (threadId == -1 || metricsShutdown) {
         std::free(ptr);
         return;
     }
@@ -38,7 +40,7 @@ void operator delete(void* ptr) noexcept {
 }
 
 void* operator new[](size_t size) {
-    if (threadId == -1 || iodine::core::metricsShutdown) {
+    if (threadId == -1 || metricsShutdown) {
         return std::malloc(size);
     }
     if (!recursionGuard) {
@@ -58,7 +60,7 @@ void* operator new[](size_t size) {
 }
 
 void operator delete[](void* ptr) noexcept {
-    if (threadId == -1 || iodine::core::metricsShutdown) {
+    if (threadId == -1 || metricsShutdown) {
         std::free(ptr);
         return;
     }
@@ -126,12 +128,9 @@ namespace iodine::core {
     }
 
     std::string Metrics::getMemoryMetrics(ThreadId thread) const {
-        return "Thread (" + std::to_string(thread) +
-               ") heap metrics:\n"
-               "          - Total               " +
-               std::to_string(getTotalBytes(thread)) + " B\n          - Peak                " + std::to_string(getPeakBytes(thread)) + " B\n          - Current / leaked    " +
-               std::to_string(getCurrentBytes(thread)) + " B\n          - Total allocations   " + std::to_string(getTotalAllocations(thread)) + "\n          - Total deallocations " +
-               std::to_string(getTotalAllocations(thread) - getMissingDeallocations(thread));
+        return "Thread (\"" + getThreadAlias(thread) + "\") heap metrics:\n          - Total               " + std::to_string(getTotalBytes(thread)) + " B\n          - Peak                " +
+               std::to_string(getPeakBytes(thread)) + " B\n          - Current / leaked    " + std::to_string(getCurrentBytes(thread)) + " B\n          - Total allocations   " +
+               std::to_string(getTotalAllocations(thread)) + "\n          - Total deallocations " + std::to_string(getTotalAllocations(thread) - getMissingDeallocations(thread));
     }
     std::string Metrics::getMemoryMetrics() const {
         struct {
@@ -153,6 +152,19 @@ namespace iodine::core {
                std::to_string(globalMetrics.totalBytes) + " B\n          - Peak                " + std::to_string(globalMetrics.peakBytes) + " B\n          - Current / leaked    " +
                std::to_string(globalMetrics.currentBytes) + " B\n          - Total allocations   " + std::to_string(globalMetrics.totalAllocations) + "\n          - Total deallocations " +
                std::to_string(globalMetrics.totalAllocations - globalMetrics.missingDeallocations);
+    }
+
+    const std::string& Metrics::getThreadAlias(ThreadId thread) const {
+        IO_ASSERT_MSG(thread != -1, "Thread ID not registered");
+        if (threadMetrics.find(thread) == threadMetrics.end()) {
+            return "";  // TODO: core exceptions
+        }
+        return threadMetrics.at(thread)->threadAlias;
+    }
+
+    const std::string& Metrics::getThreadAlias() const {
+        IO_ASSERT_MSG(threadId != -1, "Thread ID not registered");
+        return threadAlias;
     }
 
     u64 Metrics::getCurrentBytes(ThreadId thread) const {
@@ -237,6 +249,14 @@ namespace iodine::core {
         }
         return threadMetrics.at(thread)->memoryLogging;
     }
+    b8 Metrics::isMemoryTracking() const {
+        return false;
+        IO_ASSERT_MSG(threadId != -1, "Thread ID not registered");
+        if (threadMetrics.find(threadId) == threadMetrics.end()) {
+            return false;
+        }
+        return threadMetrics.at(threadId)->memoryLogging;
+    }
 
     void Metrics::setIsMemoryTracking(ThreadId thread, b8 isTracking) const { threadMetrics.at(thread)->memoryLogging = isTracking; }
     void Metrics::setIsMemoryTracking(b8 isTracking) const {
@@ -245,14 +265,16 @@ namespace iodine::core {
         }
     }
 
-    Metrics::ThreadId Metrics::registerThread() {
+    Metrics::ThreadId Metrics::registerThread(const std::string& alias) {
         std::lock_guard<std::mutex> lock(registrarMutex);
         if (threadId != -1) {
             return threadId;
         }
 
         threadId = static_cast<ThreadId>(nextThread++);
+        threadAlias = alias;
         threadMetrics[threadId] = new ThreadMetrics();
+        threadMetrics[threadId]->threadAlias = alias;
         return threadId;
     }
 

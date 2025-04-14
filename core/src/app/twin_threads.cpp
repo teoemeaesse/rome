@@ -4,8 +4,7 @@
 #include "chrono/timer.hpp"
 
 namespace iodine::core {
-    TwinStrategy::TwinStrategy(Application& app, b8 memoryMetrics)
-        : ApplicationStrategy([this, &app](f64 dt) { app.tick(dt); }, [this, &app](f64 dt) { app.render(dt); }) {
+    TwinStrategy::TwinStrategy(Application& app, b8 memoryMetrics) : ApplicationStrategy([this, &app](f64 dt) { app.tick(dt); }, [this, &app](f64 dt) { app.render(dt); }) {
         this->memoryMetrics = memoryMetrics;
     }
 
@@ -14,7 +13,7 @@ namespace iodine::core {
             IO_INFO("Starting up tick thread");
 
             if (memoryMetrics) {
-                iodine::core::Metrics::getInstance().registerThread();
+                iodine::core::Metrics::getInstance().registerThread("Tick");
                 iodine::core::Metrics::getInstance().setIsMemoryTracking(true);
                 IO_INFO("Metrics tracking ON for tick thread ID: %d", tickThread.getThreadId());
             }
@@ -39,7 +38,7 @@ namespace iodine::core {
             IO_INFO("Starting up render thread");
 
             if (memoryMetrics) {
-                iodine::core::Metrics::getInstance().registerThread();
+                iodine::core::Metrics::getInstance().registerThread("Render");
                 iodine::core::Metrics::getInstance().setIsMemoryTracking(true);
                 IO_INFO("Metrics tracking ON for tick thread ID: %d", renderThread.getThreadId());
             }
