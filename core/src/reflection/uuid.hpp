@@ -13,18 +13,6 @@ namespace iodine::core {
          * @brief Creates a UUIDv1.
          */
         UUID();
-        /**
-         * @brief Creates a UUIDv5 from a string.
-         * @param str The string to create the UUIDv5 from.
-         * @note The string must be in the format "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" where x is a hexadecimal digit.
-         */
-        UUID(const char* str);
-        /**
-         * @brief Creates a UUIDv5 from a string.
-         * @param str The string to create the UUIDv5 from.
-         * @note The string must be in the format "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" where x is a hexadecimal digit.
-         */
-        UUID(const std::string& str);
         UUID(const UUID&) = default;
         UUID(UUID&&) = default;
         UUID& operator=(const UUID&) = default;

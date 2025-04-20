@@ -8,17 +8,17 @@
 #include "platform/platform.hpp"
 
 namespace iodine::core {
-    static inline int hexToValue(char c) {
+    static inline i32 hexToValue(char c) {
         if (c >= '0' && c <= '9') return c - '0';
         if (c >= 'a' && c <= 'f') return c - 'a' + 10;
         if (c >= 'A' && c <= 'F') return c - 'A' + 10;
-        throw std::invalid_argument("Invalid hex digit in UUID string");  // TODO: Reflection exceptions
+        THROW_CORE_EXCEPTION(Exception::Type::InvalidArgument, "Invalid hex character");
     }
 
     UUID::UUID() {
         u64 ns = Platform::getInstance().timeNS();
         u64 ts = static_cast<u64>(ns) / 100;
-        // Add the UUID epoch offset (October 15, 1582)
+
         static const u64 uuid_epoch_offset = 0x01B21DD213814000ULL;
         ts += uuid_epoch_offset;
 
@@ -36,31 +36,29 @@ namespace iodine::core {
 
         // Define a simple XOR Shift PRNG for faster random number generation
         struct XorShift128 {
-            uint64_t s[2];
-            XorShift128(uint64_t seed) {
+            u64 s[2];
+            XorShift128(u64 seed) {
                 s[0] = seed;
                 s[1] = Platform::getInstance().randomU64();
             }
-            uint64_t next() {
-                uint64_t s1 = s[0];
-                const uint64_t s0 = s[1];
+            u64 next() {
+                u64 s1 = s[0];
+                const u64 s0 = s[1];
                 s[0] = s0;
                 s1 ^= s1 << 23;
                 s[1] = s1 ^ s0 ^ (s1 >> 17) ^ (s0 >> 26);
                 return s[1] + s0;
             }
         };
-        // Use a thread-local instance of the XOR Shift PRNG seeded from randomU64()
+
         static thread_local XorShift128 rng(Platform::getInstance().randomU64());
         u16 random_val = static_cast<u16>(rng.next() & 0xFFFF);
         u16 clock_seq = (random_val & 0x3FFF) | 0x8000;
 
-        // Generate the node value; mask to 48 bits and set the multicast bit as required
         u64 node = rng.next();
         node &= 0x0000FFFFFFFFFFFFULL;
         node |= 0x010000000000ULL;
 
-        // Pack the fields into the UUID byte array
         bytes[0] = static_cast<u8>((time_low >> 24) & 0xFF);
         bytes[1] = static_cast<u8>((time_low >> 16) & 0xFF);
         bytes[2] = static_cast<u8>((time_low >> 8) & 0xFF);
@@ -78,32 +76,6 @@ namespace iodine::core {
         bytes[14] = static_cast<u8>((node >> 8) & 0xFF);
         bytes[15] = static_cast<u8>(node & 0xFF);
     }
-
-    UUID::UUID(const char* str) {
-        std::string s(str);
-        CORE_ASSERT_EXCEPTION(s.length() == 36, "UUID string must be 36 characters long");
-        CORE_ASSERT_EXCEPTION(s[8] == '-' && s[13] == '-' && s[18] == '-' && s[23] == '-',
-                              "UUID string must contain hyphens at positions 9, 14, 19, and 24");
-
-        // Parse the hex digits while skipping hyphens.
-        int byteIndex = 0;
-        for (size_t i = 0; i < s.length();) {
-            if (s[i] == '-') {
-                ++i;
-                continue;
-            }
-            // Ensure there is a pair available.
-            CORE_ASSERT_EXCEPTION(i + 1 < s.length(), "Incomplete hex pair in UUID string");
-
-            int high = hexToValue(s[i]);
-            int low = hexToValue(s[i + 1]);
-            bytes[byteIndex++] = static_cast<u8>((high << 4) | low);
-            i += 2;
-        }
-        CORE_ASSERT_EXCEPTION(byteIndex == 16, "UUID string did not parse to 16 bytes");
-    }
-
-    UUID::UUID(const std::string& str) : UUID(str.c_str()) {}
 
     UUID::operator std::string() const {
         std::ostringstream oss;

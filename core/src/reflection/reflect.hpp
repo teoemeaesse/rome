@@ -77,9 +77,9 @@ namespace iodine::core {
         }
 
         /**
-         * @brief Gets the trait of the given type.
+         * @brief Gets a trait from the type.
          * @tparam T The type of the trait.
-         * @return The trait of the given type.
+         * @return The trait from the type.
          */
         template <typename T>
         const T& getTrait() const {
@@ -93,9 +93,9 @@ namespace iodine::core {
         }
 
         /**
-         * @brief Gets the trait of the given type.
+         * @brief Gets a trait from the type.
          * @tparam T The type of the trait.
-         * @return The trait of the given type.
+         * @return The trait from the type.
          */
         template <typename T>
         T& getTrait() {
@@ -166,8 +166,8 @@ namespace iodine::core {
          */
         template <typename T>
         static TypeInfo make(Type& type) {
-            return TypeInfo(type, sizeof(remove_all_qualifiers_t<T>), std::is_const_v<T>, std::is_volatile_v<T>, std::is_pointer_v<T>,
-                            std::is_array_v<T>, std::is_reference_v<T>, std::is_rvalue_reference_v<T>, std::is_lvalue_reference_v<T>);
+            return TypeInfo(type, sizeof(remove_all_qualifiers_t<T>), std::is_const_v<T>, std::is_volatile_v<T>, std::is_pointer_v<T>, std::is_array_v<T>, std::is_reference_v<T>,
+                            std::is_rvalue_reference_v<T>, std::is_lvalue_reference_v<T>);
         }
 
         private:
@@ -194,15 +194,7 @@ namespace iodine::core {
          * @param isLValue True if the type is an lvalue reference, false otherwise.
          */
         TypeInfo(Type& type, u64 size, b8 isConst, b8 isVolatile, b8 isPointer, b8 isArray, b8 isRef, b8 isRValue, b8 isLValue)
-            : type(type),
-              size(size),
-              isConst(isConst),
-              isVolatile(isVolatile),
-              isPointer(isPointer),
-              isArray(isArray),
-              isReference(isRef),
-              isRValue(isRValue),
-              isLValue(isLValue) {}
+            : type(type), size(size), isConst(isConst), isVolatile(isVolatile), isPointer(isPointer), isArray(isArray), isReference(isRef), isRValue(isRValue), isLValue(isLValue) {}
     };
 
     /**
