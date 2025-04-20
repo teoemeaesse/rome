@@ -3,8 +3,8 @@
 #include <iomanip>
 #include <random>
 #include <sstream>
-#include <stdexcept>
 
+#include "debug/exception.hpp"
 #include "platform/platform.hpp"
 
 namespace iodine::core {
@@ -81,12 +81,9 @@ namespace iodine::core {
 
     UUID::UUID(const char* str) {
         std::string s(str);
-        if (s.length() != 36) {
-            throw std::invalid_argument("Invalid UUID string length; expected 36 characters");
-        }
-        if (s[8] != '-' || s[13] != '-' || s[18] != '-' || s[23] != '-') {
-            throw std::invalid_argument("Invalid UUID string format; expected hyphens at positions 9, 14, 19, and 24");
-        }
+        CORE_ASSERT_EXCEPTION(s.length() == 36, "UUID string must be 36 characters long");
+        CORE_ASSERT_EXCEPTION(s[8] == '-' && s[13] == '-' && s[18] == '-' && s[23] == '-',
+                              "UUID string must contain hyphens at positions 9, 14, 19, and 24");
 
         // Parse the hex digits while skipping hyphens.
         int byteIndex = 0;
@@ -96,17 +93,14 @@ namespace iodine::core {
                 continue;
             }
             // Ensure there is a pair available.
-            if (i + 1 >= s.length()) {
-                throw std::invalid_argument("Incomplete hex pair in UUID string");
-            }
+            CORE_ASSERT_EXCEPTION(i + 1 < s.length(), "Incomplete hex pair in UUID string");
+
             int high = hexToValue(s[i]);
             int low = hexToValue(s[i + 1]);
             bytes[byteIndex++] = static_cast<u8>((high << 4) | low);
             i += 2;
         }
-        if (byteIndex != 16) {
-            throw std::invalid_argument("UUID string did not parse to 16 bytes");
-        }
+        CORE_ASSERT_EXCEPTION(byteIndex == 16, "UUID string did not parse to 16 bytes");
     }
 
     UUID::UUID(const std::string& str) : UUID(str.c_str()) {}

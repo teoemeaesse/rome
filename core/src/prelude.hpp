@@ -26,6 +26,18 @@
 #endif
 #endif
 
+/* Exceptions */
+#ifdef IO_EXCEPTIONS_ON
+#include <stdexcept>
+#define STATIC_CORE_ASSERT_EXCEPTION(expected, message)           \
+    STATIC_ASSERT((expected), message)                            \
+    if (!expected) {                                              \
+        THROW_CORE_EXCEPTION(Exception::Type::Assertion, message) \
+    }
+#else
+#define STATIC_CORE_ASSERT_EXCEPTION(expected, message) STATIC_ASSERT((expected), message)
+#endif
+
 /* Debug asserts */
 #ifdef IO_ASSERTS_ON
 #ifdef _MSC_VER
@@ -34,6 +46,7 @@
 #else
 #define IO_DEBUG_BREAK() __builtin_trap()
 #endif
+
 /**
  * @brief Reports an assertion failure.
  * @param expression The expression that failed.
@@ -75,6 +88,17 @@ IO_API void assertFail(const char* expression, const char* message, const char* 
 #else
 #define IO_ASSERT(expression)
 #define IO_ASSERT_MSG(expression, message)
+#endif
+
+#ifdef IO_EXCEPTIONS_ON
+#include <stdexcept>
+#define CORE_ASSERT_EXCEPTION(expected, message)                   \
+    IO_ASSERT_MSG((expected), message)                             \
+    if (!(expected)) {                                             \
+        THROW_CORE_EXCEPTION(Exception::Type::Assertion, message); \
+    }
+#else
+#define CORE_ASSERT_EXCEPTION(expected, message) IO_ASSERT_MSG((expected), message)
 #endif
 
 /* Platform definitions (Windows 64-bit, MacOS, Linux and Unix/Unix-like) */

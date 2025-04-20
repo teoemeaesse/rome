@@ -17,6 +17,7 @@ add_library(core STATIC ${CORE_SOURCES})
 target_compile_definitions(core PRIVATE
     IO_EXPORT_ON
     IO_ASSERTS_ON
+    IO_EXCEPTIONS_ON
 )
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -DNDEBUG")

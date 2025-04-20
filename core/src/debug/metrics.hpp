@@ -146,7 +146,7 @@ namespace iodine::core {
          * @return Whether memory tracking is enabled.
          * @note This value is thread-local.
          */
-        b8 isMemoryTracking(ThreadId thread) const;
+        b8 isMemoryTracking(ThreadId threadId) const;
         /**
          * @brief Gets whether memory tracking is enabled for this thread.
          * @return Whether memory tracking is enabled.

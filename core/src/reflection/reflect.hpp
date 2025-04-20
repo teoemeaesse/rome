@@ -47,7 +47,7 @@ namespace iodine::core {
         }
 
         inline const std::string& getName() const noexcept { return name; }
-        inline const UUID getUUID() const noexcept { return uuid; }
+        inline const UUID& getUUID() const noexcept { return uuid; }
 
         /**
          * @brief Statically queries the UUID for a fully qualified type.
@@ -132,7 +132,7 @@ namespace iodine::core {
          * @return The UUID for the type.
          */
         template <typename T>
-        static inline const UUID _getUUID() noexcept {
+        static inline const UUID& _getUUID() noexcept {
             // This is templated to ensure that the UUID is unique for each type
             static const UUID uuid;  // uuids.generate();
             return uuid;
@@ -166,8 +166,8 @@ namespace iodine::core {
          */
         template <typename T>
         static TypeInfo make(Type& type) {
-            return TypeInfo(type, sizeof(remove_all_qualifiers_t<T>), std::is_const_v<T>, std::is_volatile_v<T>, std::is_pointer_v<T>, std::is_array_v<T>, std::is_reference_v<T>,
-                            std::is_rvalue_reference_v<T>, std::is_lvalue_reference_v<T>);
+            return TypeInfo(type, sizeof(remove_all_qualifiers_t<T>), std::is_const_v<T>, std::is_volatile_v<T>, std::is_pointer_v<T>,
+                            std::is_array_v<T>, std::is_reference_v<T>, std::is_rvalue_reference_v<T>, std::is_lvalue_reference_v<T>);
         }
 
         private:
@@ -194,7 +194,15 @@ namespace iodine::core {
          * @param isLValue True if the type is an lvalue reference, false otherwise.
          */
         TypeInfo(Type& type, u64 size, b8 isConst, b8 isVolatile, b8 isPointer, b8 isArray, b8 isRef, b8 isRValue, b8 isLValue)
-            : type(type), size(size), isConst(isConst), isVolatile(isVolatile), isPointer(isPointer), isArray(isArray), isReference(isRef), isRValue(isRValue), isLValue(isLValue) {}
+            : type(type),
+              size(size),
+              isConst(isConst),
+              isVolatile(isVolatile),
+              isPointer(isPointer),
+              isArray(isArray),
+              isReference(isRef),
+              isRValue(isRValue),
+              isLValue(isLValue) {}
     };
 
     /**
