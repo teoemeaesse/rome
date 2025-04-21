@@ -127,33 +127,14 @@ namespace iodine::core {
          * @param fieldName The name of the field to find.
          * @return A pointer to the Field if found, otherwise nullptr.
          */
-        Field* find(const char* fieldName) {
-            auto it = std::find_if(fields.begin(), fields.end(), [fieldName](const Field& f) {
-                // Protect against null names or fieldName
-                if (!fieldName || !f.getName()) return false;
-                return std::strcmp(f.getName(), fieldName) == 0;
-            });
-            if (it == fields.end()) {
-                return nullptr;
-            }
-            return &(*it);
-        }
+        Field* find(const char* fieldName);
 
         /**
          * @brief Finds the first Field with the given name.
          * @param fieldName The name of the field to find.
          * @return A pointer to the Field if found, otherwise nullptr.
          */
-        const Field* find(const char* fieldName) const {
-            auto it = std::find_if(fields.begin(), fields.end(), [fieldName](const Field& f) {
-                if (!fieldName || !f.getName()) return false;
-                return std::strcmp(f.getName(), fieldName) == 0;
-            });
-            if (it == fields.end()) {
-                return nullptr;
-            }
-            return &(*it);
-        }
+        const Field* find(const char* fieldName) const;
 
         private:
         std::vector<Field> fields;  ///< The list of fields.

@@ -9,11 +9,6 @@ namespace iodine::core {
      */
     class IO_API Trait {
         public:
-        /**
-         * @brief Creates a new trait with the given name.
-         * @param name The name of the trait.
-         */
-        Trait(const char* name);
         virtual ~Trait() = default;
 
         inline b8 operator==(const Trait& other) const noexcept { return uuid == other.uuid; }
@@ -45,6 +40,14 @@ namespace iodine::core {
 
         inline UUID getUUID() const noexcept { return uuid; }
         inline const char* getName() const noexcept { return name; }
+
+        protected:
+        /**
+         * @brief Creates a new trait with the given name.
+         * @param name The name of the trait.
+         * @param uuid The UUID of the trait.
+         */
+        Trait(const char* name, const UUID uuid);
 
         private:
         const UUID uuid;   ///< The UUID of the trait.

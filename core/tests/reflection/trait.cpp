@@ -14,8 +14,7 @@ struct SimpleStruct {
 
     IO_REFLECT;
 };
-IO_REFLECT_IMPL(SimpleStruct, "SimpleStruct",
-                Fields().with("integer", &SimpleStruct::integer).with("floating", &SimpleStruct::floating).with("name", &SimpleStruct::name));
+IO_REFLECT_IMPL(SimpleStruct, "SimpleStruct", Fields().with("integer", &SimpleStruct::integer).with("floating", &SimpleStruct::floating).with("name", &SimpleStruct::name));
 
 class StandardLayoutClass {
     public:
