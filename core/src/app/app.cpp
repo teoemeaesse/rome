@@ -4,7 +4,10 @@
 
 namespace iodine::core {
     Application::Application(const Config& config)
-        : config(config), strategy(std::move(MakeUnique<TwinStrategy>(*this))), tickRate(config.tickRate, config.tickRateWindow), renderRate(config.renderRate, config.renderRateWindow) {
+        : config(config),
+          strategy(std::move(MakeUnique<TwinStrategy>(*this))),
+          tickRate(config.tickRate, config.tickRateWindow),
+          renderRate(config.renderRate, config.renderRateWindow) {
         if (config.isMemoryLogging) {
             iodine::core::Metrics::getInstance().registerThread("Main");
             iodine::core::Metrics::getInstance().setIsMemoryTracking(true);
@@ -12,7 +15,10 @@ namespace iodine::core {
     }
 
     Application::Application(const Config& config, Unique<ApplicationStrategy>&& strategy)
-        : config(config), strategy(std::move(strategy)), tickRate(config.tickRate, config.tickRateWindow), renderRate(config.renderRate, config.renderRateWindow) {
+        : config(config),
+          strategy(std::move(strategy)),
+          tickRate(config.tickRate, config.tickRateWindow),
+          renderRate(config.renderRate, config.renderRateWindow) {
         if (config.isMemoryLogging) {
             iodine::core::Metrics::getInstance().registerThread("Main");
             iodine::core::Metrics::getInstance().setIsMemoryTracking(true);

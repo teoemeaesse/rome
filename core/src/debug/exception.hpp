@@ -41,6 +41,12 @@ namespace iodine::core {
          */
         Exception& withFollowUp(Type type, const char* message, const char* file, u32 line, const char* function) noexcept;
 
+        /**
+         * @brief Gets the error message.
+         * @return The error message.
+         */
+        const char* what() const noexcept override;
+
         private:
         struct Frame {
             Exception::Type type;  ///< The type of exception.
@@ -56,13 +62,7 @@ namespace iodine::core {
         std::vector<Frame> frames;  ///< The stack of frames.
 
         /**
-         * @brief Gets the error message.
-         * @return The error message.
-         */
-        const char* what() const noexcept override;
-
-        /**
-         * @brief Converts the type to a string.
+         * @brief Converts the exception type to a string.
          * @param type The type of exception.
          * @return The type as a string.
          */

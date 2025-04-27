@@ -22,7 +22,7 @@ namespace iodine::core {
     const char* Exception::what() const noexcept {
         static std::string traceMessage;
         if (traceMessage.empty()) {
-            for (u32 i = frames.size(); i > 0; --i) {
+            for (u32 i = frames.size() - 1; i >= 0; i--) {
                 const auto& frame = "#" + std::to_string(i) + " - " + typeToString(frames.at(i).type) + ": " + frames.at(i).file + ":" +
                                     std::to_string(frames.at(i).line) + " | " + frames.at(i).function + ": \"" + frames.at(i).message + "\"\n";
             }

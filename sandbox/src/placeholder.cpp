@@ -20,7 +20,8 @@ IO_REFLECT_IMPL(MyReflectedStruct, "MyReflectedStruct", Fields().with("age", &My
 
 class MyApplication : public Application {
     public:
-    MyApplication() : Application(Application::Builder().setTitle("My Application").enableMemoryLogging().setTickRate(30).setRenderRate(1000).build()) {}
+    MyApplication()
+        : Application(Application::Builder().setTitle("My Application").enableMemoryLogging().setTickRate(30).setRenderRate(1000).build()) {}
     void setup() override {}
     void shutdown() override { Metrics::getInstance().report(); }
     void tick(f64 dt) override {

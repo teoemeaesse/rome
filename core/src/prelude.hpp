@@ -133,8 +133,10 @@ IO_API void assertFail(const char* expression, const char* message, const char* 
 #include <atomic>
 #include <cstring>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <type_traits>
+#include <unordered_map>
 #include <vector>
 
 namespace iodine {

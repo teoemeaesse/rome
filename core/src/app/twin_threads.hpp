@@ -1,7 +1,7 @@
 #pragma once
 
 #include "app/strategy.hpp"
-#include "thread/thread.hpp"
+#include "concurrency/thread.hpp"
 
 namespace iodine::core {
     class Application;

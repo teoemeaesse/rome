@@ -2,9 +2,13 @@
 
 #include "app/app.hpp"
 #include "chrono/timer.hpp"
+#include "debug/exception.hpp"
 
 namespace iodine::core {
-    TwinStrategy::TwinStrategy(Application& app, b8 memoryMetrics) : ApplicationStrategy([this, &app](f64 dt) { app.tick(dt); }, [this, &app](f64 dt) { app.render(dt); }) {
+    TwinStrategy::TwinStrategy(Application& app, b8 memoryMetrics)
+        : ApplicationStrategy([this, &app](f64 dt) { app.tick(dt); }, [this, &app](f64 dt) { app.render(dt); }),
+          tickThread("Tick"),
+          renderThread("Render") {
         this->memoryMetrics = memoryMetrics;
     }
 
@@ -15,7 +19,7 @@ namespace iodine::core {
             if (memoryMetrics) {
                 iodine::core::Metrics::getInstance().registerThread("Tick");
                 iodine::core::Metrics::getInstance().setIsMemoryTracking(true);
-                IO_INFO("Metrics tracking ON for tick thread ID: %d", tickThread.getThreadId());
+                IO_INFO("Metrics tracking ON for tick thread ID: %s", tickThread.getID().toString().c_str());
             }
 
             f64 targetTime = 1.0 / tickRate;
@@ -25,11 +29,15 @@ namespace iodine::core {
             while (status == Status::Ok || status == Status::Pause) {
                 elapsed += loopTimer.tick();
 
-                if (status == Status::Ok) {
-                    while (elapsed >= targetTime) {
-                        this->tick(elapsed);
-                        elapsed -= targetTime;
+                try {
+                    if (status == Status::Ok) {
+                        while (elapsed >= targetTime) {
+                            this->tick(elapsed);
+                            elapsed -= targetTime;
+                        }
                     }
+                } catch (const Exception& e) {
+                    IO_ERROR(e.what());
                 }
             }
         });
@@ -40,7 +48,7 @@ namespace iodine::core {
             if (memoryMetrics) {
                 iodine::core::Metrics::getInstance().registerThread("Render");
                 iodine::core::Metrics::getInstance().setIsMemoryTracking(true);
-                IO_INFO("Metrics tracking ON for tick thread ID: %d", renderThread.getThreadId());
+                IO_INFO("Metrics tracking ON for render thread ID: %s", renderThread.getID().toString().c_str());
             }
 
             f64 targetTime = 1.0 / renderRate;
@@ -58,6 +66,8 @@ namespace iodine::core {
         });
 
         tickThread.join();
+        IO_INFO("Tick thread finished");
         renderThread.join();
+        IO_INFO("Render thread finished");
     }
 }  // namespace iodine::core

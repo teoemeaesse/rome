@@ -5,7 +5,7 @@
 namespace iodine::core {
     /**
      * @brief An RFC-9562 compliant UUID (Universally Unique Identifier).
-     * @note Supports UUIDv1 and UUIDv5.
+     * @note Supports UUIDv1 (and eventually UUIDv5).
      */
     class UUID {
         public:
@@ -40,5 +40,23 @@ namespace iodine::core {
 
         private:
         u8 bytes[16];  ///< The bytes of the UUID.
+
+        friend struct std::hash<iodine::core::UUID>;
     };
 }  // namespace iodine::core
+
+namespace std {
+    template <>
+    struct hash<iodine::core::UUID> {
+        std::size_t operator()(const iodine::core::UUID& uuid) const noexcept {
+            // Simple fast hash: combine chunks of bytes
+            std::size_t result = 0;
+            const std::size_t* data = reinterpret_cast<const std::size_t*>(uuid.bytes);
+
+            result ^= data[0] + 0x9e3779b9 + (result << 6) + (result >> 2);
+            result ^= data[1] + 0x9e3779b9 + (result << 6) + (result >> 2);
+
+            return result;
+        }
+    };
+}  // namespace std
