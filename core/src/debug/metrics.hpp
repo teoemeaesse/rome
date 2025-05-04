@@ -26,6 +26,16 @@ namespace iodine::core {
         }
 
         /**
+         * @brief Starts the metrics data gathering.
+         */
+        void start();
+
+        /**
+         * @brief Stops the metrics data gathering.
+         */
+        void stop();
+
+        /**
          * @brief Registers a heap memory allocation.
          * @param ptr The pointer returned by the underlying allocation.
          * @param size The number of bytes requested.

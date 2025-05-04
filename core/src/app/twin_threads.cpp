@@ -6,9 +6,7 @@
 
 namespace iodine::core {
     TwinStrategy::TwinStrategy(Application& app, b8 memoryMetrics)
-        : ApplicationStrategy([this, &app](f64 dt) { app.tick(dt); }, [this, &app](f64 dt) { app.render(dt); }),
-          tickThread("Tick"),
-          renderThread("Render") {
+        : ApplicationStrategy([this, &app](f64 dt) { app.tick(dt); }, [this, &app](f64 dt) { app.render(dt); }), tickThread("Tick"), renderThread("Render") {
         this->memoryMetrics = memoryMetrics;
     }
 

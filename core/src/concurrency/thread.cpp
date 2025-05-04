@@ -6,13 +6,19 @@ static thread_local std::string localAlias = "Main";
 namespace iodine::core {
     Thread::Thread(const std::string& alias) : alias(alias) {}
 
-    Thread::~Thread() { join(); }
+    Thread::~Thread() {
+        if (thread.joinable()) {
+            thread.join();
+        }
+    }
 
     Thread::Thread(Thread&& other) noexcept : thread(std::move(other.thread)) {}
 
     Thread& Thread::operator=(Thread&& other) noexcept {
         if (this != &other) {
-            join();  // Join current thread before moving
+            if (thread.joinable()) {
+                thread.join();  // Join current thread before moving
+            }
             thread = std::move(other.thread);
         }
         return *this;

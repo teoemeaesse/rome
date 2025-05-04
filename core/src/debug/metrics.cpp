@@ -5,11 +5,14 @@
 #include "concurrency/thread.hpp"
 #include "debug/exception.hpp"
 
-static std::atomic_bool metricsShutdown = false;        ///< Whether the metrics have been shut down. This only happens on program exit.
+static std::atomic_bool metricsRunning = false;         ///< Whether the metrics system should be logging performance data.
 static thread_local iodine::b8 recursionGuard = false;  ///< Used to prevent circular new / delete calls.
 
 void* operator new(size_t size) {
-    if (metricsShutdown || !iodine::core::Metrics::getInstance().isRegistered() || !iodine::core::Metrics::getInstance().isMemoryTracking()) {
+    if (!metricsRunning) {
+        return std::malloc(size);
+    }
+    if (!iodine::core::Metrics::getInstance().isRegistered() || !iodine::core::Metrics::getInstance().isMemoryTracking()) {
         return std::malloc(size);
     }
     if (!recursionGuard) {
@@ -28,7 +31,11 @@ void* operator new(size_t size) {
 }
 
 void operator delete(void* ptr) noexcept {
-    if (metricsShutdown || !iodine::core::Metrics::getInstance().isRegistered() || !iodine::core::Metrics::getInstance().isMemoryTracking()) {
+    if (!metricsRunning) {
+        std::free(ptr);
+        return;
+    }
+    if (!iodine::core::Metrics::getInstance().isRegistered() || !iodine::core::Metrics::getInstance().isMemoryTracking()) {
         std::free(ptr);
         return;
     }
@@ -41,7 +48,10 @@ void operator delete(void* ptr) noexcept {
 }
 
 void* operator new[](size_t size) {
-    if (metricsShutdown || !iodine::core::Metrics::getInstance().isRegistered() || !iodine::core::Metrics::getInstance().isMemoryTracking()) {
+    if (!metricsRunning) {
+        return std::malloc(size);
+    }
+    if (!iodine::core::Metrics::getInstance().isRegistered() || !iodine::core::Metrics::getInstance().isMemoryTracking()) {
         return std::malloc(size);
     }
     if (!recursionGuard) {
@@ -61,7 +71,11 @@ void* operator new[](size_t size) {
 }
 
 void operator delete[](void* ptr) noexcept {
-    if (metricsShutdown || !iodine::core::Metrics::getInstance().isRegistered() || !iodine::core::Metrics::getInstance().isMemoryTracking()) {
+    if (!metricsRunning) {
+        std::free(ptr);
+        return;
+    }
+    if (!iodine::core::Metrics::getInstance().isRegistered() || !iodine::core::Metrics::getInstance().isMemoryTracking()) {
         std::free(ptr);
         return;
     }
@@ -75,12 +89,19 @@ void operator delete[](void* ptr) noexcept {
 
 namespace iodine::core {
     Metrics::~Metrics() {
-        metricsShutdown = true;
+        metricsRunning = false;
         for (const auto& [thread, metrics] : threadMetrics) {
             delete metrics;
-            threadMetrics.erase(thread);
         }
     }
+
+    void Metrics::start() {
+        IO_DEBUG("Starting metrics");
+        metricsRunning = true;
+        IO_DEBUG("Metrics started");
+    }
+
+    void Metrics::stop() { metricsRunning = false; }
 
     void Metrics::registerAllocation(void* ptr, u64 size) {
         if (!ptr) return;
@@ -125,19 +146,16 @@ namespace iodine::core {
         if (!isRegistered(thread)) {
             THROW_CORE_EXCEPTION(Exception::Type::NotFound, "Thread ID not registered");
         }
-        return "Thread (\"" + threadMetrics.at(thread)->alias + "\") heap metrics:\n          - Total               " +
-               std::to_string(getTotalBytes(thread)) + " B\n          - Peak                " + std::to_string(getPeakBytes(thread)) +
-               " B\n          - Current / leaked    " + std::to_string(getCurrentBytes(thread)) + " B\n          - Total allocations   " +
-               std::to_string(getTotalAllocations(thread)) + "\n          - Total deallocations " +
-               std::to_string(getTotalAllocations(thread) - getMissingDeallocations(thread));
+        return "Thread (\"" + threadMetrics.at(thread)->alias + "\") heap metrics:\n          - Total               " + std::to_string(getTotalBytes(thread)) + " B\n          - Peak                " +
+               std::to_string(getPeakBytes(thread)) + " B\n          - Current / leaked    " + std::to_string(getCurrentBytes(thread)) + " B\n          - Total allocations   " +
+               std::to_string(getTotalAllocations(thread)) + "\n          - Total deallocations " + std::to_string(getTotalAllocations(thread) - getMissingDeallocations(thread));
     }
 
     std::string Metrics::getMemoryMetrics() const { return getMemoryMetrics(ThreadInfo::getLocalID()); }
 
     std::string Metrics::getGlobalMemoryMetrics() const {
-        return "Global heap metrics:\n          - Total               " + std::to_string(getGlobalTotalBytes()) +
-               " B\n          - Peak                " + std::to_string(getGlobalPeakBytes()) + " B\n          - Current / leaked    " +
-               std::to_string(getGlobalCurrentBytes()) + " B\n          - Total allocations   " + std::to_string(getGlobalTotalAllocations()) +
+        return "Global heap metrics:\n          - Total               " + std::to_string(getGlobalTotalBytes()) + " B\n          - Peak                " + std::to_string(getGlobalPeakBytes()) +
+               " B\n          - Current / leaked    " + std::to_string(getGlobalCurrentBytes()) + " B\n          - Total allocations   " + std::to_string(getGlobalTotalAllocations()) +
                "\n          - Total deallocations " + std::to_string(getGlobalTotalAllocations() - getGlobalMissingDeallocations());
     }
 
