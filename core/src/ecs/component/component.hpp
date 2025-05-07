@@ -17,11 +17,6 @@ namespace iodine::core {
         }
 
         /**
-         * @brief The ID type for components. Unique for each component type.
-         */
-        using ID = u64;
-
-        /**
          * @brief Acts as an interface for the storage of components.
          */
         class IO_API Dashboard {
@@ -36,8 +31,8 @@ namespace iodine::core {
              */
             template <typename T>
             T& get(const Entity& entity) {
-                STATIC_ASSERT(isComponent<T>(), "Component must be reflectable and copy-constructible to be stored");
-                IO_ASSERT_MSG(Reflect::reflect<T>() == getType(), "Component type mismatch");
+                IO_ASSERT_MSG(isComponent<T>(), "Component must be reflectable and copy-constructible to be stored");
+                IO_ASSERT_MSG(Reflect::reflect<T>().getType() == getType(), "Component type mismatch");
                 return *static_cast<T*>(get(entity));
             }
 
@@ -49,8 +44,8 @@ namespace iodine::core {
              */
             template <typename T>
             const T& get(const Entity& entity) const {
-                STATIC_ASSERT(isComponent<T>(), "Component must be reflectable and copy-constructible to be stored");
-                IO_ASSERT_MSG(Reflect::reflect<T>() == getType(), "Component type mismatch");
+                IO_ASSERT_MSG(isComponent<T>(), "Component must be reflectable and copy-constructible to be stored");
+                IO_ASSERT_MSG(Reflect::reflect<T>().getType() == getType(), "Component type mismatch");
                 return *static_cast<T*>(get(entity));
             }
 
@@ -62,8 +57,8 @@ namespace iodine::core {
              */
             template <typename T>
             void insert(const Entity& entity, T& component) {
-                STATIC_ASSERT(isComponent<T>(), "Component must be reflectable and copy-constructible to be stored");
-                IO_ASSERT_MSG(Reflect::reflect<T>() == getType(), "Component type mismatch");
+                IO_ASSERT_MSG(isComponent<T>(), "Component must be reflectable and copy-constructible to be stored");
+                IO_ASSERT_MSG(Reflect::reflect<T>().getType() == getType(), "Component type mismatch");
                 insert(entity, &component);
             }
 
@@ -103,7 +98,7 @@ namespace iodine::core {
          */
         template <typename T>
         class IO_API Storage : public Dashboard {
-            STATIC_ASSERT(isComponent<T>(), "Component must be reflectable and copy-constructible to be stored");
+            IO_ASSERT_MSG(isComponent<T>(), "Component must be reflectable and copy-constructible to be stored");
 
             public:
             Storage() : type(Reflect::reflect<T>()) {}
@@ -187,9 +182,9 @@ namespace iodine::core {
              * @return The ID of the registered component.
              */
             template <typename T>
-            ID registerComponent() {
-                STATIC_ASSERT(isComponent<T>(), "Component must be reflectable and copy-constructible to be registered");
-                static ID id = Reflect::reflect<T>().getUUID();
+            const UUID& registerComponent() {
+                IO_ASSERT_MSG(isComponent<T>(), "Component must be reflectable and copy-constructible to be registered");
+                static UUID id = Reflect::reflect<T>().getType().getUUID();
                 IO_ASSERT_MSG(store.find(id) == store.end(), "Duplicate component registration");
                 store[id] = MakeUnique<Storage<T>>(Reflect::reflect<T>());
                 return id;
@@ -203,8 +198,8 @@ namespace iodine::core {
              */
             template <typename T>
             T& createComponent(const Entity& entity, T& component) {
-                STATIC_ASSERT(isComponent<T>(), "Component must be reflectable and copy-constructible to be created");
-                ID id = Reflect::reflect<T>().getUUID();
+                IO_ASSERT_MSG(isComponent<T>(), "Component must be reflectable and copy-constructible to be created");
+                UUID id = Reflect::reflect<T>().getType().getUUID();
                 IO_ASSERT_MSG(store.find(id) != store.end(), "Component not registered");
                 store[id]->insert(entity, component);
                 return component;
@@ -220,8 +215,8 @@ namespace iodine::core {
              */
             template <typename T, typename... Args>
             T& createComponent(const Entity& entity, Args&&... args) {
-                STATIC_ASSERT(isComponent<T>(), "Component must be reflectable and copy-constructible to be created");
-                ID id = Reflect::reflect<T>().getUUID();
+                IO_ASSERT_MSG(isComponent<T>(), "Component must be reflectable and copy-constructible to be created");
+                UUID id = Reflect::reflect<T>().getType().getUUID();
                 IO_ASSERT_MSG(store.find(id) != store.end(), "Component not registered");
                 T component(std::forward<Args>(args)...);
                 store[id]->insert(entity, component);
@@ -235,8 +230,8 @@ namespace iodine::core {
              */
             template <typename T>
             void removeComponent(const Entity& entity) {
-                STATIC_ASSERT(isComponent<T>(), "Component must be reflectable and copy-constructible to be removed");
-                ID id = Reflect::reflect<T>().getUUID();
+                IO_ASSERT_MSG(isComponent<T>(), "Component must be reflectable and copy-constructible to be removed");
+                UUID id = Reflect::reflect<T>().getType().getUUID();
                 IO_ASSERT_MSG(store.find(id) != store.end(), "Component not registered");
                 store[id]->remove(entity);
             }
@@ -249,8 +244,8 @@ namespace iodine::core {
              */
             template <typename T>
             T& getComponent(const Entity& entity) {
-                STATIC_ASSERT(isComponent<T>(), "Component must be reflectable and copy-constructible to be retrieved");
-                ID id = Reflect::reflect<T>().getUUID();
+                IO_ASSERT_MSG(isComponent<T>(), "Component must be reflectable and copy-constructible to be retrieved");
+                UUID id = Reflect::reflect<T>().getType().getUUID();
                 IO_ASSERT_MSG(store.find(id) != store.end(), "Component not registered");
                 return store[id]->get<T>(entity);
             }
@@ -263,14 +258,14 @@ namespace iodine::core {
              */
             template <typename T>
             const T& getComponent(const Entity& entity) const {
-                STATIC_ASSERT(isComponent<T>(), "Component must be reflectable and copy-constructible to be retrieved");
-                ID id = Reflect::reflect<T>().getUUID();
+                IO_ASSERT_MSG(isComponent<T>(), "Component must be reflectable and copy-constructible to be retrieved");
+                UUID id = Reflect::reflect<T>().getType().getUUID();
                 IO_ASSERT_MSG(store.find(id) != store.end(), "Component not registered");
                 return store[id]->get<T>(entity);
             }
 
             private:
-            std::unordered_map<ID, Unique<Dashboard>> store;  ///< The storage for component types.
+            std::unordered_map<UUID, Unique<Dashboard>> store;  ///< The storage for component types.
         };
     }  // namespace Component
 }  // namespace iodine::core

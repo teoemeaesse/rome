@@ -94,7 +94,6 @@ namespace iodine::core {
 
     /**
      * @brief A list of reflectable fields. Stores any number of Field<T> objects in a tuple.
-     * @tparam FieldList The fields to list.
      */
     class IO_API Fields : public Trait {
         public:

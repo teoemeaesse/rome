@@ -11,7 +11,6 @@ namespace iodine::core {
          */
         using ID = u64;
 
-        Entity(ID id);
         ~Entity() = default;
 
         inline b8 operator==(const Entity& other) const { return id == other.id; }
@@ -24,6 +23,8 @@ namespace iodine::core {
 
         private:
         ID id;  // The entity ID.
+
+        Entity(ID id);
 
         static inline u64 getIndex(ID id) { return id >> 16; }
         static inline u64 getVersion(ID id) { return id & 0xFFFF; }
