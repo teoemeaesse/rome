@@ -217,3 +217,40 @@ TEST(SparseSetFunctionalityTest, MoveAssignment) {
     EXPECT_EQ(movedSet.at(5), 500);
     EXPECT_EQ(movedSet.at(6), 600);
 }
+
+/**
+ * @brief Tests that swap only reorders the raw data buffer (via getData), but leaves the logical reference intact.
+ */
+TEST(SparseSetFunctionalityTest, SwapOnlyAffectsRawBuffer) {
+    SparseSet<int> set;
+    set.insert(1, 10);
+    set.insert(2, 20);
+
+    // Capture raw data before swap
+    auto [ptr_before, size_before] = set.getData();
+    ASSERT_EQ(size_before, 2u);
+    EXPECT_EQ(ptr_before[0], 10);
+    EXPECT_EQ(ptr_before[1], 20);
+
+    // Logical access also before
+    EXPECT_EQ(set.at(1), 10);
+    EXPECT_EQ(set.at(2), 20);
+
+    // Perform swap
+    set.swap(1, 2);
+
+    // Capture raw data after swap
+    auto [ptr_after, size_after] = set.getData();
+    EXPECT_EQ(size_after, size_before);
+
+    // The pointer itself stays valid (same buffer)
+    EXPECT_EQ(ptr_after, ptr_before);
+
+    // But the raw contents have been flipped
+    EXPECT_EQ(ptr_after[0], 20);
+    EXPECT_EQ(ptr_after[1], 10);
+
+    // Logical access is still consistent with original values
+    EXPECT_EQ(set.at(1), 10);
+    EXPECT_EQ(set.at(2), 20);
+}

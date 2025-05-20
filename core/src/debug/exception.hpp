@@ -55,8 +55,7 @@ namespace iodine::core {
             u32 line;              ///< The line where the error occurred.
             std::string function;  ///< The function where the error occurred.
 
-            Frame(Type type, const char* message, const char* file, u32 line, const char* function) noexcept
-                : type(type), message(message), file(file), line(line), function(function) {}
+            Frame(Type type, const char* message, const char* file, u32 line, const char* function) noexcept : type(type), message(message), file(file), line(line), function(function) {}
         };
 
         std::vector<Frame> frames;  ///< The stack of frames.
@@ -83,4 +82,4 @@ namespace iodine::core {
  * @param type The type of exception.
  * @param message The error message.
  */
-#define FOLLOW_CORE_EXCEPTION(exception, type, message) throw exception.withFollowUp(exception, type, message, __FILE__, __LINE__, __FUNCTION__)
+#define BOUNCE_CORE_EXCEPTION(exception, type, message) throw exception.withFollowUp(exception, type, message, __FILE__, __LINE__, __FUNCTION__)

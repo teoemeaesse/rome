@@ -1,6 +1,6 @@
 #pragma once
 
-#include "prelude.hpp"
+#include "debug/exception.hpp"
 
 namespace iodine::core {
     template <typename T>
@@ -94,13 +94,41 @@ namespace iodine::core {
             size--;
         }
 
-        inline const T& operator[](u64 index) const noexcept {
-            IO_ASSERT_MSG(contains(index), "Sparse set does not contain value at index");
+        /**
+         * @brief Swaps two elements in the sparse set.
+         * @param index1 The index of the first element to swap.
+         * @param index2 The index of the second element to swap.
+         */
+        void swap(u64 index1, u64 index2) {
+            if (index1 == index2 || !contains(index1) || !contains(index2)) {
+                return;
+            }
+            u64 pos1 = sparse[index1];
+            u64 pos2 = sparse[index2];
+
+            std::swap(dense[pos1], dense[pos2]);
+            std::swap(sparse[index1], sparse[index2]);
+            std::swap(data[pos1], data[pos2]);
+        }
+
+        /**
+         * @brief Fetches the data of the sparse set.
+         * @return A pair containing a pointer to the data and the size of the sparse set.
+         * @warning The data pointer is only valid as long as the sparse set's size does not change.
+         */
+        std::pair<T*, u64> getData() { return {data.data(), size}; }
+
+        const T& operator[](u64 index) const {
+            if (!contains(index)) {
+                THROW_CORE_EXCEPTION(Exception::Type::NotFound, "Sparse set does not contain value at index");
+            }
             return data[sparse[index]];
         }
 
-        inline T& operator[](u64 index) noexcept {
-            IO_ASSERT_MSG(contains(index), "Sparse set does not contain value at index");
+        T& operator[](u64 index) {
+            if (!contains(index)) {
+                THROW_CORE_EXCEPTION(Exception::Type::NotFound, "Sparse set does not contain value at index");
+            }
             return data[sparse[index]];
         }
 
@@ -109,8 +137,10 @@ namespace iodine::core {
          * @param index The index to get the value from.
          * @return The value at the given index.
          */
-        inline const T& at(u64 index) const noexcept {
-            IO_ASSERT_MSG(contains(index), "Sparse set does not contain value at index");
+        const T& at(u64 index) const {
+            if (!contains(index)) {
+                THROW_CORE_EXCEPTION(Exception::Type::NotFound, "Sparse set does not contain value at index");
+            }
             return data[sparse[index]];
         }
 
@@ -119,8 +149,10 @@ namespace iodine::core {
          * @param index The index to get the value from.
          * @return The value at the given index.
          */
-        inline T& at(u64 index) noexcept {
-            IO_ASSERT_MSG(contains(index), "Sparse set does not contain value at index");
+        T& at(u64 index) {
+            if (!contains(index)) {
+                THROW_CORE_EXCEPTION(Exception::Type::NotFound, "Sparse set does not contain value at index");
+            }
             return data[sparse[index]];
         }
 
@@ -142,9 +174,9 @@ namespace iodine::core {
         inline std::vector<T>::const_iterator end() const { return data.begin() + size; }
 
         private:
-        std::vector<u64> dense;   // Maps dense index to sparse index
-        std::vector<u64> sparse;  // Maps sparse index to dense index
-        std::vector<T> data;      // Data storage
-        u64 size;                 // Number of elements in the sparse set
+        std::vector<u64> dense;   ///< Maps dense index to sparse index
+        std::vector<u64> sparse;  ///< Maps sparse index to dense index
+        std::vector<T> data;      ///< Data storage
+        u64 size;                 ///< Number of elements in the sparse set
     };
 }  // namespace iodine::core
