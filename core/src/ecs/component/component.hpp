@@ -75,14 +75,19 @@ namespace iodine::core {
             virtual Type& getType() = 0;
 
             private:
-            Dashboard() = default;
-
             /**
              * @brief Gets the component for the given entity.
              * @param entity The entity to get the component for.
              * @return The component for the given entity.
              */
             virtual void* get(const Entity& entity) = 0;
+
+            /**
+             * @brief Gets the component for the given entity.
+             * @param entity The entity to get the component for.
+             * @return The component for the given entity.
+             */
+            const void* get(const Entity& entity) const { return const_cast<Dashboard*>(this)->get(entity); }
 
             /**
              * @brief Inserts the component for the given entity.
@@ -101,7 +106,7 @@ namespace iodine::core {
             IO_ASSERT_MSG(isComponent<T>(), "Component must be reflectable and copy-constructible to be stored");
 
             public:
-            Storage() : type(Reflect::reflect<T>()) {}
+            Storage() : type(Reflect::reflect<T>().getType()) {}
             ~Storage() = default;
             Storage(const Storage& other) = delete;
             Storage(Storage&& other) noexcept = default;
@@ -186,7 +191,7 @@ namespace iodine::core {
                 IO_ASSERT_MSG(isComponent<T>(), "Component must be reflectable and copy-constructible to be registered");
                 static UUID id = Reflect::reflect<T>().getType().getUUID();
                 IO_ASSERT_MSG(store.find(id) == store.end(), "Duplicate component registration");
-                store[id] = MakeUnique<Storage<T>>(Reflect::reflect<T>());
+                store[id] = MakeUnique<Storage<T>>();
                 return id;
             }
 
@@ -247,7 +252,7 @@ namespace iodine::core {
                 IO_ASSERT_MSG(isComponent<T>(), "Component must be reflectable and copy-constructible to be retrieved");
                 UUID id = Reflect::reflect<T>().getType().getUUID();
                 IO_ASSERT_MSG(store.find(id) != store.end(), "Component not registered");
-                return store[id]->get<T>(entity);
+                return store.at(id)->get<T>(entity);
             }
 
             /**
@@ -261,7 +266,7 @@ namespace iodine::core {
                 IO_ASSERT_MSG(isComponent<T>(), "Component must be reflectable and copy-constructible to be retrieved");
                 UUID id = Reflect::reflect<T>().getType().getUUID();
                 IO_ASSERT_MSG(store.find(id) != store.end(), "Component not registered");
-                return store[id]->get<T>(entity);
+                return store.at(id)->get<T>(entity);
             }
 
             private:
