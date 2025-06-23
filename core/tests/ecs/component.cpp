@@ -1,7 +1,6 @@
-#include "ecs/component/component.hpp"
-
 #include <gtest/gtest.h>
 
+#include "ecs/component/registry.hpp"
 #include "ecs/entity/entity.hpp"
 #include "reflection/traits/field.hpp"
 

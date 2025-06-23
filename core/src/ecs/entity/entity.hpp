@@ -22,7 +22,7 @@ namespace iodine::core {
         class Registry;
 
         private:
-        ID id;  // The entity ID.
+        ID id;  ///< The entity ID.
 
         Entity(ID id);
 
@@ -60,8 +60,8 @@ namespace iodine::core {
         b8 isAlive(Entity entity) const;
 
         private:
-        std::vector<u64> entities;  // The entity pool.
-        u64 next;                   // The next available entity index.
-        u64 available;              // The number of available entities.
+        std::vector<u64> entities;  ///< The entity pool.
+        u64 next;                   ///< The next available entity index.
+        u64 available;              ///< The number of available entities.
     };
 }  // namespace iodine::core
