@@ -7,6 +7,8 @@ namespace iodine::core {
         template <typename T>
         concept Component = std::copy_constructible<T> && requires { Reflect::reflect<T>(); };
 
+        using ID = u32;
+
         /**
          * @brief Acts as an interface for the storage of components.
          */

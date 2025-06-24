@@ -1,12 +1,13 @@
 #pragma once
 
+#include <shared_mutex>
+
 #include "ecs/component/pool.hpp"
 
 namespace iodine::core {
     namespace Component {
         /**
          * @brief Manages the registration, creation, and destruction of components.
-         *        Components must be registered before they can be used in the ECS.
          *        Every component must implement reflection and a copy-constructor to be registered.
          */
         class IO_API Registry {
@@ -18,13 +19,11 @@ namespace iodine::core {
              * @brief Registers a component type with the registry.
              * @tparam T The component type to register.
              * @return The ID of the registered component.
+             * @note This is not technically necessary but should be used as a sanity check.
              */
             template <Component T>
-            const UUID& registerComponent() {
-                static const UUID id = Reflect::reflect<T>().getType().getUUID();
-                IO_ASSERT_MSG(store.find(id) == store.end(), "Duplicate component registration");
-                store[id] = MakeUnique<Pool<T>>();
-                return id;
+            ID enter() {
+                return getID<T>();
             }
 
             /**
@@ -32,9 +31,10 @@ namespace iodine::core {
              * @tparam T The component type to create.
              * @param entity The entity to create the component for.
              * @return The created component.
+             * @warning This function is not thread-safe.
              */
             template <Component T>
-            T& createComponent(const Entity& entity, T& component) {
+            T& create(const Entity& entity, T& component) {
                 Pool<T>* pool = getPool<T>();
                 pool->insert(entity, component);
                 return pool->get(entity);
@@ -47,9 +47,10 @@ namespace iodine::core {
              * @param entity The entity to create the component for.
              * @param ...args The arguments to forward to the component constructor.
              * @return The created component.
+             * @warning This function is not thread-safe.
              */
             template <Component T, typename... Args>
-            T& createComponent(const Entity& entity, Args&&... args) {
+            T& create(const Entity& entity, Args&&... args) {
                 Pool<T>* pool = getPool<T>();
                 pool->emplace(entity, std::forward<Args>(args)...);
                 return pool->get(entity);
@@ -59,9 +60,10 @@ namespace iodine::core {
              * @brief Removes a component from a given entity.
              * @tparam T The component type.
              * @param entity The entity to remove the component from.
+             * @warning This function is not thread-safe.
              */
             template <Component T>
-            void removeComponent(const Entity& entity) {
+            void remove(const Entity& entity) {
                 getPool<T>()->remove(entity);
             }
 
@@ -70,9 +72,10 @@ namespace iodine::core {
              * @tparam T The component type to get.
              * @param entity The entity to get the component for.
              * @return The component for the given entity.
+             * @warning This function is not thread-safe.
              */
             template <Component T>
-            T& getComponent(const Entity& entity) {
+            T& get(const Entity& entity) {
                 return getPool<T>()->get(entity);
             }
 
@@ -81,26 +84,79 @@ namespace iodine::core {
              * @tparam T The component type to get.
              * @param entity The entity to get the component for.
              * @return The component for the given entity.
+             * @warning This function is not thread-safe.
              */
             template <Component T>
-            const T& getComponent(const Entity& entity) const {
+            const T& get(const Entity& entity) const {
                 return getPool<T>()->get(entity);
             }
 
             private:
-            std::unordered_map<UUID, Unique<Storage>> store;  ///< The storage for component types.\
+            struct SVHash {
+                using is_transparent = void;
+                std::size_t operator()(std::string_view sv) const noexcept { return std::hash<std::string_view>{}(sv); }
+                std::size_t operator()(const std::string& s) const noexcept { return std::hash<std::string>{}(s); }
+            };
+
+            mutable std::shared_mutex idsLock;                                 ///< Ensure thread-safe access to the IDs map.
+            std::unordered_map<ID, std::unique_ptr<Storage>> store;            ///< Storage for component pools.
+            std::unordered_map<std::string, ID, SVHash, std::equal_to<>> ids;  ///< Maps component names to their IDs.
+            std::atomic_uint32_t nextId{0};                                    ///< The next available ID for a component.
+
+            /**
+             * @brief Gets the component ID for the given component type.
+             * @tparam T The component type to get the ID for.
+             * @return The ID of the component type.
+             * @note This function is thread-safe.
+             */
+            template <Component T>
+            ID getID() {
+                static std::string_view name = Reflect::reflect<T>().getType().getName();
+                static constinit std::atomic<ID> cached{std::numeric_limits<ID>::max()};
+
+                ID id = cached.load(std::memory_order_acquire);
+                if (id != std::numeric_limits<ID>::max()) return id;
+
+                {
+                    std::shared_lock readLock(idsLock);
+                    auto it = ids.find(name);
+                    if (it != ids.end()) {
+                        id = it->second;
+                        cached.store(id, std::memory_order_release);
+                        return id;
+                    }
+                }
+
+                std::unique_lock writeLock(idsLock);
+
+                auto it = ids.find(name);
+                if (it != ids.end()) {
+                    id = it->second;
+                } else {
+                    id = nextId++;
+                    ids.emplace(std::string(name), id);
+                    store.emplace(id, std::make_unique<Pool<T>>());
+                }
+
+                cached.store(id, std::memory_order_release);
+                return id;
+            }
 
             /**
              * @brief Fetches the concrete pool for the given component type.
              * @tparam T The component type to fetch the pool for.
              * @return The pool for the given component type.
+             * @note This function is thread-safe.
              */
             template <Component T>
-            Pool<T>* getPool() const {
-                const UUID id = Reflect::reflect<T>().getType().getUUID();
-                auto it = store.find(id);
-                IO_ASSERT_MSG(it != store.end(), "Component not registered");
-                return static_cast<Pool<T>*>(it->second.get());
+            Pool<T>* getPool() {
+                static Pool<T>* cache = [this] {
+                    ID id = getID<T>();
+                    std::shared_lock readLock(idsLock);
+                    auto it = store.find(id);
+                    return static_cast<Pool<T>*>(it->second.get());
+                }();
+                return cache;
             }
         };
     }  // namespace Component

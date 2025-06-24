@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ecs/component/component.hpp"
+#include "ecs/component/registry.hpp"
 
 namespace iodine::core {
     /**

@@ -22,29 +22,29 @@ TEST(ComponentRegistryTest, CreateDestroyReuse) {
     Component::Registry componentRegistry;
 
     // 1) Register the component type
-    componentRegistry.registerComponent<Position>();
+    componentRegistry.enter<Position>();
 
     // 2) Create (insert) a Position on the entity
     Position initPos{1.0f, 2.0f};
-    componentRegistry.createComponent<Position>(entity, initPos);
+    componentRegistry.create<Position>(entity, initPos);
 
     // 3) Retrieve and verify its values
     {
-        auto& p = componentRegistry.getComponent<Position>(entity);
+        auto& p = componentRegistry.get<Position>(entity);
         EXPECT_FLOAT_EQ(p.x, 1.0f);
         EXPECT_FLOAT_EQ(p.y, 2.0f);
     }
 
     // 4) Remove it
-    componentRegistry.removeComponent<Position>(entity);
+    componentRegistry.remove<Position>(entity);
 
     // 5) Re‐create (reuse the slot) with new values
     Position newPos{3.0f, 4.0f};
-    componentRegistry.createComponent<Position>(entity, newPos);
+    componentRegistry.create<Position>(entity, newPos);
 
     // 6) Retrieve again and verify the new values
     {
-        auto& p2 = componentRegistry.getComponent<Position>(entity);
+        auto& p2 = componentRegistry.get<Position>(entity);
         EXPECT_FLOAT_EQ(p2.x, 3.0f);
         EXPECT_FLOAT_EQ(p2.y, 4.0f);
     }
