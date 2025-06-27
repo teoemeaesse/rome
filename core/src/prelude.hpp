@@ -238,4 +238,11 @@ namespace iodine {
         std::unique_ptr<char, void (*)(void*)> res{abi::__cxa_demangle(name, nullptr, nullptr, &status), std::free};
         return (status == 0) ? res.get() : name;
     }*/
+
+    // Hash function for transparent string views
+    struct TransparentSVHash {
+        using is_transparent = void;
+        std::size_t operator()(std::string_view sv) const noexcept { return std::hash<std::string_view>{}(sv); }
+        std::size_t operator()(const std::string& s) const noexcept { return std::hash<std::string>{}(s); }
+    };
 }  // namespace iodine

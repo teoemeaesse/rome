@@ -31,37 +31,4 @@ namespace iodine::core {
         static inline void setIndex(ID& id, u64 index) { id = (id & 0x000000000000FFFFULL) | (index << 16); }
         static inline void setVersion(ID& id, u64 version) { id = (id & 0xFFFFFFFFFFFF0000ULL) | (version & 0xFFFF); }
     };
-
-    /**
-     * @brief Manages creation and destruction of entities.
-     */
-    class IO_API Entity::Registry {
-        public:
-        Registry();
-        ~Registry() = default;
-
-        /**
-         * @brief Creates a new entity.
-         * @return The ID of the new entity.
-         */
-        Entity create();
-
-        /**
-         * @brief Destroys an entity.
-         * @param entity The entity to destroy.
-         */
-        void destroy(Entity entity);
-
-        /**
-         * @brief Checks if an entity is alive.
-         * @param entity The entity to check.
-         * @return True if the entity is alive, false otherwise.
-         */
-        b8 isAlive(Entity entity) const;
-
-        private:
-        std::vector<u64> entities;  ///< The entity pool.
-        u64 next;                   ///< The next available entity index.
-        u64 available;              ///< The number of available entities.
-    };
 }  // namespace iodine::core

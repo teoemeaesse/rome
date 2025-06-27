@@ -92,16 +92,10 @@ namespace iodine::core {
             }
 
             private:
-            struct SVHash {
-                using is_transparent = void;
-                std::size_t operator()(std::string_view sv) const noexcept { return std::hash<std::string_view>{}(sv); }
-                std::size_t operator()(const std::string& s) const noexcept { return std::hash<std::string>{}(s); }
-            };
-
-            mutable std::shared_mutex idsLock;                                 ///< Ensure thread-safe access to the IDs map.
-            std::unordered_map<ID, std::unique_ptr<Storage>> store;            ///< Storage for component pools.
-            std::unordered_map<std::string, ID, SVHash, std::equal_to<>> ids;  ///< Maps component names to their IDs.
-            std::atomic_uint32_t nextId{0};                                    ///< The next available ID for a component.
+            mutable std::shared_mutex idsLock;                                            ///< Ensure thread-safe access to the IDs map.
+            std::unordered_map<ID, std::unique_ptr<Storage>> store;                       ///< Storage for component pools.
+            std::unordered_map<std::string, ID, TransparentSVHash, std::equal_to<>> ids;  ///< Maps component names to their IDs.
+            std::atomic_uint32_t nextId{0};                                               ///< The next available ID for a component.
 
             /**
              * @brief Gets the component ID for the given component type.
