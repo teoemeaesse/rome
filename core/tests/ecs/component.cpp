@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "ecs/component/registry.hpp"
-#include "ecs/entity/entity.hpp"
+#include "ecs/entity/registry.hpp"
 #include "reflection/traits/field.hpp"
 
 using namespace iodine::core;

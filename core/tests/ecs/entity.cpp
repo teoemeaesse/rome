@@ -1,6 +1,6 @@
-#include "ecs/entity/entity.hpp"
-
 #include <gtest/gtest.h>
+
+#include "ecs/entity/registry.hpp"
 
 using namespace iodine::core;
 
