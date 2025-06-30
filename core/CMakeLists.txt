@@ -67,5 +67,11 @@ if(BUILD_TESTS)
 
     add_executable(core_tests ${TEST_SOURCES})
     target_link_libraries(core_tests PRIVATE core gtest gtest_main)
+    target_compile_definitions(core_tests PRIVATE
+        IO_EXPORT_ON
+        IO_ASSERTS_ON
+        IO_EXCEPTIONS_ON
+        IO_DEBUG_ON
+    )
     add_test(NAME CoreTests COMMAND core_tests)
 endif()

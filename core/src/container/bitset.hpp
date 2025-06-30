@@ -24,18 +24,10 @@ namespace iodine::core {
          * @return This.
          */
         BitSet& operator|=(const BitSet& other) {
-            STATIC_ASSERT(totalWords() == other.totalWords(), "Bitset sizes differ — resize all masks first");
+            IO_ASSERT_MSG(totalWords() == other.totalWords(), "Bitset sizes differ — resize all masks first");
 
-            for (u64 i = 0; i < Size / 64; i++) {
-                direct[i] |= other.direct[i];
-            }
-
-            u64 otherSize = other.spill.size();
-            if (spill.size() < otherSize) {
-                spill.resize(otherSize, 0);
-            }
-            for (u64 i = 0; i < otherSize; i++) {
-                spill[i] |= other.spill[i];
+            for (u64 i = 0; i < totalWords(); ++i) {
+                at(i) |= other.at(i);
             }
             return *this;
         }
@@ -46,18 +38,10 @@ namespace iodine::core {
          * @return This.
          */
         BitSet& operator&=(const BitSet& other) {
-            STATIC_ASSERT(totalWords() == other.totalWords(), "Bitset sizes differ — resize all masks first");
+            IO_ASSERT_MSG(totalWords() == other.totalWords(), "Bitset sizes differ — resize all masks first");
 
-            for (u64 i = 0; i < Size / 64; i++) {
-                direct[i] &= other.direct[i];
-            }
-
-            const auto shared = std::min(spill.size(), other.spill.size());
-            for (u64 i = 0; i < shared; i++) {
-                spill[i] &= other.spill[i];
-            }
-            for (u64 i = shared; i < spill.size(); i++) {
-                spill[i] = 0;
+            for (u64 i = 0; i < totalWords(); ++i) {
+                at(i) &= other.at(i);
             }
             return *this;
         }
@@ -83,10 +67,7 @@ namespace iodine::core {
          * @param bit The bit index to test.
          * @return True if the bit is set, false otherwise.
          */
-        b8 test(u64 bit) const noexcept {
-            const auto [vec, index] = locate(bit);
-            return (*vec)[index] & mas k(bit);
-        }
+        b8 test(u64 bit) const noexcept { return (*locate(bit) & (1ull << (bit & 63))) != 0; }
 
         /**
          * @brief Sets a bit to true.
@@ -167,13 +148,8 @@ namespace iodine::core {
         b8 intersects(const BitSet& other) const noexcept {
             if (totalWords() != other.totalWords()) return false;
 
-            for (u64 i = 0; i < Size / 64; i++) {
-                if (direct[i] & other.direct[i]) return true;
-            }
-
-            const u64 shared = std::min(spill.size(), other.spill.size());
-            for (u64 i = 0; i < shared; i++) {
-                if (spill[i] & other.spill[i]) return true;
+            for (u64 i = 0; i < totalWords(); ++i) {
+                if (at(i) & other.at(i)) return true;
             }
             return false;
         }
@@ -184,24 +160,32 @@ namespace iodine::core {
 
         /**
          * @brief Calculates the current storage footprint in 64‑bit words.
-         * @return The number of words currently owned (inline + spill).
+         * @return The number of words currently owned (stack + spill).
          */
         u64 totalWords() const noexcept { return Size / 64 + spill.size(); }
+
+        /**
+         * @brief Returns a reference to the storage word at index.
+         */
+        u64& at(u64 index) noexcept { return index < Size / 64 ? direct[index] : spill[index - Size / 64]; }
+        /**
+         * @brief Returns a reference to the storage word at index.
+         */
+        const u64& at(u64 index) const noexcept { return index < Size / 64 ? direct[index] : spill[index - Size / 64]; }
 
         /**
          * @brief Locates the underlying 64‑bit word that contains a given bit (mutable).
          * @param bit The global bit index to locate.
          * @return A pair of (container pointer, word index) where the bit resides.
-         * @note Grows the spill vector if the bit lies beyond current capacity.
          */
-        std::pair<std::vector<Word>*, u64> locate(u64 bit) noexcept {
-            if (bit < Size) return std::pair{reinterpret_cast<std::vector<Word>*>(&direct), bit >> 6};
+        u64* locate(u64 bit) noexcept {
+            if (bit < Size) return &direct[bit >> 6];
 
-            const auto index = (bit - Size) >> 6;
-            if (spill.size() < index) {
-                spill.resize(index, 0);
+            const u64 word = (bit - Size) >> 6;
+            if (spill.size() <= word) {
+                spill.resize(word + 1, 0);
             }
-            return std::pair{&spill, index};
+            return &spill[word];
         }
 
         /**
@@ -209,24 +193,21 @@ namespace iodine::core {
          * @param bit The global bit index to locate.
          * @return A pair of (const container pointer, word index) where the bit resides.
          */
-        std::pair<std::vector<Word>*, u64> locate(u64 bit) const noexcept {
-            if (bit < Size) return std::pair{reinterpret_cast<const std::vector<Word>*>(&direct), bit >> 6};
-            return std::pair{&spill, (bit - Size) >> 6};
+        const u64* locate(u64 bit) const noexcept {
+            if (bit < Size) return &direct[bit >> 6];
+
+            const u64 word = (bit - Size) >> 6;
+            return &spill[word];
         }
 
         /**
          * @brief Sets or clears a single bit without bounds checking.
-         * @param bit   The bit index to modify.
+         * @param bit The bit index to modify.
          * @param value True to set the bit, false to clear it.
          */
         void mutate(u64 bit, b8 value) {
-            auto [vec, word] = locate(bit);
-            Word& ref = (*vec)[word];
-            if (value) {
-                ref |= 1 << (bit & 63);
-            } else {
-                ref &= ~(1 << (bit & 63));
-            }
+            u64* w = locate(bit);
+            value ? (*w |= 1ull << (bit & 63)) : (*w &= ~(1ull << (bit & 63)));
         }
     };
 }  // namespace iodine::core
