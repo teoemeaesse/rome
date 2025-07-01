@@ -12,7 +12,7 @@ constexpr iodine::u64 BigId = InlineBits + 123;  // forces spill resize
  * @brief Tests basic set / reset / test behaviour inside the stack-allocated block.
  */
 TEST(BitSetMinimumFunctionalityTest, SetResetAndTestInline) {
-    BitSet<> mask;
+    BitSet<iodine::u32> mask;
     mask.set(3);
     mask.set(7);
 
@@ -29,7 +29,7 @@ TEST(BitSetMinimumFunctionalityTest, SetResetAndTestInline) {
  * @brief Tests that any, none and count work across stack and spill storage.
  */
 TEST(BitSetFunctionalityTest, AnyNoneCount) {
-    BitSet<> mask;
+    BitSet<iodine::u32> mask;
     EXPECT_TRUE(mask.none());
     EXPECT_FALSE(mask.any());
     EXPECT_EQ(mask.count(), 0u);
@@ -46,7 +46,7 @@ TEST(BitSetFunctionalityTest, AnyNoneCount) {
  * @brief Tests automatic spill resize and access to spill bits.
  */
 TEST(BitSetFunctionalityTest, SpillResizeAndAccess) {
-    BitSet<> mask;
+    BitSet<iodine::u32> mask;
     mask.resize(BigId + 1);  // ensure capacity
     mask.set(BigId);
 
@@ -55,19 +55,19 @@ TEST(BitSetFunctionalityTest, SpillResizeAndAccess) {
 }
 
 TEST(BitSetFunctionalityTest, BinaryOrAndIntersects) {
-    BitSet<> a, b;
+    BitSet<iodine::u32> a, b;
     a.set(1);
     a.set(BigId);  // spill bit
     b.set(BigId);
 
     EXPECT_TRUE(a.intersects(b));
 
-    BitSet<> c = a & b;  // only BigId survives
+    BitSet<iodine::u32> c = a & b;  // only BigId survives
     EXPECT_TRUE(c.test(BigId));
     EXPECT_FALSE(c.test(1));
     EXPECT_EQ(c.count(), 1u);
 
-    BitSet<> d = a | b;  // union
+    BitSet<iodine::u32> d = a | b;  // union
     EXPECT_TRUE(d.test(1));
     EXPECT_TRUE(d.test(BigId));
     EXPECT_EQ(d.count(), 2u);
@@ -79,8 +79,8 @@ TEST(BitSetFunctionalityTest, BinaryOrAndIntersects) {
 }
 
 TEST(BitSetDeathTest, MismatchedCapacityAssertion) {
-    BitSet<> small;
-    BitSet<> big;
+    BitSet<iodine::u32> small;
+    BitSet<iodine::u32> big;
     big.resize(2048);
 
     EXPECT_DEATH({ small |= big; }, "");
@@ -89,13 +89,13 @@ TEST(BitSetDeathTest, MismatchedCapacityAssertion) {
 }
 
 TEST(BitSetFunctionalityTest, CopyAndMove) {
-    BitSet<> a;
+    BitSet<iodine::u32> a;
     a.set(3);
     a.set(BigId);
 
-    BitSet<> copy(a);
+    BitSet<iodine::u32> copy(a);
     EXPECT_EQ(copy.count(), 2u);
 
-    BitSet<> moved(std::move(a));
+    BitSet<iodine::u32> moved(std::move(a));
     EXPECT_EQ(moved.count(), 2u);
 }
