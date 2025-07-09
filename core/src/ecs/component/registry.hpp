@@ -91,9 +91,22 @@ namespace iodine::core {
                 return getPool<T>()->get(entity);
             }
 
+            /**
+             * @brief Calculates the total number of component types in the registry.
+             * @return The total number of component types.
+             */
+            u32 count() const;
+
+            /**
+             * @brief Gets the name of a component type given its ID.
+             * @return The name of the component type.
+             */
+            const std::string& name(ID id) const;
+
             private:
             mutable std::shared_mutex idsLock;                                            ///< Ensure thread-safe access to the IDs map.
             std::unordered_map<ID, std::unique_ptr<Storage>> store;                       ///< Storage for component pools.
+            std::unordered_map<ID, std::string> names;                                    ///< Maps component IDs to their names.
             std::unordered_map<std::string, ID, TransparentSVHash, std::equal_to<>> ids;  ///< Maps component names to their IDs.
             std::atomic_uint32_t nextId{0};                                               ///< The next available ID for a component.
 
@@ -128,7 +141,8 @@ namespace iodine::core {
                     id = it->second;
                 } else {
                     id = nextId++;
-                    ids.emplace(std::string(name), id);
+                    ids.emplace(name, id);
+                    names.emplace(id, name);
                     store.emplace(id, std::make_unique<Pool<T>>());
                 }
 

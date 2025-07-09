@@ -7,19 +7,37 @@ namespace iodine::core {
     /**
      * @brief A flexible bitset that can grow beyond a fixed size.
      * This bitset stores the first 512 bits (8 words) in the stack and spills over to a vector for additional bits.
-     * @tparam Word The type of the underlying storage, must be an unsigned integer type (default is u64).
-     * @tparam Size The total size of the inner std::bitset, must be a multiple of 64 bits (default is 512 bits).
-     *              Spillover to a vector occurs when more than Size bits are set.
+     * @tparam Alias An optional type used to index into the bitset, must be an unsigned integer type no larger than 64 bits (default is u64).
+     * @tparam Size The maximum expected capacity, must be a multiple of Alias' width in bits (default is 512 bits).
+     *              You can go over this size, falling back to dynamic storage.
      */
-    template <typename Word = u64, u64 Size = 512>
+    template <typename Alias = u64, u64 Size = 512>
     class BitSet {
-        STATIC_ASSERT(std::is_unsigned_v<Word>, "Word must be an unsigned integer type");
-        static constexpr u64 WordSize = (sizeof(Word) * 8);  ///< Number of bits in a Word (64 for u64).
-        STATIC_ASSERT(Size % WordSize == 0, "Size must be a multiple of Word size");
+        STATIC_ASSERT(std::is_unsigned_v<Alias>, "Alias must be an unsigned integer type");
+        STATIC_ASSERT(sizeof(Alias) <= 8, "Alias must be no larger than 64 bits");
+        STATIC_ASSERT(Size % (sizeof(Alias) * 8) == 0, "Size must be a multiple of Alias' width");
 
         public:
         BitSet() = default;
-        explicit BitSet(Word bits) { resize(bits); }
+        explicit BitSet(u64 size) { resize(size); }
+        BitSet(const BitSet&) = default;
+        BitSet(BitSet&&) = default;
+        BitSet& operator=(const BitSet&) = default;
+        BitSet& operator=(BitSet&&) = default;
+        ~BitSet() = default;
+
+        /**
+         * @brief Creates a bitset from a list of bits.
+         * @param bits The bits to set.
+         * @return A new bitset with the specified bits set.
+         */
+        static BitSet create(std::initializer_list<Alias> bits) {
+            BitSet set(Size);
+            for (Alias bit : bits) {
+                set.set(bit);
+            }
+            return set;
+        }
 
         /**
          * @brief Performs an in‑place OR with another bitset of identical capacity.
@@ -27,9 +45,9 @@ namespace iodine::core {
          * @return This.
          */
         BitSet& operator|=(const BitSet& other) {
-            IO_ASSERT_MSG(totalWords() == other.totalWords(), "Bitset sizes differ — resize all masks first");
+            IO_ASSERT_MSG(words() == other.words(), "Bitset sizes differ — resize all masks first");
 
-            for (u64 i = 0; i < totalWords(); i++) {
+            for (u64 i = 0; i < words(); i++) {
                 at(i) |= other.at(i);
             }
             return *this;
@@ -41,10 +59,25 @@ namespace iodine::core {
          * @return This.
          */
         BitSet& operator&=(const BitSet& other) {
-            IO_ASSERT_MSG(totalWords() == other.totalWords(), "Bitset sizes differ — resize all masks first");
+            IO_ASSERT_MSG(words() == other.words(), "Bitset sizes differ — resize all masks first");
 
-            for (u64 i = 0; i < totalWords(); i++) {
+            for (u64 i = 0; i < words(); i++) {
                 at(i) &= other.at(i);
+            }
+            return *this;
+        }
+
+        /**
+         * @brief Performs an in‑place AND NOT with another bitset of identical capacity.
+         * @param other The bitset to AND NOT with.
+         * @return This.
+         * @note This operation is analogous to A \ B
+         */
+        BitSet& operator-=(const BitSet& other) {
+            IO_ASSERT_MSG(words() == other.words(), "Bitset sizes differ — resize all masks first");
+
+            for (u64 i = 0; i < words(); i++) {
+                at(i) &= ~other.at(i);
             }
             return *this;
         }
@@ -66,29 +99,37 @@ namespace iodine::core {
         friend BitSet operator&(BitSet left, const BitSet& right) { return left &= right; }
 
         /**
+         * @brief Returns the bitwise AND NOT of two bitsets with identical capacity.
+         * @param left First bitset.
+         * @param right Other bitset.
+         * @return A new bitset containing "left AND NOT right".
+         */
+        friend BitSet operator-(BitSet left, const BitSet& right) { return left -= right; }
+
+        /**
          * @brief Tests whether a specific bit is set.
          * @param bit The bit index to test.
          * @return True if the bit is set, false otherwise.
          */
-        b8 test(u64 bit) const noexcept { return (*locate(bit) & (1ull << (bit & (WordSize - 1)))) != 0; }
+        b8 test(Alias bit) const noexcept { return (*locate(static_cast<u64>(bit)) & (1ull << (static_cast<u64>(bit) & 63))) != 0; }
 
         /**
          * @brief Sets a bit to true.
          * @param bit The bit index to set.
          */
-        void set(u64 bit) { mutate(bit, true); }
+        void set(Alias bit) { mutate(static_cast<u64>(bit), true); }
 
         /**
          * @brief Sets a bit to false.
          * @param bit The bit index to clear.
          */
-        void reset(u64 bit) { mutate(bit, false); }
+        void reset(Alias bit) { mutate(static_cast<u64>(bit), false); }
 
         /**
          * @brief Toggles a bit.
          * @param bit The bit index to toggle.
          */
-        void flip(u64 bit) { mutate(bit, !test(bit)); }
+        void flip(Alias bit) { mutate(static_cast<u64>(bit), !test(bit)); }
 
         /**
          * @brief Sets all bits to false.
@@ -100,11 +141,11 @@ namespace iodine::core {
 
         /**
          * @brief Resizes the bitset to accommodate a new number of bits.
-         * @param bits The new size in bits. Should be greater than the current size.
+         * @param newSize The new size in bits. Should be greater than the current size.
          */
-        void resize(u64 bits) {
-            if (bits <= Size) return;
-            spill.resize((bits - Size + WordSize - 1) / WordSize, 0);
+        void resize(u64 newSize) {
+            if (newSize <= Size) return;
+            spill.resize((newSize - Size + 63) / 64, 0);
         }
 
         /**
@@ -118,10 +159,10 @@ namespace iodine::core {
          * @return True if no bits are set, false if at least one bit is set.
          */
         b8 none() const noexcept {
-            for (Word word : direct) {
+            for (u64 word : direct) {
                 if (word) return false;
             }
-            for (Word word : spill) {
+            for (u64 word : spill) {
                 if (word) return false;
             }
             return true;
@@ -133,10 +174,10 @@ namespace iodine::core {
          */
         u64 count() const noexcept {
             u64 c = 0;
-            for (Word word : direct) {
+            for (u64 word : direct) {
                 c += std::popcount(word);
             }
-            for (Word word : spill) {
+            for (u64 word : spill) {
                 c += std::popcount(word);
             }
             return c;
@@ -148,42 +189,46 @@ namespace iodine::core {
          * @return True if there is at least one bit set in both bitsets, false otherwise.
          */
         b8 intersects(const BitSet& other) const noexcept {
-            if (totalWords() != other.totalWords()) return false;
+            if (words() != other.words()) return false;
 
-            for (u64 i = 0; i < totalWords(); i++) {
+            for (u64 i = 0; i < words(); i++) {
                 if (at(i) & other.at(i)) return true;
             }
             return false;
         }
 
         private:
-        std::array<Word, Size / WordSize> direct{};  ///< Stack storage for the first Size bits.
-        std::vector<Word> spill;                     ///< Dynamic storage for bits beyond Size.
+        std::array<u64, Size / 64> direct{};  ///< Stack storage for the first Size bits.
+        std::vector<u64> spill;               ///< Dynamic storage for bits beyond Size.
 
         /**
          * @brief Calculates the current storage footprint in 64‑bit words.
          * @return The number of words currently owned (stack + spill).
          */
-        u64 totalWords() const noexcept { return Size / WordSize + spill.size(); }
+        u64 words() const noexcept { return direct.max_size() + spill.size(); }
 
         /**
          * @brief Returns a reference to the storage word at index.
+         * @param index The index of the word to access.
+         * @return A reference to the storage word at index.
          */
-        Word& at(Word index) noexcept { return index < Size / WordSize ? direct[index] : spill[index - Size / WordSize]; }
+        u64& at(u64 index) noexcept { return index < direct.max_size() ? direct[index] : spill[index - direct.max_size()]; }
         /**
          * @brief Returns a reference to the storage word at index.
+         * @param index The index of the word to access.
+         * @return A reference to the storage word at index.
          */
-        const Word& at(Word index) const noexcept { return index < Size / WordSize ? direct[index] : spill[index - Size / WordSize]; }
+        const u64& at(u64 index) const noexcept { return index < direct.max_size() ? direct[index] : spill[index - direct.max_size()]; }
 
         /**
          * @brief Locates the underlying 64‑bit word that contains a given bit (mutable).
          * @param bit The global bit index to locate.
          * @return A pair of (container pointer, word index) where the bit resides.
          */
-        Word* locate(Word bit) noexcept {
+        u64* locate(u64 bit) noexcept {
             if (bit < Size) return &direct[bit >> 6];
 
-            const Word word = (bit - Size) >> 6;
+            const u64 word = (bit - Size) >> 6;
             if (spill.size() <= word) {
                 spill.resize(word + 1, 0);
             }
@@ -195,10 +240,10 @@ namespace iodine::core {
          * @param bit The global bit index to locate.
          * @return A pair of (const container pointer, word index) where the bit resides.
          */
-        const Word* locate(Word bit) const noexcept {
+        const u64* locate(u64 bit) const noexcept {
             if (bit < Size) return &direct[bit >> 6];
 
-            const Word word = (bit - Size) >> 6;
+            const u64 word = (bit - Size) >> 6;
             return &spill[word];
         }
 
@@ -207,9 +252,9 @@ namespace iodine::core {
          * @param bit The bit index to modify.
          * @param value True to set the bit, false to clear it.
          */
-        void mutate(Word bit, b8 value) {
-            Word* w = locate(bit);
-            value ? (*w |= 1ull << (bit & (WordSize - 1))) : (*w &= ~(1ull << (bit & (WordSize - 1))));
+        void mutate(u64 bit, b8 value) {
+            u64* w = locate(bit);
+            value ? (*w |= 1ull << (bit & 63)) : (*w &= ~(1ull << (bit & 63)));
         }
     };
 }  // namespace iodine::core
