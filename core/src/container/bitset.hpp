@@ -129,7 +129,10 @@ namespace iodine::core {
          * @brief Toggles a bit.
          * @param bit The bit index to toggle.
          */
-        void flip(Alias bit) { mutate(static_cast<u64>(bit), !test(bit)); }
+        void flip(Alias bit) {
+            u64* w = locate(static_cast<u64>(bit));
+            *w ^= 1ull << (static_cast<u64>(bit) & 63);
+        }
 
         /**
          * @brief Sets all bits to false.

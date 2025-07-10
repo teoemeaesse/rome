@@ -5,97 +5,126 @@
 
 using namespace iodine::core;
 
-constexpr iodine::u64 InlineBits = 512;
+constexpr iodine::u64 InlineBits = 100;
 constexpr iodine::u64 BigId = InlineBits + 123;  // forces spill resize
 
-/**
- * @brief Tests basic set / reset / test behaviour inside the stack-allocated block.
- */
-TEST(BitSetMinimumFunctionalityTest, SetResetAndTestInline) {
-    BitSet<iodine::u32> mask;
-    mask.set(3);
-    mask.set(7);
+#define BITSET_TESTS(ALIAS)                                                                                                      \
+    TEST(BitSetMinimumFunctionalityTest, SetResetAndTestInline_##ALIAS) {                                                        \
+        BitSet<iodine::ALIAS, 128> mask;                                                                                         \
+        mask.set(3);                                                                                                             \
+        mask.set(7);                                                                                                             \
+        EXPECT_TRUE(mask.test(3));                                                                                               \
+        EXPECT_TRUE(mask.test(7));                                                                                               \
+        EXPECT_FALSE(mask.test(10));                                                                                             \
+        mask.reset(3);                                                                                                           \
+        EXPECT_FALSE(mask.test(3));                                                                                              \
+        EXPECT_EQ(mask.count(), 1u);                                                                                             \
+    }                                                                                                                            \
+    TEST(BitSetFunctionalityTest, AnyNoneCount_##ALIAS) {                                                                        \
+        BitSet<iodine::ALIAS, 128> mask;                                                                                         \
+        EXPECT_TRUE(mask.none());                                                                                                \
+        EXPECT_FALSE(mask.any());                                                                                                \
+        EXPECT_EQ(mask.count(), 0u);                                                                                             \
+        mask.set(InlineBits - 1);                                                                                                \
+        mask.set(BigId);                                                                                                         \
+        EXPECT_TRUE(mask.any());                                                                                                 \
+        EXPECT_FALSE(mask.none());                                                                                               \
+        EXPECT_EQ(mask.count(), 2u);                                                                                             \
+    }                                                                                                                            \
+    TEST(BitSetFunctionalityTest, SpillResizeAndAccess_##ALIAS) {                                                                \
+        BitSet<iodine::ALIAS, 128> mask;                                                                                         \
+        mask.resize(BigId + 1);                                                                                                  \
+        mask.set(BigId);                                                                                                         \
+        EXPECT_TRUE(mask.test(BigId));                                                                                           \
+        EXPECT_EQ(mask.count(), 1u);                                                                                             \
+    }                                                                                                                            \
+    TEST(BitSetFunctionalityTest, BinaryOrAndIntersects_##ALIAS) {                                                               \
+        BitSet<iodine::ALIAS, 128> a, b;                                                                                         \
+        a.set(1);                                                                                                                \
+        a.set(BigId);                                                                                                            \
+        b.set(BigId);                                                                                                            \
+        EXPECT_TRUE(a.intersects(b));                                                                                            \
+        BitSet<iodine::ALIAS, 128> c = a & b;                                                                                    \
+        EXPECT_TRUE(c.test(BigId));                                                                                              \
+        EXPECT_FALSE(c.test(1));                                                                                                 \
+        EXPECT_EQ(c.count(), 1u);                                                                                                \
+        BitSet<iodine::ALIAS, 128> d = a | b;                                                                                    \
+        EXPECT_TRUE(d.test(1));                                                                                                  \
+        EXPECT_TRUE(d.test(BigId));                                                                                              \
+        EXPECT_EQ(d.count(), 2u);                                                                                                \
+        d &= c;                                                                                                                  \
+        EXPECT_EQ(d.count(), 1u);                                                                                                \
+        EXPECT_TRUE(d.test(BigId));                                                                                              \
+        d |= a;                                                                                                                  \
+        EXPECT_EQ(d.count(), 2u);                                                                                                \
+        EXPECT_TRUE(d.test(1));                                                                                                  \
+        EXPECT_TRUE(d.test(BigId));                                                                                              \
+    }                                                                                                                            \
+    TEST(BitSetDeathTest, MismatchedCapacityAssertion_##ALIAS) {                                                                 \
+        BitSet<iodine::ALIAS, 128> small;                                                                                        \
+        BitSet<iodine::ALIAS, 128> big;                                                                                          \
+        big.resize(2048);                                                                                                        \
+        EXPECT_DEATH({ small |= big; }, "");                                                                                     \
+        EXPECT_FALSE(small.intersects(big));                                                                                     \
+    }                                                                                                                            \
+    TEST(BitSetFunctionalityTest, CopyAndMove_##ALIAS) {                                                                         \
+        BitSet<iodine::ALIAS, 128> a;                                                                                            \
+        a.set(3);                                                                                                                \
+        a.set(BigId);                                                                                                            \
+        BitSet<iodine::ALIAS, 128> copy(a);                                                                                      \
+        EXPECT_EQ(copy.count(), 2u);                                                                                             \
+        BitSet<iodine::ALIAS, 128> moved(std::move(a));                                                                          \
+        EXPECT_EQ(moved.count(), 2u);                                                                                            \
+    }                                                                                                                            \
+    TEST(BitSetFunctionalityTest, ClearResetsAllBits_##ALIAS) {                                                                  \
+        BitSet<iodine::ALIAS, 128> mask;                                                                                         \
+        mask.set(7);                                                                                                             \
+        mask.set(BigId);                                                                                                         \
+        EXPECT_TRUE(mask.any());                                                                                                 \
+        EXPECT_EQ(mask.count(), 2u);                                                                                             \
+        mask.clear();                                                                                                            \
+        EXPECT_TRUE(mask.none());                                                                                                \
+        EXPECT_EQ(mask.count(), 0u);                                                                                             \
+    }                                                                                                                            \
+    TEST(BitSetFunctionalityTest, FlipTogglesBits_##ALIAS) {                                                                     \
+        BitSet<iodine::ALIAS, 128> mask;                                                                                         \
+        mask.flip(42);                                                                                                           \
+        EXPECT_TRUE(mask.test(42));                                                                                              \
+        mask.flip(42);                                                                                                           \
+        EXPECT_FALSE(mask.test(42));                                                                                             \
+        mask.flip(BigId);                                                                                                        \
+        EXPECT_TRUE(mask.test(BigId));                                                                                           \
+        mask.flip(BigId);                                                                                                        \
+        EXPECT_FALSE(mask.test(BigId));                                                                                          \
+    }                                                                                                                            \
+    TEST(BitSetFunctionalityTest, Except_##ALIAS) {                                                                              \
+        BitSet<iodine::ALIAS, 128> a, b;                                                                                         \
+        a.set(1);                                                                                                                \
+        a.set(2);                                                                                                                \
+        a.set(BigId);                                                                                                            \
+        b.set(2);                                                                                                                \
+        b.set(BigId);                                                                                                            \
+        BitSet<iodine::ALIAS, 128> diff = a - b;                                                                                 \
+        EXPECT_TRUE(diff.test(1));                                                                                               \
+        EXPECT_FALSE(diff.test(2));                                                                                              \
+        EXPECT_FALSE(diff.test(BigId));                                                                                          \
+        EXPECT_EQ(diff.count(), 1u);                                                                                             \
+        a -= b;                                                                                                                  \
+        EXPECT_TRUE(a.test(1));                                                                                                  \
+        EXPECT_FALSE(a.test(2));                                                                                                 \
+        EXPECT_FALSE(a.test(BigId));                                                                                             \
+        EXPECT_EQ(a.count(), 1u);                                                                                                \
+    }                                                                                                                            \
+    TEST(BitSetFactoryTest, CreateInitialisesCorrectBits_##ALIAS) {                                                              \
+        const iodine::ALIAS big_val = static_cast<iodine::ALIAS>(BigId);                                                         \
+        auto mask = BitSet<iodine::ALIAS, 128>::create({static_cast<iodine::ALIAS>(1), static_cast<iodine::ALIAS>(3), big_val}); \
+        EXPECT_TRUE(mask.test(1));                                                                                               \
+        EXPECT_TRUE(mask.test(3));                                                                                               \
+        EXPECT_TRUE(mask.test(BigId));                                                                                           \
+        EXPECT_EQ(mask.count(), 3u);                                                                                             \
+    }
 
-    EXPECT_TRUE(mask.test(3));
-    EXPECT_TRUE(mask.test(7));
-    EXPECT_FALSE(mask.test(10));
-
-    mask.reset(3);
-    EXPECT_FALSE(mask.test(3));
-    EXPECT_EQ(mask.count(), 1u);  // only bit 7
-}
-
-/**
- * @brief Tests that any, none and count work across stack and spill storage.
- */
-TEST(BitSetFunctionalityTest, AnyNoneCount) {
-    BitSet<iodine::u32> mask;
-    EXPECT_TRUE(mask.none());
-    EXPECT_FALSE(mask.any());
-    EXPECT_EQ(mask.count(), 0u);
-
-    mask.set(InlineBits - 1);  // last inline bit
-    mask.set(BigId);           // first spill bit
-
-    EXPECT_TRUE(mask.any());
-    EXPECT_FALSE(mask.none());
-    EXPECT_EQ(mask.count(), 2u);
-}
-
-/**
- * @brief Tests automatic spill resize and access to spill bits.
- */
-TEST(BitSetFunctionalityTest, SpillResizeAndAccess) {
-    BitSet<iodine::u32> mask;
-    mask.resize(BigId + 1);  // ensure capacity
-    mask.set(BigId);
-
-    EXPECT_TRUE(mask.test(BigId));
-    EXPECT_EQ(mask.count(), 1u);
-}
-
-TEST(BitSetFunctionalityTest, BinaryOrAndIntersects) {
-    BitSet<iodine::u32> a, b;
-    a.set(1);
-    a.set(BigId);  // spill bit
-    b.set(BigId);
-
-    EXPECT_TRUE(a.intersects(b));
-
-    BitSet<iodine::u32> c = a & b;  // only BigId survives
-    EXPECT_TRUE(c.test(BigId));
-    EXPECT_FALSE(c.test(1));
-    EXPECT_EQ(c.count(), 1u);
-
-    BitSet<iodine::u32> d = a | b;  // union
-    EXPECT_TRUE(d.test(1));
-    EXPECT_TRUE(d.test(BigId));
-    EXPECT_EQ(d.count(), 2u);
-
-    // in-place versions
-    d &= c;
-    EXPECT_EQ(d.count(), 1u);
-    EXPECT_TRUE(d.test(BigId));
-}
-
-TEST(BitSetDeathTest, MismatchedCapacityAssertion) {
-    BitSet<iodine::u32> small;
-    BitSet<iodine::u32> big;
-    big.resize(2048);
-
-    EXPECT_DEATH({ small |= big; }, "");
-    EXPECT_DEATH({ small &= big; }, "");
-    EXPECT_FALSE(small.intersects(big));  // safe: function early-returns
-}
-
-TEST(BitSetFunctionalityTest, CopyAndMove) {
-    BitSet<iodine::u32> a;
-    a.set(3);
-    a.set(BigId);
-
-    BitSet<iodine::u32> copy(a);
-    EXPECT_EQ(copy.count(), 2u);
-
-    BitSet<iodine::u32> moved(std::move(a));
-    EXPECT_EQ(moved.count(), 2u);
-}
+BITSET_TESTS(u8)
+BITSET_TESTS(u16)
+BITSET_TESTS(u32)
+BITSET_TESTS(u64)
