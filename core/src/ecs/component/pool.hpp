@@ -5,7 +5,7 @@
 #include "container/sparse_set.hpp"
 #include "debug/log.hpp"
 #include "ecs/component/storage.hpp"
-#include "ecs/entity/entity.hpp"
+#include "ecs/entity/registry.hpp"
 
 namespace rome::core {
     namespace Component {

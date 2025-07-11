@@ -7,16 +7,19 @@
 namespace rome::core {
     namespace Event {
         /**
-         * @brief A thread-safe registry for managing events and their unique runtime IDs.
+         * @brief A registry for managing events and their unique runtime IDs.
+         * @warning This registry is not thread-safe outside event registration.
          */
-        class Registry {
+        class RM_API Registry final {
             public:
-            Registry();
+            Registry() = default;
+            ~Registry() = default;
 
             /**
              * @brief Enters a new event into the registry.
              * @param name The name of the event.
              * @return The unique ID of the event.
+             * @note This function is thread-safe.
              */
             ID enter(const std::string& name);
 
@@ -25,6 +28,7 @@ namespace rome::core {
              * @param name The name of the event.
              * @return The unique ID of the event.
              * @throws Exception::Type::NotFound if the event does not exist.
+             * @warning This function is not thread-safe.
              */
             ID get(const std::string& name) const;
 

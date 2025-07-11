@@ -12,7 +12,7 @@ namespace rome::core {
      *              You can go over this size, falling back to dynamic storage.
      */
     template <typename Alias = u64, u64 Size = 512>
-    class BitSet {
+    class RM_API BitSet final {
         STATIC_ASSERT(std::is_unsigned_v<Alias>, "Alias must be an unsigned integer type");
         STATIC_ASSERT(sizeof(Alias) <= 8, "Alias must be no larger than 64 bits");
         STATIC_ASSERT(Size % (sizeof(Alias) * 8) == 0, "Size must be a multiple of Alias' width");

@@ -4,11 +4,11 @@
 
 namespace rome::core {
     namespace System {
-        class Registry {
+        class RM_API Registry final {
             public:
             Registry();
 
-            void addSystem() {}
+            void addSystem();
 
             private:
             std::vector<Group> groups;  ///< The groups managed by this registry.

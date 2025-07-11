@@ -1,15 +1,25 @@
 #pragma once
 
-#include "ecs/component/registry.hpp"
+#include "ecs/system/registry.hpp"
 
 namespace rome::core {
     /**
-     * @brief A world is a container for all archetypes, components, resources and systems and serves as the primary interface for the engine's ECS.
+     * @brief The "world" is the primary interface for the ECS (Entity-Component-System) framework.
      */
     class World {
         public:
         World() = default;
         ~World() = default;
+        World(const World&) = delete;
+        World& operator=(const World&) = delete;
+        World(World&&) = default;
+        World& operator=(World&&) = default;
+
+        struct State {
+            System::Registry systems;        ///< The registry for all systems in the world.
+            Component::Registry components;  ///< The registry for all components in the world.
+            Entity::Registry entities;       ///< The registry for all entities in the world.
+        };
 
         /**
          * @brief Registers a new component type with the world.
@@ -78,7 +88,18 @@ namespace rome::core {
             return components.getComponent<T>(entity);
         }
 
+        /**
+         * @brief Gets the current state of the world.
+         * @return The current state of the world.
+         */
+        const State& getState() const { return state; }
+        /**
+         * @brief Gets the current state of the world.
+         * @return The current state of the world.
+         */
+        State& getState() { return state; }
+
         private:
-        Component::Registry components;
+        State state;  ///< The state of the world, containing all ECS data.
     };
 }  // namespace rome::core

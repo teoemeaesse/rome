@@ -4,7 +4,7 @@
 
 namespace rome::core {
     template <typename T>
-    class RM_API SparseSet {
+    class RM_API SparseSet final {
         public:
         SparseSet() : size(0) {};
         ~SparseSet() = default;

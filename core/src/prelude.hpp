@@ -189,6 +189,10 @@ namespace rome {
     constexpr Shared<T> MakeShared(Args&&... args) {
         return std::make_shared<T>(std::forward<Args>(args)...);
     }
+    template <typename T, typename... Args>
+    constexpr Weak<T> MakeWeak(const Shared<T>& ptr) {
+        return std::weak_ptr<T>(ptr);
+    }
 
     // Implementation struct: Handles pointers and arrays
     template <typename T>

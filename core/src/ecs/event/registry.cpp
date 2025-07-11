@@ -31,12 +31,9 @@ namespace rome::core {
         }
 
         ID Registry::get(const std::string& name) const {
-            {
-                std::shared_lock lock(eventsLock);
-                auto it = ids.find(name);
-                if (it != ids.end()) {
-                    return it->second;
-                }
+            auto it = ids.find(name);
+            if (it != ids.end()) {
+                return it->second;
             }
             THROW_CORE_EXCEPTION(Exception::Type::NotFound, "Event not found");
         }

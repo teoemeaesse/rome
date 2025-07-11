@@ -13,7 +13,7 @@ namespace rome::core {
         /**
          * @brief A system's descriptor defines its static properties such as name, scheduling, etc.
          */
-        struct Descriptor {
+        struct RM_API Descriptor {
             const Component::Registry& components;   ///< Reference to the component registry.
             std::string name;                        ///< The name of the system. Must be unique.
             ID id;                                   ///< The unique identifier of the system.
@@ -28,7 +28,7 @@ namespace rome::core {
             Group getGroup() const;
         };
 
-        class Builder {
+        class RM_API Builder {
             public:
             Builder(const std::string& name, Component::Registry& components, Event::Registry& events);
 

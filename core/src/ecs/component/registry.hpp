@@ -8,18 +8,24 @@ namespace rome::core {
     namespace Component {
         /**
          * @brief Manages the registration, creation, and destruction of components.
-         *        Every component must implement reflection and a copy-constructor to be registered.
+         * @note This registry is not thread-safe outside component registration.
+         * @warning Every component must implement reflection and a copy-constructor to be registered.
          */
-        class RM_API Registry {
+        class RM_API Registry final {
             public:
             Registry() = default;
             ~Registry() = default;
+            Registry(const Registry& other) = delete;
+            Registry(Registry&& other) noexcept = delete;
+            Registry& operator=(const Registry& other) = delete;
+            Registry& operator=(Registry&& other) noexcept = delete;
 
             /**
              * @brief Registers a component type with the registry.
              * @tparam T The component type to register.
              * @return The ID of the registered component.
              * @note This is not technically necessary but should be used as a sanity check.
+             *       This function is thread-safe.
              */
             template <Component T>
             ID enter() {
@@ -94,18 +100,20 @@ namespace rome::core {
             /**
              * @brief Calculates the total number of component types in the registry.
              * @return The total number of component types.
+             * @warning This function is not thread-safe.
              */
             u32 count() const;
 
             /**
              * @brief Gets the name of a component type given its ID.
              * @return The name of the component type.
+             * @warning This function is not thread-safe.
              */
             const std::string& name(ID id) const;
 
             private:
             mutable std::shared_mutex idsLock;                                            ///< Ensure thread-safe access to the IDs map.
-            std::unordered_map<ID, std::unique_ptr<Storage>> store;                       ///< Storage for component pools.
+            std::unordered_map<ID, Unique<Storage>> store;                                ///< Storage for component pools.
             std::unordered_map<ID, std::string> names;                                    ///< Maps component IDs to their names.
             std::unordered_map<std::string, ID, TransparentSVHash, std::equal_to<>> ids;  ///< Maps component names to their IDs.
             std::atomic_uint32_t nextId{0};                                               ///< The next available ID for a component.

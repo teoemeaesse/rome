@@ -3,7 +3,7 @@
 #include "prelude.hpp"
 
 namespace rome::core {
-    class RM_API Entity {
+    class RM_API Entity final {
         public:
         /**
          * @brief The unique identifier for an entity.

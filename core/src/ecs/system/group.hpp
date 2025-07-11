@@ -5,7 +5,7 @@
 
 namespace rome::core {
     namespace System {
-        class Group {
+        class RM_API Group final {
             public:
             Group(BitSet<Component::ID> owning, BitSet<Component::ID> partial, const Component::Registry& components);
             ~Group() = default;
