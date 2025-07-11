@@ -2,7 +2,7 @@
 
 #include "platform/platform.hpp"
 
-namespace iodine::core {
+namespace rome::core {
     void Timer::start() { lastTime = Platform::getInstance().time(); }
 
     f64 Timer::tick() {
@@ -11,4 +11,4 @@ namespace iodine::core {
         lastTime = currentTime;
         return elapsedTime;
     }
-}  // namespace iodine::core
+}  // namespace rome::core

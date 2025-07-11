@@ -3,13 +3,13 @@
 #include "app/strategy.hpp"
 #include "concurrency/thread.hpp"
 
-namespace iodine::core {
+namespace rome::core {
     class Application;
 
     /**
      * @brief An application strategy consisting of one tick thread and one render thread.
      */
-    class IO_API TwinStrategy : public ApplicationStrategy {
+    class RM_API TwinStrategy : public ApplicationStrategy {
         public:
         TwinStrategy(Application& app, b8 memoryMetrics = true);
         ~TwinStrategy() override = default;
@@ -25,4 +25,4 @@ namespace iodine::core {
         Thread tickThread;    ///< The tick thread.
         Thread renderThread;  ///< The render thread.
     };
-}  // namespace iodine::core
+}  // namespace rome::core

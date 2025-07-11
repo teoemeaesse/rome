@@ -15,16 +15,16 @@ endif()
 add_library(core STATIC ${CORE_SOURCES})
 
 target_compile_definitions(core PRIVATE
-    IO_EXPORT_ON
-    IO_ASSERTS_ON
-    IO_EXCEPTIONS_ON
+    RM_EXPORT_ON
+    RM_ASSERTS_ON
+    RM_EXCEPTIONS_ON
 )
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -DNDEBUG")
 else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
     target_compile_definitions(core PRIVATE
-        IO_DEBUG_ON
+        RM_DEBUG_ON
     )
 endif()
 
@@ -68,10 +68,10 @@ if(BUILD_TESTS)
     add_executable(core_tests ${TEST_SOURCES})
     target_link_libraries(core_tests PRIVATE core gtest gtest_main)
     target_compile_definitions(core_tests PRIVATE
-        IO_EXPORT_ON
-        IO_ASSERTS_ON
-        IO_EXCEPTIONS_ON
-        IO_DEBUG_ON
+        RM_EXPORT_ON
+        RM_ASSERTS_ON
+        RM_EXCEPTIONS_ON
+        RM_DEBUG_ON
     )
     add_test(NAME CoreTests COMMAND core_tests)
 endif()

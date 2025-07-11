@@ -2,7 +2,7 @@
 
 #include "prelude.hpp"
 
-namespace iodine::core {
+namespace rome::core {
 
     /**
      * @brief A flexible bitset that can grow beyond a fixed size.
@@ -45,7 +45,7 @@ namespace iodine::core {
          * @return This.
          */
         BitSet& operator|=(const BitSet& other) {
-            IO_ASSERT_MSG(words() == other.words(), "Bitset sizes differ — resize all masks first");
+            RM_ASSERT_MSG(words() == other.words(), "Bitset sizes differ — resize all masks first");
 
             for (u64 i = 0; i < words(); i++) {
                 at(i) |= other.at(i);
@@ -59,7 +59,7 @@ namespace iodine::core {
          * @return This.
          */
         BitSet& operator&=(const BitSet& other) {
-            IO_ASSERT_MSG(words() == other.words(), "Bitset sizes differ — resize all masks first");
+            RM_ASSERT_MSG(words() == other.words(), "Bitset sizes differ — resize all masks first");
 
             for (u64 i = 0; i < words(); i++) {
                 at(i) &= other.at(i);
@@ -74,7 +74,7 @@ namespace iodine::core {
          * @note This operation is analogous to A \ B
          */
         BitSet& operator-=(const BitSet& other) {
-            IO_ASSERT_MSG(words() == other.words(), "Bitset sizes differ — resize all masks first");
+            RM_ASSERT_MSG(words() == other.words(), "Bitset sizes differ — resize all masks first");
 
             for (u64 i = 0; i < words(); i++) {
                 at(i) &= ~other.at(i);
@@ -260,4 +260,4 @@ namespace iodine::core {
             value ? (*w |= 1ull << (bit & 63)) : (*w &= ~(1ull << (bit & 63)));
         }
     };
-}  // namespace iodine::core
+}  // namespace rome::core

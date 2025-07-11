@@ -5,12 +5,12 @@
 #include "debug/log.hpp"
 #include "platform/platform.hpp"
 
-iodine::i32 main(iodine::i32 argc, char** argv) {
+rome::i32 main(rome::i32 argc, char** argv) {
     // Initialize the engine.
-    iodine::core::Platform::getInstance().init();
-    iodine::core::Platform::getInstance().assertCompatible();
-    iodine::core::Platform::getInstance().log();
-    iodine::core::Metrics::getInstance().start();
+    rome::core::Platform::getInstance().init();
+    rome::core::Platform::getInstance().assertCompatible();
+    rome::core::Platform::getInstance().log();
+    rome::core::Metrics::getInstance().start();
 
     // Create the application.
     auto app = createApplication();
@@ -21,7 +21,7 @@ iodine::i32 main(iodine::i32 argc, char** argv) {
 
     // Cleanup.
     delete app;
-    iodine::core::Metrics::getInstance().stop();
+    rome::core::Metrics::getInstance().stop();
 
     return EXIT_SUCCESS;
 }

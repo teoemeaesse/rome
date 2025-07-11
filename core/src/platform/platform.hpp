@@ -4,11 +4,11 @@
 
 #include "prelude.hpp"
 
-namespace iodine::core {
+namespace rome::core {
     /**
      * @brief Class representing the current platform.
      */
-    class IO_API Platform {
+    class RM_API Platform {
         public:
         /**
          * @brief Enum representing the low-level program signals.
@@ -50,7 +50,7 @@ namespace iodine::core {
         void log();
 
         /**
-         * @brief Ensures the platform is compatible with iodine.
+         * @brief Ensures the platform is compatible with rome.
          */
         void assertCompatible();
 
@@ -129,4 +129,4 @@ namespace iodine::core {
          */
         void swapEndian(void* data, u64 size);
     };
-}  // namespace iodine::core
+}  // namespace rome::core

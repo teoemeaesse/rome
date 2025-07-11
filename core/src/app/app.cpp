@@ -2,15 +2,15 @@
 
 #include "app/twin_threads.hpp"
 
-namespace iodine::core {
+namespace rome::core {
     Application::Application(const Config& config)
         : config(config),
           strategy(std::move(MakeUnique<TwinStrategy>(*this))),
           tickRate(config.tickRate, config.tickRateWindow),
           renderRate(config.renderRate, config.renderRateWindow) {
         if (config.isMemoryLogging) {
-            iodine::core::Metrics::getInstance().registerThread("Main");
-            iodine::core::Metrics::getInstance().setIsMemoryTracking(true);
+            rome::core::Metrics::getInstance().registerThread("Main");
+            rome::core::Metrics::getInstance().setIsMemoryTracking(true);
         }
     }
 
@@ -20,8 +20,8 @@ namespace iodine::core {
           tickRate(config.tickRate, config.tickRateWindow),
           renderRate(config.renderRate, config.renderRateWindow) {
         if (config.isMemoryLogging) {
-            iodine::core::Metrics::getInstance().registerThread("Main");
-            iodine::core::Metrics::getInstance().setIsMemoryTracking(true);
+            rome::core::Metrics::getInstance().registerThread("Main");
+            rome::core::Metrics::getInstance().setIsMemoryTracking(true);
         }
     }
 
@@ -30,4 +30,4 @@ namespace iodine::core {
     void Application::pause() { strategy->pause(); }
 
     void Application::stop() { strategy->stop(); }
-}  // namespace iodine::core
+}  // namespace rome::core

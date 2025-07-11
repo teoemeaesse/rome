@@ -3,7 +3,7 @@
 #include <iomanip>
 #include <sstream>
 
-namespace iodine::core {
+namespace rome::core {
     struct MD5::Context {
         u32 state[4];   // MD5 state (ABCD)
         u32 count[2];   // Number of bits, modulo 2^64 (low-order word first)
@@ -52,7 +52,8 @@ namespace iodine::core {
      */
     void decode(u32* output, const u8* input, u32 len) {
         for (u32 i = 0, j = 0; j < len; i++, j += 4) {
-            output[i] = (static_cast<u32>(input[j])) | (static_cast<u32>(input[j + 1]) << 8) | (static_cast<u32>(input[j + 2]) << 16) | (static_cast<u32>(input[j + 3]) << 24);
+            output[i] = (static_cast<u32>(input[j])) | (static_cast<u32>(input[j + 1]) << 8) | (static_cast<u32>(input[j + 2]) << 16) |
+                        (static_cast<u32>(input[j + 3]) << 24);
             if (Platform::getInstance().isBigEndian()) {
                 Platform::getInstance().swapEndian(&output[i], sizeof(u32));
             }
@@ -205,4 +206,4 @@ namespace iodine::core {
 
         encode(digest, context.state, 16);
     }
-}  // namespace iodine::core
+}  // namespace rome::core

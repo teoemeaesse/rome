@@ -2,7 +2,7 @@
 
 #include "platform/platform.hpp"
 
-namespace iodine::core {
+namespace rome::core {
     /**
      * @brief An RFC 1321 compliant MD5 hash implementation.
      * @details This class provides a simple interface to create MD5 hashes from strings or byte arrays.
@@ -48,4 +48,4 @@ namespace iodine::core {
          */
         void hash(const char* input, u32 length);
     };
-}  // namespace iodine::core
+}  // namespace rome::core

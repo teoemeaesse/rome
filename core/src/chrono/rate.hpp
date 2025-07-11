@@ -2,11 +2,11 @@
 
 #include "prelude.hpp"
 
-namespace iodine::core {
+namespace rome::core {
     /**
      * @brief Tracks the running rate of an application.
      */
-    class IO_API RateTracker {
+    class RM_API RateTracker {
         public:
         /**
          * @brief Creates a new rate tracker.
@@ -36,4 +36,4 @@ namespace iodine::core {
 
         f64 estimate;  ///< The latest estimated rate.
     };
-}  // namespace iodine::core
+}  // namespace rome::core

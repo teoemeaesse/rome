@@ -4,17 +4,18 @@
 #include "reflection/external/string.hpp"
 #include "reflection/traits/field.hpp"
 
-using namespace iodine;
-using namespace iodine::core;
+using namespace rome;
+using namespace rome::core;
 
 struct SimpleStruct {
     i32 integer = 3;
     f32 floating = 3.14f;
     std::string name = "Hello, world!";
 
-    IO_REFLECT;
+    RM_REFLECT;
 };
-IO_REFLECT_IMPL(SimpleStruct, "SimpleStruct", Fields().with("integer", &SimpleStruct::integer).with("floating", &SimpleStruct::floating).with("name", &SimpleStruct::name));
+RM_REFLECT_IMPL(SimpleStruct, "SimpleStruct",
+                Fields().with("integer", &SimpleStruct::integer).with("floating", &SimpleStruct::floating).with("name", &SimpleStruct::name));
 
 class StandardLayoutClass {
     public:
@@ -27,9 +28,9 @@ class StandardLayoutClass {
 
     byte randomByte = 'Z';
 
-    IO_REFLECT;
+    RM_REFLECT;
 };
-IO_REFLECT_IMPL(StandardLayoutClass, "StandardLayoutClass", Fields().with("randomByte", &StandardLayoutClass::randomByte));
+RM_REFLECT_IMPL(StandardLayoutClass, "StandardLayoutClass", Fields().with("randomByte", &StandardLayoutClass::randomByte));
 
 TEST(TraitReflectionTest, SimpleStructFields) {
     // Obtain reflection info

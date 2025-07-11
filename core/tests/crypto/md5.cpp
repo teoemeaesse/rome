@@ -2,8 +2,8 @@
 
 #include "gtest/gtest.h"
 
-using namespace iodine;
-using namespace iodine::core;
+using namespace rome;
+using namespace rome::core;
 
 struct MD5TestCase {
     std::string input;
@@ -30,7 +30,7 @@ TEST(MD5Test, KnownVectors) {
 TEST(MD5Test, ConstructorAndComparison) {
     std::string input = "The quick brown fox jumps over the lazy dog";
     MD5 md5_from_string(input);
-    MD5 md5_from_chars(input.c_str(), static_cast<iodine::u32>(input.size()));
+    MD5 md5_from_chars(input.c_str(), static_cast<rome::u32>(input.size()));
 
     EXPECT_TRUE(md5_from_string == md5_from_chars);
 

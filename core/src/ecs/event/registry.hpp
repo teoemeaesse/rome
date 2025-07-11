@@ -4,7 +4,7 @@
 
 #include "ecs/event/event.hpp"
 
-namespace iodine::core {
+namespace rome::core {
     namespace Event {
         /**
          * @brief A thread-safe registry for managing events and their unique runtime IDs.
@@ -35,4 +35,4 @@ namespace iodine::core {
             std::queue<ID> freeIDs;                     ///< Queue of free IDs for reuse.
         };
     }  // namespace Event
-}  // namespace iodine::core
+}  // namespace rome::core

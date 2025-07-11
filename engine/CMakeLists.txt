@@ -11,15 +11,15 @@ file(GLOB_RECURSE ENGINE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 add_library(engine SHARED ${ENGINE_SOURCES})
 
 target_compile_definitions(engine PRIVATE
-    IO_EXPORT_ON
-    IO_ASSERTS_ON
+    RM_EXPORT_ON
+    RM_ASSERTS_ON
 )
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -DNDEBUG")
 else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
     target_compile_definitions(engine PRIVATE
-        IO_DEBUG_ON
+        RM_DEBUG_ON
     )
 endif()
 

@@ -1,6 +1,6 @@
 #include "ecs/system/system.hpp"
 
-namespace iodine::core::System {
+namespace rome::core::System {
     Group Descriptor::getGroup() const {
         BitSet<Component::ID> owning = writes;
         BitSet<Component::ID> partial;
@@ -39,4 +39,4 @@ namespace iodine::core::System {
 
     Descriptor Builder::build() { return descriptor; }
 
-}  // namespace iodine::core::System
+}  // namespace rome::core::System

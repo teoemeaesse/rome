@@ -1,4 +1,4 @@
-# iodine
+# rome
 A 3D general-purpose game engine for Linux and Unix-like distributions.
 
 ## Motivation
@@ -28,6 +28,6 @@ Before anything else, run the setup script. This will get and install all the ne
 To build the tests, run the script with the ```-t``` flag
 
 ## Engine structure
-**iodine** is divided into two main parts:
-- [**core**](https://github.com/teoemeaesse/iodine/tree/main/core) - Core engine static library, handles everything from memory metrics to the ECS.
-- [**engine**](https://github.com/teoemeaesse/iodine/tree/main/engine) - **iodine** standard plugins that constitute the bulk of the engine - graphics, user input, audio etc.
+**rome** is divided into two main parts:
+- [**core**](https://github.com/teoemeaesse/rome/tree/main/core) - Core engine static library, handles everything from memory metrics to the ECS.
+- [**engine**](https://github.com/teoemeaesse/rome/tree/main/engine) - **rome** standard plugins that constitute the bulk of the engine - graphics, user input, audio etc.

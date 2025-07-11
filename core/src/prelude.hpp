@@ -1,17 +1,17 @@
 #pragma once
 
-/* Iodine API export/import */
-#ifdef IO_EXPORT_ON
+/* Rome API export/import */
+#ifdef RM_EXPORT_ON
 #ifdef _MSC_VER
-#define IO_API __declspec(dllexport)
+#define RM_API __declspec(dllexport)
 #else
-#define IO_API __attribute__((visibility("default")))
+#define RM_API __attribute__((visibility("default")))
 #endif
 #else
 #ifdef _MSC_VER
-#define IO_API __declspec(dllimport)
+#define RM_API __declspec(dllimport)
 #else
-#define IO_API
+#define RM_API
 #endif
 #endif
 
@@ -27,7 +27,7 @@
 #endif
 
 /* Exceptions */
-#ifdef IO_EXCEPTIONS_ON
+#ifdef RM_EXCEPTIONS_ON
 #include <stdexcept>
 #define STATIC_CORE_ASSERT_EXCEPTION(expected, message)           \
     STATIC_ASSERT((expected), message)                            \
@@ -39,12 +39,12 @@
 #endif
 
 /* Debug asserts */
-#ifdef IO_ASSERTS_ON
+#ifdef RM_ASSERTS_ON
 #ifdef _MSC_VER
 #include <intrin.h>
-#define IO_DEBUG_BREAK() __debugbreak()
+#define RM_DEBUG_BREAK() __debugbreak()
 #else
-#define IO_DEBUG_BREAK() __builtin_trap()
+#define RM_DEBUG_BREAK() __builtin_trap()
 #endif
 
 /**
@@ -56,7 +56,7 @@
  * @warning This function should ALWAYS be called instead of the
  *      second definition if the assertion message is not provided.
  */
-IO_API void assertFail(const char* expression, const char* file, int line, const char* function);
+RM_API void assertFail(const char* expression, const char* file, int line, const char* function);
 /**
  * @brief Reports an assertion failure.
  * @param expression The expression that failed.
@@ -66,62 +66,62 @@ IO_API void assertFail(const char* expression, const char* file, int line, const
  * @param function The function containing the assertion.
  * @warning This function should NEVER be called with an empty message.
  */
-IO_API void assertFail(const char* expression, const char* message, const char* file, int line, const char* function);
-#define IO_ASSERT(expression)                                          \
+RM_API void assertFail(const char* expression, const char* message, const char* file, int line, const char* function);
+#define RM_ASSERT(expression)                                          \
     {                                                                  \
         if (expression)                                                \
             ;                                                          \
         else {                                                         \
             assertFail(#expression, __FILE__, __LINE__, __FUNCTION__); \
-            IO_DEBUG_BREAK();                                          \
+            RM_DEBUG_BREAK();                                          \
         }                                                              \
     }
-#define IO_ASSERT_MSG(expression, message)                                      \
+#define RM_ASSERT_MSG(expression, message)                                      \
     {                                                                           \
         if (expression)                                                         \
             ;                                                                   \
         else {                                                                  \
             assertFail(#expression, message, __FILE__, __LINE__, __FUNCTION__); \
-            IO_DEBUG_BREAK();                                                   \
+            RM_DEBUG_BREAK();                                                   \
         }                                                                       \
     }
 #else
-#define IO_ASSERT(expression)
-#define IO_ASSERT_MSG(expression, message)
+#define RM_ASSERT(expression)
+#define RM_ASSERT_MSG(expression, message)
 #endif
 
-#ifdef IO_EXCEPTIONS_ON
+#ifdef RM_EXCEPTIONS_ON
 #include <stdexcept>
 #define CORE_ASSERT_EXCEPTION(expected, message)                   \
-    IO_ASSERT_MSG((expected), message)                             \
+    RM_ASSERT_MSG((expected), message)                             \
     if (!(expected)) {                                             \
         THROW_CORE_EXCEPTION(Exception::Type::Assertion, message); \
     }
 #else
-#define CORE_ASSERT_EXCEPTION(expected, message) IO_ASSERT_MSG((expected), message)
+#define CORE_ASSERT_EXCEPTION(expected, message) RM_ASSERT_MSG((expected), message)
 #endif
 
 /* Platform definitions (Windows 64-bit, MacOS, Linux and Unix/Unix-like) */
 #if defined(_WIN64)
 #define PLATFORM_NAME "Windows"
-#define IO_WINDOWS
+#define RM_WINDOWS
 #elif defined(__APPLE__) && defined(__MACH__)
 #include <TargetConditionals.h>
 #if TARGET_OS_MAC
 #define PLATFORM_NAME "MacOS"
-#define IO_MACOS
+#define RM_MACOS
 #else
 #error "Unsupported Apple platform"
 #endif
 #elif defined(__linux__)
 #define PLATFORM_NAME "Linux"
-#define IO_LINUX
+#define RM_LINUX
 #elif defined(__unix__)
 #define PLATFORM_NAME "Unix-like"
-#define IO_UNIX
+#define RM_UNIX
 #else
 #define PLATFORM_NAME "Unknown"
-#define IO_UNKNOWN_PLATFORM
+#define RM_UNKNOWN_PLATFORM
 #endif
 
 #ifndef NULL
@@ -141,7 +141,7 @@ IO_API void assertFail(const char* expression, const char* message, const char* 
 #include <unordered_map>
 #include <vector>
 
-namespace iodine {
+namespace rome {
     /* Primitive types */
     using u8 = unsigned char;
     using u16 = unsigned short;
@@ -247,4 +247,4 @@ namespace iodine {
         std::size_t operator()(std::string_view sv) const noexcept { return std::hash<std::string_view>{}(sv); }
         std::size_t operator()(const std::string& s) const noexcept { return std::hash<std::string>{}(s); }
     };
-}  // namespace iodine
+}  // namespace rome

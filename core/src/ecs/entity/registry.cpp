@@ -1,6 +1,6 @@
 #include "ecs/entity/registry.hpp"
 
-namespace iodine::core {
+namespace rome::core {
 
     Entity::Registry::Registry() : next(0), available(0) {}
 
@@ -34,4 +34,4 @@ namespace iodine::core {
         std::shared_lock lock(entitiesLock);
         return getVersion(entities[getIndex(entity.id)]) == getVersion(entity.id);
     }
-}  // namespace iodine::core
+}  // namespace rome::core

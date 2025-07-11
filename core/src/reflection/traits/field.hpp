@@ -2,13 +2,13 @@
 
 #include "reflection/reflect.hpp"
 
-namespace iodine::core {
+namespace rome::core {
     class Fields;
 
     /**
      * @brief A reflectable struct or class field.
      */
-    class IO_API Field {
+    class RM_API Field {
         friend class Fields;
 
         public:
@@ -95,7 +95,7 @@ namespace iodine::core {
     /**
      * @brief A list of reflectable fields. Stores any number of Field<T> objects in a tuple.
      */
-    class IO_API Fields : public Trait {
+    class RM_API Fields : public Trait {
         public:
         Fields();
 
@@ -138,4 +138,4 @@ namespace iodine::core {
         private:
         std::vector<Field> fields;  ///< The list of fields.
     };
-}  // namespace iodine::core
+}  // namespace rome::core

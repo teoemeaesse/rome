@@ -1,13 +1,13 @@
 #include "platform/platform.hpp"
 
-#ifdef IO_MACOS
+#ifdef RM_MACOS
 
 #include <fcntl.h>
 #include <unistd.h>
 
 #include "debug/log.hpp"
 
-namespace iodine::core {
+namespace rome::core {
     static volatile sig_atomic_t sigInt = 0;   ///< SIGINT signal.
     static volatile sig_atomic_t sigTerm = 0;  ///< SIGTERM signal.
     static volatile sig_atomic_t sigAbrt = 0;  ///< SIGABRT signal.
@@ -68,16 +68,16 @@ namespace iodine::core {
         sigHupHandler.sa_flags = 0;
         sigaction(SIGHUP, &sigHupHandler, NULL);
 
-        IO_INFO("Registered signal listeners");
+        RM_INFO("Registered signal listeners");
     }
 
     const char* Platform::getName() { return PLATFORM_NAME; }
 
-    void Platform::log() { IO_INFO("Running on %s", getName()); }
+    void Platform::log() { RM_INFO("Running on %s", getName()); }
 
     void Platform::assertCompatible() {
         if (!isMacOS()) {
-            IO_FATAL("Incompatible platform: %s", getName());
+            RM_FATAL("Incompatible platform: %s", getName());
             std::exit(EXIT_FAILURE);
         }
     }
@@ -203,6 +203,6 @@ namespace iodine::core {
             bytes[size - 1 - i] = temp;
         }
     }
-}  // namespace iodine::core
+}  // namespace rome::core
 
 #endif

@@ -4,15 +4,15 @@
 #include "ecs/entity/registry.hpp"
 #include "reflection/traits/field.hpp"
 
-using namespace iodine::core;
+using namespace rome::core;
 
 // A simple test‐only component: must be reflectable and copy‐constructible
 struct Position {
     float x, y;
 
-    IO_REFLECT;
+    RM_REFLECT;
 };
-IO_REFLECT_IMPL(Position, "Position", Fields().with("x", &Position::x).with("y", &Position::y));
+RM_REFLECT_IMPL(Position, "Position", Fields().with("x", &Position::x).with("y", &Position::y));
 
 TEST(ComponentRegistryTest, CreateDestroyReuse) {
     Entity::Registry entityRegistry;

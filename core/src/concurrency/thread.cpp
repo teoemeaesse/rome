@@ -1,9 +1,9 @@
 #include "concurrency/thread.hpp"
 
-static thread_local iodine::core::UUID localID{};
+static thread_local rome::core::UUID localID{};
 static thread_local std::string localAlias = "Main";
 
-namespace iodine::core {
+namespace rome::core {
     Thread::Thread(const std::string& alias) : alias(alias) {}
 
     Thread::~Thread() {
@@ -49,4 +49,4 @@ namespace iodine::core {
     void ThreadInfo::setLocalID(const UUID& id) { localID = id; }
 
     void ThreadInfo::setLocalAlias(const std::string& alias) { localAlias = alias; }
-}  // namespace iodine::core
+}  // namespace rome::core

@@ -4,12 +4,12 @@
 
 #include "ecs/entity/entity.hpp"
 
-namespace iodine::core {
+namespace rome::core {
 
     /**
      * @brief Manages creation and destruction of entities.
      */
-    class IO_API Entity::Registry {
+    class RM_API Entity::Registry {
         public:
         Registry();
         ~Registry() = default;
@@ -39,4 +39,4 @@ namespace iodine::core {
         u64 next;                                ///< The next available entity index.
         u64 available;                           ///< The number of available entities.
     };
-}  // namespace iodine::core
+}  // namespace rome::core

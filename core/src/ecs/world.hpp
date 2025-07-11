@@ -2,7 +2,7 @@
 
 #include "ecs/component/registry.hpp"
 
-namespace iodine::core {
+namespace rome::core {
     /**
      * @brief A world is a container for all archetypes, components, resources and systems and serves as the primary interface for the engine's ECS.
      */
@@ -81,4 +81,4 @@ namespace iodine::core {
         private:
         Component::Registry components;
     };
-}  // namespace iodine::core
+}  // namespace rome::core

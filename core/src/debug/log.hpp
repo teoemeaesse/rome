@@ -2,11 +2,11 @@
 
 #include "prelude.hpp"
 
-namespace iodine::core {
+namespace rome::core {
     /**
      * @brief Log types in ascending order of importance.
      */
-    enum class IO_API LogLevel : u8 { Trace = 0, Debug = 1, Info = 2, Warn = 3, Error = 4, Fatal = 5 };
+    enum class RM_API LogLevel : u8 { Trace = 0, Debug = 1, Info = 2, Warn = 3, Error = 4, Fatal = 5 };
 
     /**
      * @brief Writes out a log message to stdout.
@@ -14,37 +14,37 @@ namespace iodine::core {
      * @param message The message to log.
      * @param ... The arguments to format the message with.
      */
-    void IO_API logMessage(LogLevel level, const char*, ...);
-}  // namespace iodine::core
+    void RM_API logMessage(LogLevel level, const char*, ...);
+}  // namespace rome::core
 
 /* Mute debug logs in release build */
-#ifdef IO_DEBUG_ON
-#define IO_LOG_TRACE_ON
-#define IO_LOG_DEBUG_ON
+#ifdef RM_DEBUG_ON
+#define RM_LOG_TRACE_ON
+#define RM_LOG_DEBUG_ON
 #endif
 
 /* Enable trace logging */
-#ifdef IO_LOG_TRACE_ON
+#ifdef RM_LOG_TRACE_ON
 /**
  * @brief Logs a trace message.
  * @param message The message to log.
  * @param ... Log message format arguments.
  */
-#define IO_TRACE(message, ...) iodine::core::logMessage(iodine::core::LogLevel::Trace, message __VA_OPT__(, ##__VA_ARGS__))
+#define RM_TRACE(message, ...) rome::core::logMessage(rome::core::LogLevel::Trace, message __VA_OPT__(, ##__VA_ARGS__))
 #else
-#define IO_TRACE(message, ...)
+#define RM_TRACE(message, ...)
 #endif
 
 /* Enable debug logging */
-#ifdef IO_LOG_DEBUG_ON
+#ifdef RM_LOG_DEBUG_ON
 /**
  * @brief Logs a debug message.
  * @param message The message to log.
  * @param ... Log message format arguments.
  */
-#define IO_DEBUG(message, ...) iodine::core::logMessage(iodine::core::LogLevel::Debug, message __VA_OPT__(, ##__VA_ARGS__))
+#define RM_DEBUG(message, ...) rome::core::logMessage(rome::core::LogLevel::Debug, message __VA_OPT__(, ##__VA_ARGS__))
 #else
-#define IO_DEBUG(message, ...)
+#define RM_DEBUG(message, ...)
 #endif
 
 /* Enable info logging */
@@ -53,7 +53,7 @@ namespace iodine::core {
  * @param message The message to log.
  * @param ... Log message format arguments.
  */
-#define IO_INFO(message, ...) iodine::core::logMessage(iodine::core::LogLevel::Info, message __VA_OPT__(, ##__VA_ARGS__))
+#define RM_INFO(message, ...) rome::core::logMessage(rome::core::LogLevel::Info, message __VA_OPT__(, ##__VA_ARGS__))
 
 /* Enable warn logging */
 /**
@@ -61,7 +61,7 @@ namespace iodine::core {
  * @param message The message to log.
  * @param ... Log message format arguments.
  */
-#define IO_WARN(message, ...) iodine::core::logMessage(iodine::core::LogLevel::Warn, message __VA_OPT__(, ##__VA_ARGS__))
+#define RM_WARN(message, ...) rome::core::logMessage(rome::core::LogLevel::Warn, message __VA_OPT__(, ##__VA_ARGS__))
 
 /* Always enable error and fatal logging */
 /**
@@ -69,11 +69,11 @@ namespace iodine::core {
  * @param message The message to log.
  * @param ... Log message format arguments.
  */
-#define IO_ERROR(message, ...) iodine::core::logMessage(iodine::core::LogLevel::Error, message __VA_OPT__(, ##__VA_ARGS__))
+#define RM_ERROR(message, ...) rome::core::logMessage(rome::core::LogLevel::Error, message __VA_OPT__(, ##__VA_ARGS__))
 
 /**
  * @brief Logs a fatal error.
  * @param message The message to log.
  * @param ... Log message format arguments.
  */
-#define IO_FATAL(message, ...) iodine::core::logMessage(iodine::core::LogLevel::Fatal, message __VA_OPT__(, ##__VA_ARGS__))
+#define RM_FATAL(message, ...) rome::core::logMessage(rome::core::LogLevel::Fatal, message __VA_OPT__(, ##__VA_ARGS__))

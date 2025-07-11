@@ -5,14 +5,14 @@
 #include "concurrency/thread.hpp"
 #include "debug/exception.hpp"
 
-static std::atomic_bool metricsRunning = false;         ///< Whether the metrics system should be logging performance data.
-static thread_local iodine::b8 recursionGuard = false;  ///< Used to prevent circular new / delete calls.
+static std::atomic_bool metricsRunning = false;       ///< Whether the metrics system should be logging performance data.
+static thread_local rome::b8 recursionGuard = false;  ///< Used to prevent circular new / delete calls.
 
 void* operator new(size_t size) {
     if (!metricsRunning) {
         return std::malloc(size);
     }
-    if (!iodine::core::Metrics::getInstance().isRegistered() || !iodine::core::Metrics::getInstance().isMemoryTracking()) {
+    if (!rome::core::Metrics::getInstance().isRegistered() || !rome::core::Metrics::getInstance().isMemoryTracking()) {
         return std::malloc(size);
     }
     if (!recursionGuard) {
@@ -23,7 +23,7 @@ void* operator new(size_t size) {
             throw std::bad_alloc();
         }
 
-        iodine::core::Metrics::getInstance().registerAllocation(ptr, static_cast<iodine::u64>(size));
+        rome::core::Metrics::getInstance().registerAllocation(ptr, static_cast<rome::u64>(size));
         recursionGuard = false;
         return ptr;
     }
@@ -35,13 +35,13 @@ void operator delete(void* ptr) noexcept {
         std::free(ptr);
         return;
     }
-    if (!iodine::core::Metrics::getInstance().isRegistered() || !iodine::core::Metrics::getInstance().isMemoryTracking()) {
+    if (!rome::core::Metrics::getInstance().isRegistered() || !rome::core::Metrics::getInstance().isMemoryTracking()) {
         std::free(ptr);
         return;
     }
     if (!recursionGuard) {
         recursionGuard = true;
-        iodine::core::Metrics::getInstance().registerDeallocation(ptr);
+        rome::core::Metrics::getInstance().registerDeallocation(ptr);
         recursionGuard = false;
     }
     std::free(ptr);
@@ -51,7 +51,7 @@ void* operator new[](size_t size) {
     if (!metricsRunning) {
         return std::malloc(size);
     }
-    if (!iodine::core::Metrics::getInstance().isRegistered() || !iodine::core::Metrics::getInstance().isMemoryTracking()) {
+    if (!rome::core::Metrics::getInstance().isRegistered() || !rome::core::Metrics::getInstance().isMemoryTracking()) {
         return std::malloc(size);
     }
     if (!recursionGuard) {
@@ -62,7 +62,7 @@ void* operator new[](size_t size) {
             throw std::bad_alloc();
         }
 
-        iodine::core::Metrics::getInstance().registerAllocation(ptr, static_cast<iodine::u64>(size));
+        rome::core::Metrics::getInstance().registerAllocation(ptr, static_cast<rome::u64>(size));
         recursionGuard = false;
         return ptr;
     }
@@ -75,19 +75,19 @@ void operator delete[](void* ptr) noexcept {
         std::free(ptr);
         return;
     }
-    if (!iodine::core::Metrics::getInstance().isRegistered() || !iodine::core::Metrics::getInstance().isMemoryTracking()) {
+    if (!rome::core::Metrics::getInstance().isRegistered() || !rome::core::Metrics::getInstance().isMemoryTracking()) {
         std::free(ptr);
         return;
     }
     if (!recursionGuard) {
         recursionGuard = true;
-        iodine::core::Metrics::getInstance().registerDeallocation(ptr);
+        rome::core::Metrics::getInstance().registerDeallocation(ptr);
         recursionGuard = false;
     }
     std::free(ptr);
 }
 
-namespace iodine::core {
+namespace rome::core {
     Metrics::~Metrics() {
         metricsRunning = false;
         for (const auto& [thread, metrics] : threadMetrics) {
@@ -96,9 +96,9 @@ namespace iodine::core {
     }
 
     void Metrics::start() {
-        IO_DEBUG("Starting metrics");
+        RM_DEBUG("Starting metrics");
         metricsRunning = true;
-        IO_DEBUG("Metrics started");
+        RM_DEBUG("Metrics started");
     }
 
     void Metrics::stop() { metricsRunning = false; }
@@ -119,7 +119,7 @@ namespace iodine::core {
 
     void Metrics::registerDeallocation(void* ptr) {
         if (!ptr) {
-            IO_WARN("Attempted to deallocate a null pointer");
+            RM_WARN("Attempted to deallocate a null pointer");
             return;
         }
 
@@ -135,27 +135,30 @@ namespace iodine::core {
     }
 
     void Metrics::report() const {
-        IO_INFO("Memory metrics:");
+        RM_INFO("Memory metrics:");
         for (const auto& [thread, metrics] : threadMetrics) {
-            IO_INFO(getMemoryMetrics(thread).c_str());
+            RM_INFO(getMemoryMetrics(thread).c_str());
         }
-        IO_INFO(getGlobalMemoryMetrics().c_str());
+        RM_INFO(getGlobalMemoryMetrics().c_str());
     }
 
     std::string Metrics::getMemoryMetrics(const UUID& thread) const {
         if (!isRegistered(thread)) {
             THROW_CORE_EXCEPTION(Exception::Type::NotFound, "Thread ID not registered");
         }
-        return "Thread (\"" + threadMetrics.at(thread)->alias + "\") heap metrics:\n          - Total               " + std::to_string(getTotalBytes(thread)) + " B\n          - Peak                " +
-               std::to_string(getPeakBytes(thread)) + " B\n          - Current / leaked    " + std::to_string(getCurrentBytes(thread)) + " B\n          - Total allocations   " +
-               std::to_string(getTotalAllocations(thread)) + "\n          - Total deallocations " + std::to_string(getTotalAllocations(thread) - getMissingDeallocations(thread));
+        return "Thread (\"" + threadMetrics.at(thread)->alias + "\") heap metrics:\n          - Total               " +
+               std::to_string(getTotalBytes(thread)) + " B\n          - Peak                " + std::to_string(getPeakBytes(thread)) +
+               " B\n          - Current / leaked    " + std::to_string(getCurrentBytes(thread)) + " B\n          - Total allocations   " +
+               std::to_string(getTotalAllocations(thread)) + "\n          - Total deallocations " +
+               std::to_string(getTotalAllocations(thread) - getMissingDeallocations(thread));
     }
 
     std::string Metrics::getMemoryMetrics() const { return getMemoryMetrics(ThreadInfo::getLocalID()); }
 
     std::string Metrics::getGlobalMemoryMetrics() const {
-        return "Global heap metrics:\n          - Total               " + std::to_string(getGlobalTotalBytes()) + " B\n          - Peak                " + std::to_string(getGlobalPeakBytes()) +
-               " B\n          - Current / leaked    " + std::to_string(getGlobalCurrentBytes()) + " B\n          - Total allocations   " + std::to_string(getGlobalTotalAllocations()) +
+        return "Global heap metrics:\n          - Total               " + std::to_string(getGlobalTotalBytes()) +
+               " B\n          - Peak                " + std::to_string(getGlobalPeakBytes()) + " B\n          - Current / leaked    " +
+               std::to_string(getGlobalCurrentBytes()) + " B\n          - Total allocations   " + std::to_string(getGlobalTotalAllocations()) +
                "\n          - Total deallocations " + std::to_string(getGlobalTotalAllocations() - getGlobalMissingDeallocations());
     }
 
@@ -284,7 +287,7 @@ namespace iodine::core {
     void Metrics::registerThread(const std::string& alias) {
         std::lock_guard<std::mutex> lock(registrarMutex);
         if (isRegistered(ThreadInfo::getLocalID())) {
-            IO_WARN("Thread already registered");
+            RM_WARN("Thread already registered");
             return;
         }
 
@@ -295,7 +298,7 @@ namespace iodine::core {
     void Metrics::unregisterThread() {
         std::lock_guard<std::mutex> lock(registrarMutex);
         if (!isRegistered(ThreadInfo::getLocalID())) {
-            IO_WARN("Thread not registered");
+            RM_WARN("Thread not registered");
             return;
         }
 
@@ -306,4 +309,4 @@ namespace iodine::core {
     b8 Metrics::isRegistered(const UUID& thread) const { return threadMetrics.find(thread) != threadMetrics.end(); }
 
     b8 Metrics::isRegistered() const { return threadMetrics.find(ThreadInfo::getLocalID()) != threadMetrics.end(); }
-}  // namespace iodine::core
+}  // namespace rome::core

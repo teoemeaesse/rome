@@ -1,6 +1,6 @@
 #include "ecs/component/registry.hpp"
 
-namespace iodine::core {
+namespace rome::core {
     namespace Component {
         u32 Registry::count() const {
             std::shared_lock readLock(idsLock);
@@ -16,4 +16,4 @@ namespace iodine::core {
             THROW_CORE_EXCEPTION(Exception::Type::NotFound, (std::string("Component ") + std::to_string(id) + " not found").c_str());
         }
     }  // namespace Component
-}  // namespace iodine::core
+}  // namespace rome::core

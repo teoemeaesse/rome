@@ -2,7 +2,7 @@
 
 #include "reflection/reflect.hpp"
 
-namespace iodine::core {
+namespace rome::core {
     namespace Component {
         template <typename T>
         concept Component = std::copy_constructible<T> && requires { Reflect::reflect<T>(); };
@@ -12,9 +12,9 @@ namespace iodine::core {
         /**
          * @brief Acts as an interface for the storage of components.
          */
-        class IO_API Storage {
+        class RM_API Storage {
             public:
             virtual ~Storage() = default;
         };
     }  // namespace Component
-}  // namespace iodine::core
+}  // namespace rome::core

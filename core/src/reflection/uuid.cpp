@@ -7,7 +7,7 @@
 #include "debug/exception.hpp"
 #include "platform/platform.hpp"
 
-namespace iodine::core {
+namespace rome::core {
     static inline i32 hexToValue(char c) {
         if (c >= '0' && c <= '9') return c - '0';
         if (c >= 'a' && c <= 'f') return c - 'a' + 10;
@@ -98,4 +98,4 @@ namespace iodine::core {
     }
 
     u8 UUID::getVersion() const { return bytes[6] >> 4; }
-}  // namespace iodine::core
+}  // namespace rome::core

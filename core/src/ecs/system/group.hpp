@@ -3,7 +3,7 @@
 #include "container/bitset.hpp"
 #include "ecs/component/registry.hpp"
 
-namespace iodine::core {
+namespace rome::core {
     namespace System {
         class Group {
             public:
@@ -24,4 +24,4 @@ namespace iodine::core {
             const Component::Registry& components;  ///< The component registry for accessing component IDs.
         };
     }  // namespace System
-}  // namespace iodine::core
+}  // namespace rome::core

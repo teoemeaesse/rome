@@ -25,16 +25,16 @@
     TEST_REFLECTION(const type&&, STRINGIFY(type)); \
     TEST_REFLECTION(const type[], STRINGIFY(type));
 
-using namespace iodine;
+using namespace rome;
 
 struct SimpleStruct {
     i32 integer;
     f32 floating;
     std::string name;
 
-    IO_REFLECT;
+    RM_REFLECT;
 };
-IO_REFLECT_IMPL(SimpleStruct, "SimpleStruct");
+RM_REFLECT_IMPL(SimpleStruct, "SimpleStruct");
 
 class SimpleClass {
     public:
@@ -46,11 +46,11 @@ class SimpleClass {
 
     byte data[16];
 
-    IO_REFLECT;
+    RM_REFLECT;
 };
-IO_REFLECT_IMPL(SimpleClass, "SimpleClass");
+RM_REFLECT_IMPL(SimpleClass, "SimpleClass");
 
-using namespace iodine::core;
+using namespace rome::core;
 
 TEST(TypeReflectionTest, StructHasCorrectReflection) {
     // Obtain reflection info
@@ -76,19 +76,19 @@ TEST(TypeReflectionTest, ClassHasCorrectReflection) {
 
 TEST(TypeReflectionTest, TypeQualifierStripping) {
     // Obtain reflection info for various different types and check that the qualifiers are stripped
-    TypeInfo& simpleType = Reflect::reflect<iodine::u8>();
+    TypeInfo& simpleType = Reflect::reflect<rome::u8>();
 
     // Adding more complex type variations with multiple qualifiers
-    TypeInfo& complexType1 = Reflect::reflect<iodine::u8**>();
-    TypeInfo& complexType2 = Reflect::reflect<const volatile iodine::u8* [42]>();
-    TypeInfo& complexType3 = Reflect::reflect<iodine::u8* const volatile&>();
-    TypeInfo& complexType4 = Reflect::reflect<iodine::u8* const* volatile*>();
-    TypeInfo& complexType5 = Reflect::reflect<const iodine::u8* const volatile&>();
-    TypeInfo& complexType6 = Reflect::reflect<iodine::u8&&>();
-    TypeInfo& complexType7 = Reflect::reflect<const iodine::u8* const volatile*[]>();
-    TypeInfo& complexType8 = Reflect::reflect<iodine::u8* const volatile* const&>();
-    TypeInfo& complexType9 = Reflect::reflect<const iodine::u8* const volatile* const* volatile&>();
-    TypeInfo& complexType10 = Reflect::reflect<iodine::u8* const* volatile* const* volatile&>();
+    TypeInfo& complexType1 = Reflect::reflect<rome::u8**>();
+    TypeInfo& complexType2 = Reflect::reflect<const volatile rome::u8* [42]>();
+    TypeInfo& complexType3 = Reflect::reflect<rome::u8* const volatile&>();
+    TypeInfo& complexType4 = Reflect::reflect<rome::u8* const* volatile*>();
+    TypeInfo& complexType5 = Reflect::reflect<const rome::u8* const volatile&>();
+    TypeInfo& complexType6 = Reflect::reflect<rome::u8&&>();
+    TypeInfo& complexType7 = Reflect::reflect<const rome::u8* const volatile*[]>();
+    TypeInfo& complexType8 = Reflect::reflect<rome::u8* const volatile* const&>();
+    TypeInfo& complexType9 = Reflect::reflect<const rome::u8* const volatile* const* volatile&>();
+    TypeInfo& complexType10 = Reflect::reflect<rome::u8* const* volatile* const* volatile&>();
 
     // Ensure that the base type is the same after stripping qualifiers
     EXPECT_EQ(simpleType.getType(), complexType1.getType());
@@ -105,7 +105,7 @@ TEST(TypeReflectionTest, TypeQualifierStripping) {
 
 TEST(TypeReflectionTest, TypeInfoHasCorrectMetadata) {
     // Basic type has no special qualifiers
-    TypeInfo& type1 = Reflect::reflect<iodine::u8>();
+    TypeInfo& type1 = Reflect::reflect<rome::u8>();
 
     EXPECT_FALSE(type1.isConstType());
     EXPECT_FALSE(type1.isVolatileType());
@@ -116,7 +116,7 @@ TEST(TypeReflectionTest, TypeInfoHasCorrectMetadata) {
     EXPECT_FALSE(type1.isLValueReferenceType());
 
     // Both const and the array qualifier apply to the pointee.
-    TypeInfo& type2 = Reflect::reflect<const iodine::u8[127]>();
+    TypeInfo& type2 = Reflect::reflect<const rome::u8[127]>();
 
     EXPECT_TRUE(type2.isConstType());
     EXPECT_FALSE(type2.isVolatileType());
@@ -127,7 +127,7 @@ TEST(TypeReflectionTest, TypeInfoHasCorrectMetadata) {
     EXPECT_FALSE(type2.isLValueReferenceType());
 
     // Volatile applies to the pointer, not the pointee. Same for the pointer.
-    TypeInfo& type3 = Reflect::reflect<volatile iodine::u8*&>();
+    TypeInfo& type3 = Reflect::reflect<volatile rome::u8*&>();
 
     EXPECT_FALSE(type3.isConstType());
     EXPECT_FALSE(type3.isVolatileType());
@@ -139,16 +139,16 @@ TEST(TypeReflectionTest, TypeInfoHasCorrectMetadata) {
 }
 
 TEST(TypeReflectionTest, PrimitivesHaveCorrectReflection) {
-    TEST_ALL_REFLECTIONS(iodine::u8);
-    TEST_ALL_REFLECTIONS(iodine::u16);
-    TEST_ALL_REFLECTIONS(iodine::u32);
-    TEST_ALL_REFLECTIONS(iodine::u64);
-    TEST_ALL_REFLECTIONS(iodine::i8);
-    TEST_ALL_REFLECTIONS(iodine::i16);
-    TEST_ALL_REFLECTIONS(iodine::i32);
-    TEST_ALL_REFLECTIONS(iodine::i64);
-    TEST_ALL_REFLECTIONS(iodine::f32);
-    TEST_ALL_REFLECTIONS(iodine::f64);
+    TEST_ALL_REFLECTIONS(rome::u8);
+    TEST_ALL_REFLECTIONS(rome::u16);
+    TEST_ALL_REFLECTIONS(rome::u32);
+    TEST_ALL_REFLECTIONS(rome::u64);
+    TEST_ALL_REFLECTIONS(rome::i8);
+    TEST_ALL_REFLECTIONS(rome::i16);
+    TEST_ALL_REFLECTIONS(rome::i32);
+    TEST_ALL_REFLECTIONS(rome::i64);
+    TEST_ALL_REFLECTIONS(rome::f32);
+    TEST_ALL_REFLECTIONS(rome::f64);
 }
 
 TEST(ReflectionTest, StringHasCorrectReflection) { TEST_ALL_REFLECTIONS(std::string); }

@@ -2,7 +2,7 @@
 
 #include "debug/exception.hpp"
 
-namespace iodine::core {
+namespace rome::core {
     namespace Event {
         ID Registry::enter(const std::string& name) {
             {
@@ -41,4 +41,4 @@ namespace iodine::core {
             THROW_CORE_EXCEPTION(Exception::Type::NotFound, "Event not found");
         }
     }  // namespace Event
-}  // namespace iodine::core
+}  // namespace rome::core

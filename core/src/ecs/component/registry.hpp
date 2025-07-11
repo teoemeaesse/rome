@@ -4,13 +4,13 @@
 
 #include "ecs/component/pool.hpp"
 
-namespace iodine::core {
+namespace rome::core {
     namespace Component {
         /**
          * @brief Manages the registration, creation, and destruction of components.
          *        Every component must implement reflection and a copy-constructor to be registered.
          */
-        class IO_API Registry {
+        class RM_API Registry {
             public:
             Registry() = default;
             ~Registry() = default;
@@ -168,4 +168,4 @@ namespace iodine::core {
             }
         };
     }  // namespace Component
-}  // namespace iodine::core
+}  // namespace rome::core

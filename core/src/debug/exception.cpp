@@ -1,6 +1,6 @@
 #include "debug/exception.hpp"
 
-namespace iodine::core {
+namespace rome::core {
     const std::string& Exception::typeToString(Type type) noexcept {
         static const std::string typeStrings[] = {
             "Assertion", "OutOfMemory", "InvalidArgument", "NotImplemented", "NotFound", "NotSupported",
@@ -29,4 +29,4 @@ namespace iodine::core {
         }
         return traceMessage.c_str();
     }
-}  // namespace iodine::core
+}  // namespace rome::core

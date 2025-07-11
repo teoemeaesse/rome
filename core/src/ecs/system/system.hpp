@@ -4,7 +4,7 @@
 #include "ecs/event/registry.hpp"
 #include "ecs/system/group.hpp"
 
-namespace iodine::core {
+namespace rome::core {
     namespace System {
         using ID = u32;
 
@@ -60,4 +60,4 @@ namespace iodine::core {
             Event::Registry& events;          ///< Reference to the event registry.
         };
     }  // namespace System
-}  // namespace iodine::core
+}  // namespace rome::core

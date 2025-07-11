@@ -2,7 +2,7 @@
 
 #include "ecs/entity/registry.hpp"
 
-using namespace iodine::core;
+using namespace rome::core;
 
 /**
  * @brief Tests basic creation, destruction, and reuse of Entity slots.

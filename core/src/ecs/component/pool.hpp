@@ -7,14 +7,14 @@
 #include "ecs/component/storage.hpp"
 #include "ecs/entity/entity.hpp"
 
-namespace iodine::core {
+namespace rome::core {
     namespace Component {
         /**
          * @brief Manages the pool of a component type.
          * @tparam T The component type to manage.
          */
         template <Component T>
-        class IO_API Pool : public Storage {
+        class RM_API Pool : public Storage {
             public:
             Pool() : type(Reflect::reflect<T>().getType()) {}
             ~Pool() = default;
@@ -29,7 +29,7 @@ namespace iodine::core {
              * @return The component for the given entity.
              */
             T& get(const Entity& entity) {
-                IO_ASSERT_MSG(entities.contains(entity.getIndex()), "Entity does not have component T");
+                RM_ASSERT_MSG(entities.contains(entity.getIndex()), "Entity does not have component T");
                 return entities[entity.getIndex()];
             }
 
@@ -39,7 +39,7 @@ namespace iodine::core {
              * @return The component for the given entity.
              */
             const T& get(const Entity& entity) const {
-                IO_ASSERT_MSG(entities.contains(entity.getIndex()), "Entity does not have component T");
+                RM_ASSERT_MSG(entities.contains(entity.getIndex()), "Entity does not have component T");
                 return entities[entity.getIndex()];
             }
 
@@ -50,7 +50,7 @@ namespace iodine::core {
              */
             void insert(const Entity& entity, const T& component) {
                 if (entities.contains(entity.getIndex())) {
-                    IO_WARN("Entity already has component of type: %s", getType().getName().c_str());
+                    RM_WARN("Entity already has component of type: %s", getType().getName().c_str());
                     return;
                 }
                 entities.emplace(entity.getIndex(), component);
@@ -64,7 +64,7 @@ namespace iodine::core {
             template <typename... Args>
             void emplace(const Entity& entity, Args&&... args) {
                 if (entities.contains(entity.getIndex())) {
-                    IO_WARN("Entity already has component of type: %s", getType().getName().c_str());
+                    RM_WARN("Entity already has component of type: %s", getType().getName().c_str());
                     return;
                 }
                 entities.emplace(entity.getIndex(), T(std::forward<Args>(args)...));
@@ -76,7 +76,7 @@ namespace iodine::core {
              */
             void remove(const Entity& entity) {
                 if (!entities.contains(entity.getIndex())) {
-                    IO_WARN("Entity does not have component of type: %s", getType().getName().c_str());
+                    RM_WARN("Entity does not have component of type: %s", getType().getName().c_str());
                     return;
                 }
                 entities.erase(entity.getIndex());
@@ -102,4 +102,4 @@ namespace iodine::core {
             Type& type;             ///< The reflected type for this component.
         };
     }  // namespace Component
-}  // namespace iodine::core
+}  // namespace rome::core

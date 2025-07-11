@@ -6,17 +6,17 @@
 #include "reflection/external/string.hpp"
 #include "reflection/traits/field.hpp"
 
-using namespace iodine;
-using namespace iodine::core;
+using namespace rome;
+using namespace rome::core;
 
 struct MyReflectedStruct {
     int age;
     std::string name;
 
-    IO_REFLECT;
+    RM_REFLECT;
 };
 
-IO_REFLECT_IMPL(MyReflectedStruct, "MyReflectedStruct", Fields().with("age", &MyReflectedStruct::age).with("name", &MyReflectedStruct::name));
+RM_REFLECT_IMPL(MyReflectedStruct, "MyReflectedStruct", Fields().with("age", &MyReflectedStruct::age).with("name", &MyReflectedStruct::name));
 
 class MyApplication : public Application {
     public:
@@ -26,13 +26,13 @@ class MyApplication : public Application {
     void shutdown() override { Metrics::getInstance().report(); }
     void tick(f64 dt) override {
         tickRate.tick(dt);
-        IO_DEBUG("Tick rate: %.2f | Framerate: %.2f", tickRate.getRate(), renderRate.getRate());
+        RM_DEBUG("Tick rate: %.2f | Framerate: %.2f", tickRate.getRate(), renderRate.getRate());
         UUID uuid;
-        IO_DEBUG("UUID: %s", uuid.toString().c_str());
+        RM_DEBUG("UUID: %s", uuid.toString().c_str());
         if (Platform::getInstance().isSignal(Platform::Signal::INT)) {
             shutdown();
             stop();
-            IO_INFO("Caught SIGINT, stopping application");
+            RM_INFO("Caught SIGINT, stopping application");
             Platform::getInstance().clearSignal(Platform::Signal::INT);
         }
     }

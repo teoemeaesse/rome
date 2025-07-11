@@ -2,8 +2,8 @@
 
 #include "prelude.hpp"
 
-namespace iodine::core {
-    class IO_API Entity {
+namespace rome::core {
+    class RM_API Entity {
         public:
         /**
          * @brief The unique identifier for an entity.
@@ -31,4 +31,4 @@ namespace iodine::core {
         static inline void setIndex(ID& id, u64 index) { id = (id & 0x000000000000FFFFULL) | (index << 16); }
         static inline void setVersion(ID& id, u64 version) { id = (id & 0xFFFFFFFFFFFF0000ULL) | (version & 0xFFFF); }
     };
-}  // namespace iodine::core
+}  // namespace rome::core

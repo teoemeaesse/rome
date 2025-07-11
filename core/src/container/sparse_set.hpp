@@ -2,9 +2,9 @@
 
 #include "debug/exception.hpp"
 
-namespace iodine::core {
+namespace rome::core {
     template <typename T>
-    class IO_API SparseSet {
+    class RM_API SparseSet {
         public:
         SparseSet() : size(0) {};
         ~SparseSet() = default;
@@ -179,4 +179,4 @@ namespace iodine::core {
         std::vector<T> data;      ///< Data storage
         u64 size;                 ///< Number of elements in the sparse set
     };
-}  // namespace iodine::core
+}  // namespace rome::core

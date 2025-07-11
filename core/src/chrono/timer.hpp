@@ -2,11 +2,11 @@
 
 #include "prelude.hpp"
 
-namespace iodine::core {
+namespace rome::core {
     /**
      * @brief A simple timer class meant to measure time between two points.
      */
-    class IO_API Timer {
+    class RM_API Timer {
         public:
         Timer() = default;
         ~Timer() = default;
@@ -25,4 +25,4 @@ namespace iodine::core {
         private:
         f64 lastTime;
     };
-}  // namespace iodine::core
+}  // namespace rome::core

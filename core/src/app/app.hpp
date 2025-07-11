@@ -4,11 +4,11 @@
 #include "chrono/rate.hpp"
 #include "debug/metrics.hpp"
 
-namespace iodine::core {
+namespace rome::core {
     /**
-     * @brief The base class for all iodine applications.
+     * @brief The base class for all rome applications.
      */
-    class IO_API Application {
+    class RM_API Application {
         public:
         friend class ApplicationStrategy;
         struct Config;
@@ -66,9 +66,9 @@ namespace iodine::core {
          */
         struct Config {
             // General settings.
-            std::string title = "Iodine";  ///< The title of the application. Window title should default to this.
-            u32 tickRate = 60;             ///< The target update rate of the application.
-            u32 renderRate = 60;           ///< The target framerate of the application. 0 will sync with tick rate.
+            std::string title = "Rome";  ///< The title of the application. Window title should default to this.
+            u32 tickRate = 60;           ///< The target update rate of the application.
+            u32 renderRate = 60;         ///< The target framerate of the application. 0 will sync with tick rate.
 
             // Metrics. Enable as needed.
             b8 isMemoryLogging = false;       ///< Whether to log memory allocations.
@@ -134,4 +134,4 @@ namespace iodine::core {
         Unique<ApplicationStrategy> strategy;  ///< The strategy for the application.
     };
 
-}  // namespace iodine::core
+}  // namespace rome::core

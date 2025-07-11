@@ -2,7 +2,7 @@
 
 #include "ecs/system/group.hpp"
 
-namespace iodine::core {
+namespace rome::core {
     namespace System {
         class Registry {
             public:
@@ -14,4 +14,4 @@ namespace iodine::core {
             std::vector<Group> groups;  ///< The groups managed by this registry.
         };
     }  // namespace System
-}  // namespace iodine::core
+}  // namespace rome::core

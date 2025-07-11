@@ -5,7 +5,7 @@
 /**
  * @brief Declares that a type can be reflected. Slap this on a class, struct or enum to enable reflection.
  */
-#define IO_REFLECT friend class iodine::core::Reflect;
+#define RM_REFLECT friend class rome::core::Reflect;
 
 /**
  * @brief Implements reflection for the containing type. You list your type's traits here.
@@ -13,18 +13,18 @@
  * @param name The name of the type. This should be unique.
  * @param ... The traits of the type.
  */
-#define IO_REFLECT_IMPL(type, name, ...)                                                                     \
-    template <>                                                                                              \
-    inline iodine::core::Type& iodine::core::Reflect::_reflect<type>() {                                     \
-        static iodine::core::Type instance = iodine::core::Type::make<type>(name __VA_OPT__(, __VA_ARGS__)); \
-        return instance;                                                                                     \
+#define RM_REFLECT_IMPL(type, name, ...)                                                                 \
+    template <>                                                                                          \
+    inline rome::core::Type& rome::core::Reflect::_reflect<type>() {                                     \
+        static rome::core::Type instance = rome::core::Type::make<type>(name __VA_OPT__(, __VA_ARGS__)); \
+        return instance;                                                                                 \
     }
 
-namespace iodine::core {
+namespace rome::core {
     /**
      * @brief A generic type that can be reflected.
      */
-    class IO_API Type {
+    class RM_API Type {
         public:
         ~Type() = default;
         Type(Type&&) noexcept = default;
@@ -142,7 +142,7 @@ namespace iodine::core {
     /**
      * @brief Information about a reflected type such as its base type, size, qualifiers, etc.
      */
-    class IO_API TypeInfo {
+    class RM_API TypeInfo {
         public:
         ~TypeInfo() = default;
 
@@ -209,7 +209,7 @@ namespace iodine::core {
      * @brief Declares a generic reflection for a given type.
      * @note Mostly just here to circumvent private member access.
      */
-    struct IO_API Reflect {
+    struct RM_API Reflect {
         /**
          * @brief Reflects the given type, storing some of its metadata.
          * @tparam T The fully-qualified type to reflect.
@@ -242,4 +242,4 @@ namespace iodine::core {
     // Type alias for ease of use
     template <typename T>
     constexpr b8 is_reflectable_v = is_reflectable<T>::value;
-}  // namespace iodine::core
+}  // namespace rome::core

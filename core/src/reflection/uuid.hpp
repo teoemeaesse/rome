@@ -2,7 +2,7 @@
 
 #include "prelude.hpp"
 
-namespace iodine::core {
+namespace rome::core {
     /**
      * @brief An RFC-9562 compliant UUID (Universally Unique Identifier).
      * @note Supports UUIDv1 (and eventually UUIDv5).
@@ -41,14 +41,14 @@ namespace iodine::core {
         private:
         u8 bytes[16];  ///< The bytes of the UUID.
 
-        friend struct std::hash<iodine::core::UUID>;
+        friend struct std::hash<rome::core::UUID>;
     };
-}  // namespace iodine::core
+}  // namespace rome::core
 
 namespace std {
     template <>
-    struct hash<iodine::core::UUID> {
-        std::size_t operator()(const iodine::core::UUID& uuid) const noexcept {
+    struct hash<rome::core::UUID> {
+        std::size_t operator()(const rome::core::UUID& uuid) const noexcept {
             // Simple fast hash: combine chunks of bytes
             std::size_t result = 0;
             const std::size_t* data = reinterpret_cast<const std::size_t*>(uuid.bytes);

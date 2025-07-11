@@ -4,20 +4,22 @@
 #include "chrono/timer.hpp"
 #include "debug/exception.hpp"
 
-namespace iodine::core {
+namespace rome::core {
     TwinStrategy::TwinStrategy(Application& app, b8 memoryMetrics)
-        : ApplicationStrategy([this, &app](f64 dt) { app.tick(dt); }, [this, &app](f64 dt) { app.render(dt); }), tickThread("Tick"), renderThread("Render") {
+        : ApplicationStrategy([this, &app](f64 dt) { app.tick(dt); }, [this, &app](f64 dt) { app.render(dt); }),
+          tickThread("Tick"),
+          renderThread("Render") {
         this->memoryMetrics = memoryMetrics;
     }
 
     void TwinStrategy::run(f64 tickRate, f64 renderRate) {
         tickThread.run([this, &tickRate]() {
-            IO_INFO("Starting up tick thread");
+            RM_INFO("Starting up tick thread");
 
             if (memoryMetrics) {
-                iodine::core::Metrics::getInstance().registerThread("Tick");
-                iodine::core::Metrics::getInstance().setIsMemoryTracking(true);
-                IO_INFO("Metrics tracking ON for tick thread ID: %s", tickThread.getID().toString().c_str());
+                rome::core::Metrics::getInstance().registerThread("Tick");
+                rome::core::Metrics::getInstance().setIsMemoryTracking(true);
+                RM_INFO("Metrics tracking ON for tick thread ID: %s", tickThread.getID().toString().c_str());
             }
 
             f64 targetTime = 1.0 / tickRate;
@@ -35,18 +37,18 @@ namespace iodine::core {
                         }
                     }
                 } catch (const Exception& e) {
-                    IO_ERROR(e.what());
+                    RM_ERROR(e.what());
                 }
             }
         });
 
         renderThread.run([this, &renderRate]() {
-            IO_INFO("Starting up render thread");
+            RM_INFO("Starting up render thread");
 
             if (memoryMetrics) {
-                iodine::core::Metrics::getInstance().registerThread("Render");
-                iodine::core::Metrics::getInstance().setIsMemoryTracking(true);
-                IO_INFO("Metrics tracking ON for render thread ID: %s", renderThread.getID().toString().c_str());
+                rome::core::Metrics::getInstance().registerThread("Render");
+                rome::core::Metrics::getInstance().setIsMemoryTracking(true);
+                RM_INFO("Metrics tracking ON for render thread ID: %s", renderThread.getID().toString().c_str());
             }
 
             f64 targetTime = 1.0 / renderRate;
@@ -64,8 +66,8 @@ namespace iodine::core {
         });
 
         tickThread.join();
-        IO_INFO("Tick thread finished");
+        RM_INFO("Tick thread finished");
         renderThread.join();
-        IO_INFO("Render thread finished");
+        RM_INFO("Render thread finished");
     }
-}  // namespace iodine::core
+}  // namespace rome::core

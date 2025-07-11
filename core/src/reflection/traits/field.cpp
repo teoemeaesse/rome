@@ -1,6 +1,6 @@
 #include "reflection/traits/field.hpp"
 
-namespace iodine::core {
+namespace rome::core {
     Field::Field(const Type& type, const char* name, u64 offset) : type(type), name(name), offset(offset) {}
 
     Fields::Fields() : Trait("Fields", getUUID<Fields>()) {}
@@ -27,4 +27,4 @@ namespace iodine::core {
         }
         return &(*it);
     }
-}  // namespace iodine::core
+}  // namespace rome::core

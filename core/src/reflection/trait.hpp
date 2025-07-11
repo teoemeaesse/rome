@@ -2,11 +2,11 @@
 
 #include "debug/exception.hpp"
 
-namespace iodine::core {
+namespace rome::core {
     /**
      * @brief A reflectable property of a type.
      */
-    class IO_API Trait {
+    class RM_API Trait {
         public:
         virtual ~Trait() = default;
 
@@ -52,4 +52,4 @@ namespace iodine::core {
         const UUID uuid;   ///< The UUID of the trait.
         const char* name;  ///< The name of the trait. Should be unique for each trait type.
     };
-}  // namespace iodine::core
+}  // namespace rome::core

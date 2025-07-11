@@ -4,12 +4,12 @@
 
 #include "prelude.hpp"
 
-namespace iodine::core {
+namespace rome::core {
     /**
      * @brief Defines how an application should tick and render.
      * @note Subclass this to configure your own game loop.
      */
-    class IO_API ApplicationStrategy {
+    class RM_API ApplicationStrategy {
         public:
         /**
          * @brief Creates a new application strategy.
@@ -60,4 +60,4 @@ namespace iodine::core {
 
         b8 memoryMetrics;  ///< Whether to track memory usage.
     };
-}  // namespace iodine::core
+}  // namespace rome::core

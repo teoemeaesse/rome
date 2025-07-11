@@ -1,6 +1,6 @@
 #include "ecs/system/group.hpp"
 
-namespace iodine::core {
+namespace rome::core {
     namespace System {
         Group::Group(BitSet<Component::ID> owning, BitSet<Component::ID> partial, const Component::Registry& components)
             : owning(std::move(owning)), partial(std::move(partial)), components(components) {}
@@ -26,4 +26,4 @@ namespace iodine::core {
         }
         // Additional methods can be added here if needed
     }  // namespace System
-}  // namespace iodine::core
+}  // namespace rome::core

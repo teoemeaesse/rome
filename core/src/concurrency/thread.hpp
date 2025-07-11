@@ -4,7 +4,7 @@
 
 #include "reflection/uuid.hpp"
 
-namespace iodine::core {
+namespace rome::core {
     namespace ThreadInfo {
         /**
          * @brief Gets the current thread ID.
@@ -34,7 +34,7 @@ namespace iodine::core {
     /**
      * @brief A class that represents a thread of execution. Should be instantiated via a pool / dispatcher.
      */
-    class IO_API Thread {
+    class RM_API Thread {
         public:
         Thread(const std::string& alias);
         ~Thread();
@@ -109,4 +109,4 @@ namespace iodine::core {
             });
         }
     };
-}  // namespace iodine::core
+}  // namespace rome::core

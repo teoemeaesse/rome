@@ -2,7 +2,7 @@
 
 #include <gtest/gtest.h>
 
-using namespace iodine::core;
+using namespace rome::core;
 
 struct TestStruct {
     int a;

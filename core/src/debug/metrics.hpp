@@ -3,11 +3,11 @@
 #include "debug/log.hpp"
 #include "reflection/uuid.hpp"
 
-namespace iodine::core {
+namespace rome::core {
     /**
      * @brief Tracks program time and memory performance over time.
      */
-    class IO_API Metrics {
+    class RM_API Metrics {
         public:
         Metrics() = default;
         ~Metrics();
@@ -215,16 +215,16 @@ namespace iodine::core {
 
         private:
         struct ThreadMetrics {
-            iodine::u64 currentBytes = 0;                        ///< The current total heap-allocated bytes.
-            iodine::u64 peakBytes = 0;                           ///< The maximum number of bytes allocated during program execution.
-            iodine::u64 totalBytes = 0;                          ///< The total number of bytes allocated during program execution.
-            iodine::u64 totalAllocations = 0;                    ///< The total number of heap allocations.
-            iodine::b8 memoryLogging = false;                    ///< Whether to log memory allocation and deallocation.
-            std::string alias = "Main";                          ///< The alias for this thread.
-            std::unordered_map<void*, iodine::u64> allocations;  ///< Tracks each pointer's allocated size.
+            rome::u64 currentBytes = 0;                        ///< The current total heap-allocated bytes.
+            rome::u64 peakBytes = 0;                           ///< The maximum number of bytes allocated during program execution.
+            rome::u64 totalBytes = 0;                          ///< The total number of bytes allocated during program execution.
+            rome::u64 totalAllocations = 0;                    ///< The total number of heap allocations.
+            rome::b8 memoryLogging = false;                    ///< Whether to log memory allocation and deallocation.
+            std::string alias = "Main";                        ///< The alias for this thread.
+            std::unordered_map<void*, rome::u64> allocations;  ///< Tracks each pointer's allocated size.
         };
 
         mutable std::mutex registrarMutex;                       ///< Protects allocations and the counters from concurrent access.
         std::unordered_map<UUID, ThreadMetrics*> threadMetrics;  ///< The metrics for each thread.
     };
-}  // namespace iodine::core
+}  // namespace rome::core
