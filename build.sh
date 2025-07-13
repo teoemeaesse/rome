@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 GREEN='\033[0;32m'
 RED='\033[0;31m'
@@ -62,6 +63,11 @@ echo "$BUILD_TYPE" > "$BUILD_FLAG_FILE"
 
 echo -e "${GREEN}Building core module...${NC}"
 (cd core && ./build.sh $RELEASE_FLAG $TESTS_FLAG)
+CORE_STATUS=$?
+if [ $CORE_STATUS -ne 0 ]; then
+    echo -e "${RED}Core build failed. Aborting.${NC}"
+    exit $CORE_STATUS
+fi
 
 if [ "$TESTS" -eq 0 ]; then
     echo -e "${GREEN}Building engine module...${NC}"
