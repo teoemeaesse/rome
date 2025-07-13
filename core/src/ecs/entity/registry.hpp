@@ -5,7 +5,6 @@
 #include "ecs/entity/entity.hpp"
 
 namespace rome::core {
-
     /**
      * @brief A registry to manage the creation and destruction of entities.
      * @warning This registry is not thread-safe.
@@ -39,7 +38,7 @@ namespace rome::core {
 
         private:
         std::vector<u64> entities;  ///< The entity pool.
-        u64 next;                   ///< The next available entity index.
-        u64 available;              ///< The number of available entities.
+        u64 next = 0;               ///< The next available entity index.
+        u64 available = 0;          ///< The number of available entities.
     };
 }  // namespace rome::core

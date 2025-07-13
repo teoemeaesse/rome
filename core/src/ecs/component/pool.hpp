@@ -83,6 +83,12 @@ namespace rome::core {
             }
 
             /**
+             * @brief Retrieves a contiguous data pointer and the size of the pool.
+             * @return A pair containing a pointer to the start of the block and the size of the pool.
+             */
+            std::pair<T*, u64> getData() { return entities.getData(); }
+
+            /**
              * @brief Gets the reflected type for this pool's component type.
              * @return The reflected type for this pool's component type.
              */

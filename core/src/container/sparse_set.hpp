@@ -118,6 +118,11 @@ namespace rome::core {
          */
         std::pair<T*, u64> getData() { return {data.data(), size}; }
 
+        /**
+         * @brief Gets the value at the given index.
+         * @param index The index to get the value from.
+         * @return The value at the given index.
+         */
         const T& operator[](u64 index) const {
             if (!contains(index)) {
                 THROW_CORE_EXCEPTION(Exception::Type::NotFound, "Sparse set does not contain value at index");
@@ -125,6 +130,11 @@ namespace rome::core {
             return data[sparse[index]];
         }
 
+        /**
+         * @brief Gets the value at the given index.
+         * @param index The index to get the value from.
+         * @return The value at the given index.
+         */
         T& operator[](u64 index) {
             if (!contains(index)) {
                 THROW_CORE_EXCEPTION(Exception::Type::NotFound, "Sparse set does not contain value at index");
@@ -163,6 +173,10 @@ namespace rome::core {
          */
         inline b8 contains(u64 index) const noexcept { return index < sparse.size() && sparse[index] < size && dense[sparse[index]] == index; }
 
+        /**
+         * @brief Returns the number of elements in the sparse set.
+         * @return The number of elements in the sparse set.
+         */
         inline u64 getSize() const noexcept { return size; }
 
         /* Non-const iterator interfaces */

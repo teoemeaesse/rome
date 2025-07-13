@@ -6,6 +6,8 @@
 
 namespace rome::core {
     namespace Component {
+        using ID = u32;
+
         /**
          * @brief Manages the registration, creation, and destruction of components.
          * @note This registry is not thread-safe outside component registration.
@@ -102,14 +104,32 @@ namespace rome::core {
              * @return The total number of component types.
              * @warning This function is not thread-safe.
              */
-            u32 count() const;
+            u32 getCount() const;
 
             /**
              * @brief Gets the name of a component type given its ID.
              * @return The name of the component type.
              * @warning This function is not thread-safe.
+             * @throws Exception::Type::NotFound if the ID is not registered.
              */
-            const std::string& name(ID id) const;
+            const std::string& getName(ID id) const;
+
+            /**
+             * @brief Fetches the concrete pool for the given component type.
+             * @tparam T The component type to fetch the pool for.
+             * @return The pool for the given component type.
+             * @note This function is thread-safe.
+             */
+            template <Component T>
+            Pool<T>* getPool() {
+                static Pool<T>* cache = [this] {
+                    ID id = getID<T>();
+                    std::shared_lock readLock(idsLock);
+                    auto it = store.find(id);
+                    return static_cast<Pool<T>*>(it->second.get());
+                }();
+                return cache;
+            }
 
             private:
             mutable std::shared_mutex idsLock;                                            ///< Ensure thread-safe access to the IDs map.
@@ -156,23 +176,6 @@ namespace rome::core {
 
                 cached.store(id, std::memory_order_release);
                 return id;
-            }
-
-            /**
-             * @brief Fetches the concrete pool for the given component type.
-             * @tparam T The component type to fetch the pool for.
-             * @return The pool for the given component type.
-             * @note This function is thread-safe.
-             */
-            template <Component T>
-            Pool<T>* getPool() {
-                static Pool<T>* cache = [this] {
-                    ID id = getID<T>();
-                    std::shared_lock readLock(idsLock);
-                    auto it = store.find(id);
-                    return static_cast<Pool<T>*>(it->second.get());
-                }();
-                return cache;
             }
         };
     }  // namespace Component

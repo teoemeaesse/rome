@@ -14,6 +14,10 @@ namespace rome::core {
             public:
             Registry() = default;
             ~Registry() = default;
+            Registry(const Registry&) = delete;
+            Registry& operator=(const Registry&) = delete;
+            Registry(Registry&&) = delete;
+            Registry& operator=(Registry&&) = delete;
 
             /**
              * @brief Enters a new event into the registry.
@@ -33,10 +37,10 @@ namespace rome::core {
             ID get(const std::string& name) const;
 
             private:
-            mutable std::shared_mutex eventsLock;       ///< Mutex to protect the events map.
-            std::unordered_map<std::string, ID> ids;    ///< Maps event names to their unique runtime IDs.
-            std::unordered_map<ID, std::string> names;  ///< Reverse lookup.
-            std::queue<ID> freeIDs;                     ///< Queue of free IDs for reuse.
+            mutable std::shared_mutex eventsLock;                                         ///< Mutex to protect the events map.
+            std::unordered_map<std::string, ID, TransparentSVHash, std::equal_to<>> ids;  ///< Maps event names to their IDs.
+            std::unordered_map<ID, std::string> names;                                    ///< Reverse lookup.
+            std::queue<ID> freeIDs;                                                       ///< Queue of free IDs for reuse.
         };
     }  // namespace Event
 }  // namespace rome::core

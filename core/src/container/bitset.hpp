@@ -20,6 +20,11 @@ namespace rome::core {
         public:
         BitSet() = default;
         explicit BitSet(u64 size) { resize(size); }
+        BitSet(std::initializer_list<Alias> bits) {
+            for (Alias bit : bits) {
+                set(bit);
+            }
+        }
         BitSet(const BitSet&) = default;
         BitSet(BitSet&&) = default;
         BitSet& operator=(const BitSet&) = default;

@@ -1,29 +1,42 @@
 #include "ecs/system/group.hpp"
 
+#include "ecs/system/descriptor.hpp"
+
 namespace rome::core {
     namespace System {
-        Group::Group(BitSet<Component::ID> owning, BitSet<Component::ID> partial, const Component::Registry& components)
-            : owning(std::move(owning)), partial(std::move(partial)), components(components) {}
+        Group::Group(const Descriptor& descriptor)
+            : owning(descriptor.requireFull ? descriptor.writes | descriptor.reads : descriptor.writes),
+              partial(descriptor.allowPartial ? descriptor.reads - owning : BitSet<Component::ID>{}),
+              emits(descriptor.emits),
+              listens(descriptor.listens),
+              world(descriptor.world) {}
 
-        const std::string& Group::toString() const {
-            static std::string cached = [this] {
-                std::string s;
-                auto emit = [&](Component::ID id, char prefix) {
-                    if (!s.empty()) s += ", ";
-                    s += prefix;
-                    s += components.name(id);
-                };
+        Group::operator std::string() const { return toString(); }
 
-                for (Component::ID id = 0; id < components.count(); id++) {
-                    if (owning.test(id))
-                        emit(id, '+');
-                    else if (partial.test(id))
-                        emit(id, '~');
-                }
-                return s;
-            }();
-            return cached;
+        std::string Group::toString() const {
+            std::string debug;
+            auto emit = [&](Component::ID id, char prefix) {
+                if (!debug.empty()) debug += ", ";
+                debug += prefix;
+                debug += world.components.getName(id);
+            };
+
+            for (Component::ID id = 0; id < world.components.getCount(); id++) {
+                if (owning.test(id))
+                    emit(id, '+');
+                else if (partial.test(id))
+                    emit(id, '~');
+            }
+
+            return debug;
         }
-        // Additional methods can be added here if needed
+
+        const std::vector<Entity>& Group::getEntities() const noexcept { return entities; }
+
+        u64 Group::getSize() const noexcept { return entities.size(); }
+
+        u64 Group::getOwned() const noexcept { return owning.count(); }
+
+        b8 Group::isEmpty() const noexcept { return entities.empty(); }
     }  // namespace System
 }  // namespace rome::core
