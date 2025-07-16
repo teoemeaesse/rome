@@ -4,17 +4,25 @@
 
 #include "container/sparse_set.hpp"
 #include "debug/log.hpp"
-#include "ecs/component/storage.hpp"
+#include "ecs/component/component.hpp"
 #include "ecs/entity/registry.hpp"
 
 namespace rome::core {
     namespace Component {
         /**
+         * @brief Acts as an interface for the storage of components.
+         */
+        class RM_API Storage {
+            public:
+            virtual ~Storage() = default;
+        };
+
+        /**
          * @brief Manages the pool of a component type.
          * @tparam T The component type to manage.
          */
         template <Component T>
-        class RM_API Pool : public Storage {
+        class RM_API Pool final : public Storage {
             public:
             Pool() : type(Reflect::reflect<T>().getType()) {}
             ~Pool() = default;

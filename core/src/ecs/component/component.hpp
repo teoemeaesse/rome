@@ -4,15 +4,9 @@
 
 namespace rome::core {
     namespace Component {
+        using ID = u32;
+
         template <typename T>
         concept Component = std::copy_constructible<T> && requires { Reflect::reflect<T>(); };
-
-        /**
-         * @brief Acts as an interface for the storage of components.
-         */
-        class RM_API Storage {
-            public:
-            virtual ~Storage() = default;
-        };
     }  // namespace Component
 }  // namespace rome::core

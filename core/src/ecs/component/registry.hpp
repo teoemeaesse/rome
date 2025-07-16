@@ -6,8 +6,6 @@
 
 namespace rome::core {
     namespace Component {
-        using ID = u32;
-
         /**
          * @brief Manages the registration, creation, and destruction of components.
          * @note This registry is not thread-safe outside component registration.
@@ -122,13 +120,10 @@ namespace rome::core {
              */
             template <Component T>
             Pool<T>* getPool() {
-                static Pool<T>* cache = [this] {
-                    ID id = getID<T>();
-                    std::shared_lock readLock(idsLock);
-                    auto it = store.find(id);
-                    return static_cast<Pool<T>*>(it->second.get());
-                }();
-                return cache;
+                ID id = getID<T>();
+                std::shared_lock readLock(idsLock);
+                auto it = store.find(id);
+                return static_cast<Pool<T>*>(it != store.end() ? it->second.get() : nullptr);
             }
 
             private:
@@ -146,36 +141,24 @@ namespace rome::core {
              */
             template <Component T>
             ID getID() {
-                static std::string_view name = Reflect::reflect<T>().getType().getName();
-                static constinit std::atomic<ID> cached{std::numeric_limits<ID>::max()};
-
-                ID id = cached.load(std::memory_order_acquire);
-                if (id != std::numeric_limits<ID>::max()) return id;
+                static const std::string_view name = Reflect::reflect<T>().getType().getName();
 
                 {
-                    std::shared_lock readLock(idsLock);
+                    std::shared_lock read(idsLock);
                     auto it = ids.find(name);
-                    if (it != ids.end()) {
-                        id = it->second;
-                        cached.store(id, std::memory_order_release);
-                        return id;
-                    }
+                    if (it != ids.end()) return it->second;
                 }
 
-                std::unique_lock writeLock(idsLock);
-
-                auto it = ids.find(name);
-                if (it != ids.end()) {
-                    id = it->second;
-                } else {
-                    id = nextId++;
-                    ids.emplace(name, id);
-                    names.emplace(id, name);
+                std::unique_lock write(idsLock);
+                auto [it, inserted] = ids.emplace(name, nextId.load());
+                if (inserted) {
+                    ID id = nextId.fetch_add(1);
+                    it->second = id;
+                    names.emplace(id, std::string(name));
                     store.emplace(id, std::make_unique<Pool<T>>());
+                    return id;
                 }
-
-                cached.store(id, std::memory_order_release);
-                return id;
+                return it->second;
             }
         };
     }  // namespace Component

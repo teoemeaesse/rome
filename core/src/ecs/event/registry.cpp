@@ -35,7 +35,10 @@ namespace rome::core {
             if (it != ids.end()) {
                 return it->second;
             }
-            THROW_CORE_EXCEPTION(Exception::Type::NotFound, "Event not found");
+            std::string msg = "Event '" + name + "' not found in the registry.";
+            THROW_CORE_EXCEPTION(Exception::Type::NotFound, msg.c_str());
         }
+
+        b8 Registry::contains(const std::string& name) const { return ids.contains(name); }
     }  // namespace Event
 }  // namespace rome::core

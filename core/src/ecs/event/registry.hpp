@@ -36,6 +36,26 @@ namespace rome::core {
              */
             ID get(const std::string& name) const;
 
+            /**
+             * @brief Checks if an event exists in the registry.
+             * @param name The name of the event.
+             * @return True if the event exists, false otherwise.
+             * @warning This function is not thread-safe.
+             */
+            b8 contains(const std::string& name) const;
+
+            /**
+             * @brief Retrieves the unique ID of an event by its type.
+             * @tparam E The type of the event.
+             * @return The unique ID of the event.
+             * @throws Exception::Type::NotFound if the event does not exist.
+             * @warning This function is not thread-safe.
+             */
+            template <Event E>
+            ID get() const {
+                return get(Reflect::reflect<E>().name);
+            }
+
             private:
             mutable std::shared_mutex eventsLock;                                         ///< Mutex to protect the events map.
             std::unordered_map<std::string, ID, TransparentSVHash, std::equal_to<>> ids;  ///< Maps event names to their IDs.
