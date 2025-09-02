@@ -2,6 +2,7 @@
 
 #include <shared_mutex>
 
+#include "container/bitset.hpp"
 #include "ecs/component/pool.hpp"
 
 namespace rome::core {
@@ -24,12 +25,29 @@ namespace rome::core {
              * @brief Registers a component type with the registry.
              * @tparam T The component type to register.
              * @return The ID of the registered component.
-             * @note This is not technically necessary but should be used as a sanity check.
+             * @note This is not strictly necessary but should be used as a sanity check.
              *       This function is thread-safe.
              */
             template <Component T>
             ID enter() {
-                return getID<T>();
+                static const std::string_view name = Reflect::reflect<T>().getType().getName();
+
+                {
+                    std::shared_lock read(idsLock);
+                    auto it = ids.find(name);
+                    if (it != ids.end()) return it->second;
+                }
+
+                std::unique_lock write(idsLock);
+                auto [it, inserted] = ids.emplace(name, nextId.load());
+                if (inserted) {
+                    ID id = nextId.fetch_add(1);
+                    it->second = id;
+                    names.emplace(id, std::string(name));
+                    store.emplace(id, std::make_unique<Pool<T>>());
+                    return id;
+                }
+                return it->second;
             }
 
             /**
@@ -88,6 +106,7 @@ namespace rome::core {
             /**
              * @brief Gets the component for the given entity.
              * @tparam T The component type to get.
+             * @tparam T The component type to get.
              * @param entity The entity to get the component for.
              * @return The component for the given entity.
              * @warning This function is not thread-safe.
@@ -102,7 +121,32 @@ namespace rome::core {
              * @return The total number of component types.
              * @warning This function is not thread-safe.
              */
-            u32 getCount() const;
+            u32 getSize() const;
+
+            /**
+             * @brief Checks if an entity has the given component.
+             * @param entity The entity to check.
+             * @tparam T The component type to check.
+             * @return True if the entity has the component, false otherwise.
+             * @warning This function is not thread-safe.
+             */
+            template <Component T>
+            b8 has(const Entity& entity) const {
+                return getPool<T>()->contains(entity);
+            }
+
+            /**
+             * @brief Checks if an entity's archetype contains the entirety of the given set of components.
+             * @param entity The entity to check.
+             * @param components The set of components to check against.
+             * @return True if the entity's archetype contains every component, false otherwise.
+             * @warning This function is not thread-safe.
+             * @note The archetype does not need to exactly match the given set of components.
+             */
+            b8 contains(const Entity& entity, const BitSet<Component::ID>& components) {
+                const BitSet<Component::ID>& archetype = archetypes[entity.getIndex()];
+                return (components & archetype) == components;
+            }
 
             /**
              * @brief Gets the name of a component type given its ID.
@@ -129,9 +173,10 @@ namespace rome::core {
             private:
             mutable std::shared_mutex idsLock;                                            ///< Ensure thread-safe access to the IDs map.
             std::unordered_map<ID, Unique<Storage>> store;                                ///< Storage for component pools.
-            std::unordered_map<ID, std::string> names;                                    ///< Maps component IDs to their names.
             std::unordered_map<std::string, ID, TransparentSVHash, std::equal_to<>> ids;  ///< Maps component names to their IDs.
+            std::unordered_map<ID, std::string> names;                                    ///< Reverse lookup.
             std::atomic_uint32_t nextId{0};                                               ///< The next available ID for a component.
+            std::unordered_map<u64, BitSet<ID>> archetypes;                               ///< Maps entity IDs to their archetype signatures.
 
             /**
              * @brief Gets the component ID for the given component type.
@@ -141,24 +186,7 @@ namespace rome::core {
              */
             template <Component T>
             ID getID() {
-                static const std::string_view name = Reflect::reflect<T>().getType().getName();
-
-                {
-                    std::shared_lock read(idsLock);
-                    auto it = ids.find(name);
-                    if (it != ids.end()) return it->second;
-                }
-
-                std::unique_lock write(idsLock);
-                auto [it, inserted] = ids.emplace(name, nextId.load());
-                if (inserted) {
-                    ID id = nextId.fetch_add(1);
-                    it->second = id;
-                    names.emplace(id, std::string(name));
-                    store.emplace(id, std::make_unique<Pool<T>>());
-                    return id;
-                }
-                return it->second;
+                return enter<T>();
             }
         };
     }  // namespace Component

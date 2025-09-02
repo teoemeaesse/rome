@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ecs/system/registry.hpp"
+#include "ecs/world.hpp"
 
 namespace rome::core {
     /**
@@ -8,12 +8,12 @@ namespace rome::core {
      */
     class RM_API ECS {
         public:
-        ECS() = default;
+        ECS() : systems(), components(), entities(), events(), world{systems, components, entities, events} {}
         ~ECS() = default;
         ECS(const ECS&) = delete;
         ECS& operator=(const ECS&) = delete;
-        ECS(ECS&&) = default;
-        ECS& operator=(ECS&&) = default;
+        ECS(ECS&&) = delete;
+        ECS& operator=(ECS&&) = delete;
 
         /**
          * @brief Registers a new component type with the ECS.
@@ -21,9 +21,9 @@ namespace rome::core {
          * @return The ID for the registered component type.
          * @note This should be used by plugins on load.
          */
-        template <typename T>
+        template <Component::Component T>
         Component::ID registerComponent() {
-            return components.registerComponent<T>();
+            return components.enter<T>();
         }
 
         /**
@@ -32,9 +32,9 @@ namespace rome::core {
          * @param entity The entity to add the component to.
          * @return The created component.
          */
-        template <typename T>
+        template <Component::Component T>
         T& addComponent(const Entity& entity) {
-            return components.createComponent<T>(entity);
+            return components.create<T>(entity);
         }
 
         /**
@@ -45,9 +45,9 @@ namespace rome::core {
          * @param ...args The arguments to forward to the component constructor.
          * @return The created component.
          */
-        template <typename T, typename... Args>
+        template <Component::Component T, typename... Args>
         T& addComponent(const Entity& entity, Args&&... args) {
-            return components.createComponent<T>(entity, std::forward<Args>(args)...);
+            return components.create<T>(entity, std::forward<Args>(args)...);
         }
 
         /**
@@ -55,9 +55,9 @@ namespace rome::core {
          * @tparam T The component type to remove.
          * @param entity The entity to remove the component from.
          */
-        template <typename T>
+        template <Component::Component T>
         void removeComponent(const Entity& entity) {
-            components.removeComponent<T>(entity);
+            components.remove<T>(entity);
         }
 
         /**
@@ -66,9 +66,9 @@ namespace rome::core {
          * @param entity The entity to get the component for.
          * @return The component for the given entity.
          */
-        template <typename T>
+        template <Component::Component T>
         T& getComponent(const Entity& entity) {
-            return components.getComponent<T>(entity);
+            return components.get<T>(entity);
         }
 
         /**
@@ -77,9 +77,9 @@ namespace rome::core {
          * @param entity The entity to get the component for.
          * @return The component for the given entity.
          */
-        template <typename T>
+        template <Component::Component T>
         const T& getComponent(const Entity& entity) const {
-            return components.getComponent<T>(entity);
+            return components.get<T>(entity);
         }
 
         /**

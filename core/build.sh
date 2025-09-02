@@ -1,64 +1,75 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
 
 GREEN='\033[0;32m'
 RED='\033[0;31m'
+YELLOW='\033[1;33m'
 NC='\033[0m'
 
 usage() {
-    echo -e "Usage: $0 [options]"
-    echo "Options:"
-    echo "  --release, -f    Build in release mode with optimizations."
-    echo "  --tests, -t      Build tests along with the core module."
-    echo "  --help, -h       Display this help message."
+  echo -e "Usage: $0 [options]"
+  echo "Options:"
+  echo "  --release, -f    Build in Release mode (default: Debug)"
+  echo "  --tests, -t      Configure & build tests (BUILD_TESTS=ON), then run them"
+  echo "  --fresh          Delete build/ before configuring"
+  echo "  --help, -h       Show this help"
 }
 
-RELEASE=0
-TESTS=0
+BUILD_TYPE="Debug"
+BUILD_TESTS="OFF"
+FRESH=0
+
 for arg in "$@"; do
-    case $arg in
-        --release|-f)
-            RELEASE=1
-            ;;
-        --help|-h)
-            usage
-            exit 0
-            ;;
-        --tests|-t)
-            TESTS=1
-            ;;
-        *)
-            echo -e "${RED}Unknown option: $arg${NC}"
-            usage
-            exit 1
-            ;;
-    esac
+  case "$arg" in
+    --release|-f) BUILD_TYPE="Release" ;;
+    --tests|-t)   BUILD_TESTS="ON" ;;
+    --fresh)      FRESH=1 ;;
+    --help|-h)    usage; exit 0 ;;
+    *) echo -e "${RED}Unknown option: $arg${NC}"; usage; exit 1 ;;
+  esac
 done
 
-echo -e "${GREEN}Creating build directory for core and entering it...${NC}"
-mkdir -p build
-cd build || { echo -e "${RED}Failed to enter core/build directory. Exiting...${NC}"; exit 1; }
-
-if [ "$RELEASE" -eq 1 ]; then
-    echo -e "${GREEN}Configuring core for release build...${NC}"
-    cmake -DCMAKE_BUILD_TYPE=Release ..
+GENERATOR_ARGS=()
+if command -v ninja >/dev/null 2>&1; then
+  GENERATOR_ARGS=(-G Ninja)
+  echo -e "${GREEN}Using Ninja generator.${NC}"
 else
-    echo -e "${GREEN}Configuring core for debug build...${NC}"
-    cmake -DCMAKE_BUILD_TYPE=Debug ..
+  echo -e "${YELLOW}Ninja not found; using CMake's default generator.${NC}"
 fi
 
-if [ "$TESTS" -eq 1 ]; then
-    echo -e "${GREEN}Building core module with tests...${NC}"
-    cmake -DBUILD_TESTS=ON ..
+if [ $FRESH -eq 1 ]; then
+  echo -e "${GREEN}Removing build/ (fresh configure)...${NC}"
+  rm -rf build
 fi
 
-echo -e "${GREEN}Building core module...${NC}"
-cmake --build .
+echo -e "${GREEN}Configuring (type=${BUILD_TYPE}, tests=${BUILD_TESTS})...${NC}"
+cmake -S . -B build "${GENERATOR_ARGS[@]}" \
+  -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" \
+  -DBUILD_TESTS="${BUILD_TESTS}" \
+  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
-echo -e "${GREEN}Core build script completed.${NC}"
-
-if [ "$TESTS" -eq 1 ]; then
-    echo -e "${GREEN}Running core tests...${NC}"
-    make test
-    echo -e "${GREEN}Core tests completed.${NC}"
+if [ -f build/compile_commands.json ]; then
+  echo -e "${GREEN}Linking compile_commands.json to project root...${NC}"
+  ln -sfn build/compile_commands.json compile_commands.json
+else
+  echo -e "${RED}compile_commands.json not found in build/. Did configure fail?${NC}"
+  exit 1
 fi
+
+if command -v nproc >/dev/null 2>&1; then
+  JOBS=$(nproc)
+elif [[ "${OSTYPE:-}" == "darwin"* ]]; then
+  JOBS=$(sysctl -n hw.ncpu)
+else
+  JOBS=4
+fi
+
+echo -e "${GREEN}Building with ${JOBS} parallel jobs...${NC}"
+cmake --build build -- -j"${JOBS}"
+
+if [ "${BUILD_TESTS}" = "ON" ]; then
+  echo -e "${GREEN}Running tests...${NC}"
+  ctest --test-dir build --output-on-failure
+fi
+
+echo -e "${GREEN}Done.${NC}"

@@ -47,7 +47,7 @@ namespace rome::core {
         /**
          * @brief Performs an in‑place OR with another bitset of identical capacity.
          * @param other The bitset to OR with.
-         * @return This.
+         * @return This after "this OR other".
          */
         BitSet& operator|=(const BitSet& other) {
             RM_ASSERT_MSG(words() == other.words(), "Bitset sizes differ — resize all masks first");
@@ -61,7 +61,7 @@ namespace rome::core {
         /**
          * @brief Performs an in‑place AND with another bitset of identical capacity.
          * @param other The bitset to AND with.
-         * @return This.
+         * @return This after "this AND other".
          */
         BitSet& operator&=(const BitSet& other) {
             RM_ASSERT_MSG(words() == other.words(), "Bitset sizes differ — resize all masks first");
@@ -75,8 +75,8 @@ namespace rome::core {
         /**
          * @brief Performs an in‑place AND NOT with another bitset of identical capacity.
          * @param other The bitset to AND NOT with.
-         * @return This.
-         * @note This operation is analogous to A \ B
+         * @return This after "this AND NOT other".
+         * @note This operation is analogous to "this \ other".
          */
         BitSet& operator-=(const BitSet& other) {
             RM_ASSERT_MSG(words() == other.words(), "Bitset sizes differ — resize all masks first");
@@ -88,28 +88,76 @@ namespace rome::core {
         }
 
         /**
+         * @brief Returns whether two bitsets with identical capacity are exactly equal.
+         * @param left Left operand.
+         * @param right Right operand.
+         * @return True if the bitsets are exactly equal, false otherwise.
+         */
+        friend b8 operator==(const BitSet& left, const BitSet& right) {
+            RM_ASSERT_MSG(left.words() == right.words(), "Bitset sizes differ — resize all masks first");
+
+            b8 isEqual = true;
+            for (u64 i = 0; i < left.words(); i++) {
+                if (left.at(i) != right.at(i)) {
+                    isEqual = false;
+                    break;
+                };
+            }
+
+            return isEqual;
+        }
+
+        /**
          * @brief Returns the bitwise OR of two bitsets with identical capacity.
-         * @param left First bitset.
-         * @param right Other bitset.
+         * @param left Left operand.
+         * @param right Right operand.
          * @return A new bitset containing "left OR right".
          */
-        friend BitSet operator|(BitSet left, const BitSet& right) { return left |= right; }
+        friend BitSet operator|(const BitSet& left, const BitSet& right) {
+            RM_ASSERT_MSG(left.words() == right.words(), "Bitset sizes differ — resize all masks first");
+
+            BitSet out = left;
+            for (u64 i = 0; i < left.words(); i++) {
+                out.at(i) |= right.at(i);
+            }
+
+            return out;
+        }
 
         /**
          * @brief Returns the bitwise AND of two bitsets with identical capacity.
-         * @param left First bitset.
-         * @param right Other bitset.
+         * @param left Left operand.
+         * @param right Right operand.
          * @return A new bitset containing "left AND right".
          */
-        friend BitSet operator&(BitSet left, const BitSet& right) { return left &= right; }
+        friend BitSet operator&(const BitSet& left, const BitSet& right) {
+            RM_ASSERT_MSG(left.words() == right.words(), "Bitset sizes differ — resize all masks first");
+
+            BitSet out = left;
+            for (u64 i = 0; i < left.words(); i++) {
+                out.at(i) &= right.at(i);
+            }
+
+            return out;
+        }
 
         /**
          * @brief Returns the bitwise AND NOT of two bitsets with identical capacity.
-         * @param left First bitset.
-         * @param right Other bitset.
+         * @param left First operand.
+         * @param right Right operand.
          * @return A new bitset containing "left AND NOT right".
+         * @note This operation is analogous to "left \ right".
          */
-        friend BitSet operator-(BitSet left, const BitSet& right) { return left -= right; }
+        friend BitSet operator-(const BitSet& left, const BitSet& right) {
+            RM_ASSERT_MSG(left.words() == right.words(), "Bitset sizes differ — resize all masks first");
+
+            BitSet out = left;
+            for (u64 i = 0; i < left.words(); i++) {
+                out.at(i) &= ~right.at(i);
+            }
+
+            return out;
+        }
 
         /**
          * @brief Tests whether a specific bit is set.
@@ -205,10 +253,6 @@ namespace rome::core {
             return false;
         }
 
-        private:
-        std::array<u64, Size / 64> direct{};  ///< Stack storage for the first Size bits.
-        std::vector<u64> spill;               ///< Dynamic storage for bits beyond Size.
-
         /**
          * @brief Calculates the current storage footprint in 64‑bit words.
          * @return The number of words currently owned (stack + spill).
@@ -227,6 +271,10 @@ namespace rome::core {
          * @return A reference to the storage word at index.
          */
         const u64& at(u64 index) const noexcept { return index < direct.max_size() ? direct[index] : spill[index - direct.max_size()]; }
+
+        private:
+        std::array<u64, Size / 64> direct{};  ///< Stack storage for the first Size bits.
+        std::vector<u64> spill;               ///< Dynamic storage for bits beyond Size.
 
         /**
          * @brief Locates the underlying 64‑bit word that contains a given bit (mutable).

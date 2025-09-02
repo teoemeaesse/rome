@@ -2,7 +2,7 @@
 
 namespace rome::core {
     namespace Component {
-        u32 Registry::getCount() const { return store.size(); }
+        u32 Registry::getSize() const { return store.size(); }
 
         const std::string& Registry::getName(ID id) const {
             auto it = names.find(id);

@@ -74,8 +74,12 @@ namespace rome::core {
 
         class RM_API Bus final {
             public:
-            Bus() = default;
+            Bus(World& world);
             ~Bus() = default;
+            Bus(const Bus&) = delete;
+            Bus& operator=(const Bus&) = delete;
+            Bus(Bus&&) = delete;
+            Bus& operator=(Bus&&) = delete;
 
             /**
              * @brief Enters a new event queue into the bus.
@@ -88,8 +92,8 @@ namespace rome::core {
                 std::unique_lock lock(queuesLock);
                 auto it = queues.find(world.events.get<E>());
                 if (it != queues.end()) {
-                    string msg = "Event queue for '" + Reflect::reflect<E>().name + "' already exists";
-                    THROW_CORE_EXCEPTION(Exception::Type::InvalidArgument, msg.);
+                    std::string msg = "Event queue for '" + Reflect::reflect<E>().name + "' already exists";
+                    THROW_CORE_EXCEPTION(Exception::Type::InvalidArgument, msg.c_str());
                 }
                 queues.emplace(world.events.get<E>(), MakeUnique<Storage<E>>());
             }

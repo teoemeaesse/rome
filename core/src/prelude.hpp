@@ -26,18 +26,6 @@
 #endif
 #endif
 
-/* Exceptions */
-#ifdef RM_EXCEPTIONS_ON
-#include <stdexcept>
-#define STATIC_CORE_ASSERT_EXCEPTION(expected, message)           \
-    STATIC_ASSERT((expected), message)                            \
-    if (!expected) {                                              \
-        THROW_CORE_EXCEPTION(Exception::Type::Assertion, message) \
-    }
-#else
-#define STATIC_CORE_ASSERT_EXCEPTION(expected, message) STATIC_ASSERT((expected), message)
-#endif
-
 /* Debug asserts */
 #ifdef RM_ASSERTS_ON
 #ifdef _MSC_VER
@@ -88,17 +76,6 @@ RM_API void assertFail(const char* expression, const char* message, const char* 
 #else
 #define RM_ASSERT(expression)
 #define RM_ASSERT_MSG(expression, message)
-#endif
-
-#ifdef RM_EXCEPTIONS_ON
-#include <stdexcept>
-#define CORE_ASSERT_EXCEPTION(expected, message)                   \
-    RM_ASSERT_MSG((expected), message)                             \
-    if (!(expected)) {                                             \
-        THROW_CORE_EXCEPTION(Exception::Type::Assertion, message); \
-    }
-#else
-#define CORE_ASSERT_EXCEPTION(expected, message) RM_ASSERT_MSG((expected), message)
 #endif
 
 /* Platform definitions (Windows 64-bit, MacOS, Linux and Unix/Unix-like) */

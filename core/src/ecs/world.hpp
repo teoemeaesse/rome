@@ -3,6 +3,7 @@
 #include "ecs/component/registry.hpp"
 #include "ecs/entity/registry.hpp"
 #include "ecs/event/registry.hpp"
+#include "ecs/system/registry.hpp"
 
 namespace rome::core {
     namespace System {

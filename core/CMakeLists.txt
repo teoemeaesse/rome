@@ -17,7 +17,6 @@ add_library(core STATIC ${CORE_SOURCES})
 target_compile_definitions(core PRIVATE
     RM_EXPORT_ON
     RM_ASSERTS_ON
-    RM_EXCEPTIONS_ON
 )
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -DNDEBUG")
@@ -70,7 +69,6 @@ if(BUILD_TESTS)
     target_compile_definitions(core_tests PRIVATE
         RM_EXPORT_ON
         RM_ASSERTS_ON
-        RM_EXCEPTIONS_ON
         RM_DEBUG_ON
     )
     add_test(NAME CoreTests COMMAND core_tests)

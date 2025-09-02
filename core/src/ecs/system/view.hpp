@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ecs/system/group.hpp"
+#include "ecs/group/group.hpp"
 #include "ecs/world.hpp"
 
 namespace rome::core {
@@ -17,7 +17,6 @@ namespace rome::core {
             STATIC_ASSERT(sizeof(T) == 0, "Type not found in index_of");
         };
 
-        struct Group;
         struct RM_API Context {
             const Group& group;  ///< The group this system is operating on.
             World& world;        ///< Reference to the world instance.
@@ -48,12 +47,20 @@ namespace rome::core {
             }
 
             private:
-            const std::tuple<remove_all_qualifiers_t<Components>*...> owned;
-            const std::tuple<Component::Pool<remove_all_qualifiers_t<Components>>*...> pools;
-            const Entity* entities;
-            const u64 max;
-            u64 index;
+            const std::tuple<remove_all_qualifiers_t<Components>*...> owned;                   ///< Pointers to owned components, if any.
+            const std::tuple<Component::Pool<remove_all_qualifiers_t<Components>>*...> pools;  ///< Pointers to component pools.
+            const Entity* entities;                                                            ///< Pointer to the entities.
+            const u64 max;                                                                     ///< Maximum number of entities in the view.
+            u64 index;                                                                         ///< Current index in the view.
 
+            /**
+             * @brief Fetches the component for a given entity. Decides whether to use the owned pointer or the pool based on availability.
+             * @tparam T The component type to fetch.
+             * @param owned Pointer to the owned component, if any.
+             * @param pool Pointer to the component pool, if not owned.
+             * @param e The entity to fetch the component for.
+             * @return A reference to the component.
+             */
             template <class T>
             static decltype(auto) fetch(auto* owned, auto* pool, Entity e) {
                 if (owned) {
@@ -70,6 +77,10 @@ namespace rome::core {
             }
         };
 
+        /**
+         * @brief A view over a set of components for a specific group of entities.
+         * @tparam ...Components The component types to include in the view.
+         */
         template <Component::Component... Components>
         class RM_API View final {
             public:
@@ -98,10 +109,10 @@ namespace rome::core {
                 }
             }
 
-            std::tuple<remove_all_qualifiers_t<Components>*...> owned;
-            std::tuple<Component::Pool<remove_all_qualifiers_t<Components>>*...> pools;
-            const Entity* entities;
-            const u64 count;
+            std::tuple<remove_all_qualifiers_t<Components>*...> owned;                   ///< Pointers to owned components, if any.
+            std::tuple<Component::Pool<remove_all_qualifiers_t<Components>>*...> pools;  ///< Pointers to component pools.
+            const Entity* entities;                                                      ///< Pointer to the entities.
+            const u64 count;                                                             ///< Number of entities in the view.
         };
     }  // namespace System
 }  // namespace rome::core

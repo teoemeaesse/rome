@@ -1,6 +1,8 @@
 #pragma once
 
-#include "ecs/system/view.hpp"
+#include <shared_mutex>
+
+#include "ecs/group/group.hpp"
 
 namespace rome::core {
     namespace System {
@@ -18,8 +20,7 @@ namespace rome::core {
             /**
              * @brief Registers a new system with the given descriptor.
              * @return The ID of the newly registered system.
-             * @throws Exception::Type::InvalidArgument if a system with the same name already exists.
-             * @throws Exception::Type::InvalidArgument if a system with the same ID already exists.
+             * @throws Exception::Type::InvalidArgument if a system with the same name or ID already exists.
              * @note This function is thread-safe.
              */
             ID enter(Descriptor&& descriptor);

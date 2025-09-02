@@ -1,7 +1,5 @@
 #pragma once
 
-#include <shared_mutex>
-
 #include "ecs/entity/entity.hpp"
 
 namespace rome::core {

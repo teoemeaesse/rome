@@ -91,6 +91,13 @@ namespace rome::core {
             }
 
             /**
+             * @brief Checks if the entity has this component.
+             * @param entity The entity to check.
+             * @return True if the entity has this component, false otherwise.
+             */
+            b8 contains(const Entity& entity) const { return entities.contains(entity.getIndex()); }
+
+            /**
              * @brief Retrieves a contiguous data pointer and the size of the pool.
              * @return A pair containing a pointer to the start of the block and the size of the pool.
              */
