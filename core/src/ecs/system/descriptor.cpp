@@ -6,12 +6,12 @@ namespace rome::core {
             : descriptor{world, name, nullptr, {}, {}, {}, {}, false, false, true}, world(world) {}
 
         Builder& Builder::emits(std::initializer_list<Event::ID> events) {
-            descriptor.emits = BitSet<Event::ID>::create(events);
+            descriptor.emits = BitSet<>::create(events);
             return *this;
         }
 
         Builder& Builder::listens(std::initializer_list<Event::ID> events) {
-            descriptor.listens = BitSet<Event::ID>::create(events);
+            descriptor.listens = BitSet<>::create(events);
             return *this;
         }
 

@@ -14,10 +14,10 @@ namespace rome::core {
             const World& world;                            ///< Reference to the world instance.
             const std::string name = "null descriptor";    ///< The name of the system. Must be unique.
             const std::function<void(Context&)> callback;  ///< The function to be called every time the system is executed.
-            BitSet<Component::ID> reads;                   ///< The components this system reads.
-            BitSet<Component::ID> writes;                  ///< The components this system writes.
-            BitSet<Event::ID> emits;                       ///< The events this system emits.
-            BitSet<Event::ID> listens;                     ///< The events this system listens to.
+            BitSet<> reads;                                ///< The components this system reads.
+            BitSet<> writes;                               ///< The components this system writes.
+            BitSet<> emits;                                ///< The events this system emits.
+            BitSet<> listens;                              ///< The events this system listens to.
             b8 requireFull = true;                         ///< Whether the system must operate on a full-owning group.
             b8 allowPartial = false;                       ///< Whether the system can operate on partial groups.
             b8 active = true;                              ///< Whether the system is currently active.

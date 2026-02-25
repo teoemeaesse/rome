@@ -1,11 +1,10 @@
 #pragma once
 
-#include <concepts>
-
 #include "container/sparse_set.hpp"
 #include "debug/log.hpp"
 #include "ecs/component/component.hpp"
 #include "ecs/entity/registry.hpp"
+#include "prelude.hpp"
 
 namespace rome::core {
     namespace Component {
@@ -34,22 +33,16 @@ namespace rome::core {
             /**
              * @brief Gets the component for the given entity.
              * @param entity The entity to get the component for.
-             * @return The component for the given entity.
+             * @return The component for the given entity or None.
              */
-            T& get(const Entity& entity) {
-                RM_ASSERT_MSG(entities.contains(entity.getIndex()), "Entity does not have component T");
-                return entities[entity.getIndex()];
-            }
+            [[nodiscard]] OptRef<T> get(const Entity& entity) noexcept { return entities[entity.getIndex()]; }
 
             /**
              * @brief Gets the component for the given entity.
              * @param entity The entity to get the component for.
-             * @return The component for the given entity.
+             * @return The component for the given entity or None.
              */
-            const T& get(const Entity& entity) const {
-                RM_ASSERT_MSG(entities.contains(entity.getIndex()), "Entity does not have component T");
-                return entities[entity.getIndex()];
-            }
+            [[nodiscard]] OptRef<const T> get(const Entity& entity) const noexcept { return entities[entity.getIndex()]; }
 
             /**
              * @brief Inserts the component for the given entity.
@@ -66,6 +59,7 @@ namespace rome::core {
 
             /**
              * @brief Inserts the component for the given entity.
+             * @tparam ...Args Constructor arguments for the component.
              * @param entity The entity to insert the component for.
              * @param component The component to insert.
              */
@@ -95,13 +89,13 @@ namespace rome::core {
              * @param entity The entity to check.
              * @return True if the entity has this component, false otherwise.
              */
-            b8 contains(const Entity& entity) const { return entities.contains(entity.getIndex()); }
+            b8 contains(const Entity& entity) const noexcept { return entities.contains(entity.getIndex()); }
 
             /**
              * @brief Retrieves a contiguous data pointer and the size of the pool.
              * @return A pair containing a pointer to the start of the block and the size of the pool.
              */
-            std::pair<T*, u64> getData() { return entities.getData(); }
+            std::pair<T*, u64> getData() noexcept { return entities.getData(); }
 
             /**
              * @brief Gets the reflected type for this pool's component type.
@@ -112,11 +106,11 @@ namespace rome::core {
                 return type;
             }
 
-            inline std::vector<T>::iterator begin() { return entities.begin(); }
-            inline std::vector<T>::iterator end() { return entities.end(); }
+            inline std::vector<T>::iterator begin() noexcept { return entities.begin(); }
+            inline std::vector<T>::iterator end() noexcept { return entities.end(); }
 
-            inline std::vector<T>::const_iterator begin() const { return entities.begin(); }
-            inline std::vector<T>::const_iterator end() const { return entities.end(); }
+            inline std::vector<T>::const_iterator begin() const noexcept { return entities.begin(); }
+            inline std::vector<T>::const_iterator end() const noexcept { return entities.end(); }
 
             private:
             SparseSet<T> entities;  ///< The entities with this component.

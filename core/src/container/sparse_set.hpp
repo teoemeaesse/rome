@@ -1,6 +1,9 @@
 #pragma once
 
+#include <limits>
+
 #include "debug/exception.hpp"
+#include "debug/log.hpp"
 
 namespace rome::core {
     template <typename T>
@@ -9,9 +12,69 @@ namespace rome::core {
         SparseSet() : size(0) {};
         ~SparseSet() = default;
         SparseSet(const SparseSet& other) = default;
-        SparseSet(SparseSet&& other) = default;
+        SparseSet(SparseSet&& other) noexcept = default;
         SparseSet& operator=(const SparseSet& other) = default;
-        SparseSet& operator=(SparseSet&& other) = default;
+        SparseSet& operator=(SparseSet&& other) noexcept = default;
+
+        /**
+         * @brief Copies a value into the sparse set. Fails silently if inserting would overwrite existing data.
+         * @param index The index to copy the value to.
+         * @param value The value to copy.
+         * @return True if the insert succeeded, false otherwise.
+         */
+        b8 try_insert(u64 index, const T& value) {
+            if (index == std::numeric_limits<u64>::max()) {
+                RM_DEBUG("Index is out of bounds");
+                return false;
+            }
+            if (contains(index)) {
+                RM_DEBUG("Tried to insert duplicate index");
+                return false;
+            }
+
+            if (index >= sparse.size()) {
+                sparse.resize(index + 1, 0);
+            }
+            if (size >= dense.size()) {
+                dense.resize(size + 1, 0);
+            }
+
+            dense[size] = index;
+            sparse[index] = size;
+            data.push_back(value);
+            size++;
+            return true;
+        }
+
+        /**
+         * @brief Moves a value into the sparse set. Fails silently if inserting would overwrite existing data.
+         * @param index The index to move the value to.
+         * @param value The value to move.
+         * @return True if the insert succeeded, false otherwise.
+         */
+        b8 try_insert(u64 index, T&& value) {
+            if (index == std::numeric_limits<u64>::max()) {
+                RM_DEBUG("Index is out of bounds");
+                return false;
+            }
+            if (contains(index)) {
+                RM_DEBUG("Tried to insert duplicate index");
+                return false;
+            }
+
+            if (index >= sparse.size()) {
+                sparse.resize(index + 1, 0);
+            }
+            if (size >= dense.size()) {
+                dense.resize(size + 1, 0);
+            }
+
+            dense[size] = index;
+            sparse[index] = size;
+            data.emplace_back(std::move(value));
+            size++;
+            return true;
+        }
 
         /**
          * @brief Copies a value into the sparse set.
@@ -19,15 +82,22 @@ namespace rome::core {
          * @param value The value to copy.
          */
         void insert(u64 index, const T& value) {
-            if (contains(index)) {
+            if (index == std::numeric_limits<u64>::max()) {
+                RM_DEBUG("Index is out of bounds");
                 return;
             }
+            if (contains(index)) {
+                data[sparse[index]] = value;
+                return;
+            }
+
             if (index >= sparse.size()) {
                 sparse.resize(index + 1, 0);
             }
             if (size >= dense.size()) {
                 dense.resize(size + 1, 0);
             }
+
             dense[size] = index;
             sparse[index] = size;
             data.push_back(value);
@@ -40,15 +110,22 @@ namespace rome::core {
          * @param value The value to move.
          */
         void insert(u64 index, T&& value) {
-            if (contains(index)) {
+            if (index == std::numeric_limits<u64>::max()) {
+                RM_DEBUG("Index is out of bounds");
                 return;
             }
+            if (contains(index)) {
+                data[sparse[index]] = std::move(value);
+                return;
+            }
+
             if (index >= sparse.size()) {
                 sparse.resize(index + 1, 0);
             }
             if (size >= dense.size()) {
                 dense.resize(size + 1, 0);
             }
+
             dense[size] = index;
             sparse[index] = size;
             data.emplace_back(std::move(value));
@@ -99,7 +176,7 @@ namespace rome::core {
          * @param index1 The index of the first element to swap.
          * @param index2 The index of the second element to swap.
          */
-        void swap(u64 index1, u64 index2) {
+        void swap(u64 index1, u64 index2) noexcept {
             if (index1 == index2 || !contains(index1) || !contains(index2)) {
                 return;
             }
@@ -116,40 +193,42 @@ namespace rome::core {
          * @return A pair containing a pointer to the data and the size of the sparse set.
          * @warning The data pointer is only valid as long as the sparse set's size does not change.
          */
-        std::pair<T*, u64> getData() { return {data.data(), size}; }
+        std::pair<T*, u64> getData() noexcept { return {data.data(), size}; }
 
         /**
-         * @brief Gets the value at the given index.
+         * @brief Gets a pointer to the given index.
          * @param index The index to get the value from.
-         * @return The value at the given index.
+         * @return The pointer to the given index.
          */
-        const T& operator[](u64 index) const {
+        const T* operator[](u64 index) const noexcept {
             if (!contains(index)) {
-                THROW_CORE_EXCEPTION(Exception::Type::NotFound, "Sparse set does not contain value at index");
+                return nullptr;
             }
-            return data[sparse[index]];
+            return data.data() + sparse[index];
+        }
+
+        /**
+         * @brief Gets a pointer to the given index.
+         * @param index The index to get the value from.
+         * @return The pointer to the given index.
+         */
+        T* operator[](u64 index) noexcept {
+            if (!contains(index)) {
+                return nullptr;
+            }
+            return data.data() + sparse[index];
         }
 
         /**
          * @brief Gets the value at the given index.
          * @param index The index to get the value from.
          * @return The value at the given index.
-         */
-        T& operator[](u64 index) {
-            if (!contains(index)) {
-                THROW_CORE_EXCEPTION(Exception::Type::NotFound, "Sparse set does not contain value at index");
-            }
-            return data[sparse[index]];
-        }
-
-        /**
-         * @brief Gets the value at the given index.
-         * @param index The index to get the value from.
-         * @return The value at the given index.
+         * @throws Exception::Type::NotFound if the value was not found.
          */
         const T& at(u64 index) const {
             if (!contains(index)) {
-                THROW_CORE_EXCEPTION(Exception::Type::NotFound, "Sparse set does not contain value at index");
+                std::string msg = "The index " + std::to_string(index) + " is out of bounds";
+                THROW_CORE_EXCEPTION(Exception::Type::NotFound, msg.c_str());
             }
             return data[sparse[index]];
         }
@@ -158,10 +237,12 @@ namespace rome::core {
          * @brief Gets the value at the given index.
          * @param index The index to get the value from.
          * @return The value at the given index.
+         * @throws Exception::Type::NotFound if the value was not found.
          */
         T& at(u64 index) {
             if (!contains(index)) {
-                THROW_CORE_EXCEPTION(Exception::Type::NotFound, "Sparse set does not contain value at index");
+                std::string msg = "The index " + std::to_string(index) + " is out of bounds";
+                THROW_CORE_EXCEPTION(Exception::Type::NotFound, msg.c_str());
             }
             return data[sparse[index]];
         }
@@ -171,21 +252,29 @@ namespace rome::core {
          * @param index The index to check.
          * @return True if the sparse set contains a value at the given index, false otherwise.
          */
-        inline b8 contains(u64 index) const noexcept { return index < sparse.size() && sparse[index] < size && dense[sparse[index]] == index; }
+        b8 contains(u64 index) const noexcept { return index < sparse.size() && sparse[index] < dense.size() && dense[sparse[index]] == index; }
 
         /**
          * @brief Returns the number of elements in the sparse set.
          * @return The number of elements in the sparse set.
          */
-        inline u64 getSize() const noexcept { return size; }
+        u64 getSize() const noexcept { return size; }
 
         /* Non-const iterator interfaces */
-        inline std::vector<T>::iterator begin() { return data.begin(); }
-        inline std::vector<T>::iterator end() { return data.begin() + size; }
+        inline std::vector<T>::iterator begin() noexcept { return data.begin(); }
+        inline std::vector<T>::iterator end() noexcept { return data.end(); }
+        inline std::vector<T>::iterator find(u64 index) noexcept {
+            if (!contains(index)) return end();
+            return begin() + sparse[index];
+        }
 
         /* Const iterator interfaces */
-        inline std::vector<T>::const_iterator begin() const { return data.begin(); }
-        inline std::vector<T>::const_iterator end() const { return data.begin() + size; }
+        inline std::vector<T>::const_iterator begin() const noexcept { return data.begin(); }
+        inline std::vector<T>::const_iterator end() const noexcept { return data.end(); }
+        inline std::vector<T>::const_iterator find(u64 index) const noexcept {
+            if (!contains(index)) return end();
+            return begin() + sparse[index];
+        }
 
         private:
         std::vector<u64> dense;   ///< Maps dense index to sparse index

@@ -2,15 +2,18 @@
 
 namespace rome::core {
     namespace Component {
-        u32 Registry::getSize() const { return store.size(); }
+        u32 Registry::getSize() const noexcept { return store.size(); }
 
-        const std::string& Registry::getName(ID id) const {
+        b8 Registry::contains(const Entity& entity, const BitSet<>& components) noexcept {
+            return (archetypes[entity.getIndex()] & components) == components;
+        }
+
+        std::string Registry::getName(ID id) const {
             auto it = names.find(id);
             if (it != names.end()) {
                 return it->second;
             }
-            std::string msg = "Component ID " + std::to_string(id) + " not found";
-            THROW_CORE_EXCEPTION(Exception::Type::NotFound, msg.c_str());
+            return "";
         }
     }  // namespace Component
 }  // namespace rome::core

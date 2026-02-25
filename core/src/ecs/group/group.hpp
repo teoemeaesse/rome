@@ -14,10 +14,10 @@ namespace rome::core {
 
     class RM_API Group final {
         public:
-        const BitSet<Component::ID> owning;   ///< The components that this group fully owns.
-        const BitSet<Component::ID> partial;  ///< The components that this group partially owns.
-        const BitSet<Event::ID> emits;        ///< The events this group emits.
-        const BitSet<Event::ID> listens;      ///< The events this group is interested in.
+        const BitSet<> owning;   ///< The components that this group fully owns.
+        const BitSet<> partial;  ///< The components that this group partially owns.
+        const BitSet<> emits;    ///< The events this group emits.
+        const BitSet<> listens;  ///< The events this group is interested in.
 
         Group(const System::Descriptor& descriptor);
         ~Group() = default;

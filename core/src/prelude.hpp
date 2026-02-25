@@ -1,6 +1,8 @@
 #pragma once
 
 /* Rome API export/import */
+#include <functional>
+#include <optional>
 #ifdef RM_EXPORT_ON
 #ifdef _MSC_VER
 #define RM_API __declspec(dllexport)
@@ -150,7 +152,7 @@ namespace rome {
     STATIC_ASSERT(sizeof(b32) == 4, "b32 type is not 4 bytes");
     STATIC_ASSERT(sizeof(byte) == 1, "byte type is not 1 byte");
 
-    /* Smart pointers */
+    /* Smart pointers alias */
     template <typename T>
     using Unique = std::unique_ptr<T>;
     template <typename T>
@@ -171,43 +173,51 @@ namespace rome {
         return std::weak_ptr<T>(ptr);
     }
 
-    // Implementation struct: Handles pointers and arrays
+    /* Optional type alias */
+    template <typename T>
+    using Opt = std::optional<T>;
+    template <typename T>
+    using OptRef = std::optional<std::reference_wrapper<T>>;
+    using NoneType = std::nullopt_t;
+    inline constexpr NoneType None = std::nullopt;
+
+    /* Implementation struct: Handles pointers and arrays */
     template <typename T>
     struct remove_all_qualifiers_impl {
         using type = T;
     };
 
-    // Primary template: Initiates the removal process
+    /* Primary template: Initiates the removal process */
     template <typename T>
     struct remove_all_qualifiers {
         private:
-        // Remove references and top-level cv-qualifiers
+        /* Remove references and top-level cv-qualifiers */
         using NoRefNoCV = std::remove_cv_t<std::remove_reference_t<T>>;
 
         public:
-        // Delegate to the implementation struct
+        /* Delegate to the implementation struct */
         using type = typename remove_all_qualifiers_impl<NoRefNoCV>::type;
     };
 
-    // Specialization for pointers
+    /* Specialization for pointers */
     template <typename T>
     struct remove_all_qualifiers_impl<T*> {
         using type = typename remove_all_qualifiers<T>::type;
     };
 
-    // Specialization for arrays of unknown bound
+    /* Specialization for arrays of unknown bound */
     template <typename T>
     struct remove_all_qualifiers_impl<T[]> {
         using type = typename remove_all_qualifiers<T>::type;
     };
 
-    // Specialization for arrays of known bound
+    /* Specialization for arrays of known bound */
     template <typename T, std::size_t N>
     struct remove_all_qualifiers_impl<T[N]> {
         using type = typename remove_all_qualifiers<T>::type;
     };
 
-    // Type alias for convenience
+    /* Type alias for convenience */
     template <typename T>
     using remove_all_qualifiers_t = typename remove_all_qualifiers<T>::type;
 
@@ -222,7 +232,7 @@ namespace rome {
         return (status == 0) ? res.get() : name;
     }*/
 
-    // Hash function for transparent string views
+    /* Hash function for transparent string views */
     struct TransparentSVHash {
         using is_transparent = void;
         std::size_t operator()(std::string_view sv) const noexcept { return std::hash<std::string_view>{}(sv); }

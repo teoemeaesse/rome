@@ -7,21 +7,18 @@ namespace rome::core {
     /**
      * @brief A flexible bitset that can grow beyond a fixed size.
      * This bitset stores the first 512 bits (8 words) in the stack and spills over to a vector for additional bits.
-     * @tparam Alias An optional type used to index into the bitset, must be an unsigned integer type no larger than 64 bits (default is u64).
-     * @tparam Size The maximum expected capacity, must be a multiple of Alias' width in bits (default is 512 bits).
+     * @tparam Size The maximum expected capacity in bits (default is 512 bits).
      *              You can go over this size, falling back to dynamic storage.
      */
-    template <typename Alias = u64, u64 Size = 512>
+    template <u64 Size = 512>
     class RM_API BitSet final {
-        STATIC_ASSERT(std::is_unsigned_v<Alias>, "Alias must be an unsigned integer type");
-        STATIC_ASSERT(sizeof(Alias) <= 8, "Alias must be no larger than 64 bits");
-        STATIC_ASSERT(Size % (sizeof(Alias) * 8) == 0, "Size must be a multiple of Alias' width");
+        STATIC_ASSERT(Size % 64 == 0, "Size must be a multiple of 64 bits");
 
         public:
         BitSet() = default;
         explicit BitSet(u64 size) { resize(size); }
-        BitSet(std::initializer_list<Alias> bits) {
-            for (Alias bit : bits) {
+        BitSet(std::initializer_list<u64> bits) {
+            for (u64 bit : bits) {
                 set(bit);
             }
         }
@@ -36,9 +33,11 @@ namespace rome::core {
          * @param bits The bits to set.
          * @return A new bitset with the specified bits set.
          */
-        static BitSet create(std::initializer_list<Alias> bits) {
+        template <typename Word>
+        static BitSet create(std::initializer_list<Word> bits) {
+            STATIC_ASSERT(std::is_unsigned_v<Word>, "Word must be an unsigned integer type");
             BitSet set(Size);
-            for (Alias bit : bits) {
+            for (Word bit : bits) {
                 set.set(bit);
             }
             return set;
@@ -103,7 +102,6 @@ namespace rome::core {
                     break;
                 };
             }
-
             return isEqual;
         }
 
@@ -120,7 +118,6 @@ namespace rome::core {
             for (u64 i = 0; i < left.words(); i++) {
                 out.at(i) |= right.at(i);
             }
-
             return out;
         }
 
@@ -137,7 +134,6 @@ namespace rome::core {
             for (u64 i = 0; i < left.words(); i++) {
                 out.at(i) &= right.at(i);
             }
-
             return out;
         }
 
@@ -155,7 +151,6 @@ namespace rome::core {
             for (u64 i = 0; i < left.words(); i++) {
                 out.at(i) &= ~right.at(i);
             }
-
             return out;
         }
 
@@ -164,25 +159,25 @@ namespace rome::core {
          * @param bit The bit index to test.
          * @return True if the bit is set, false otherwise.
          */
-        b8 test(Alias bit) const noexcept { return (*locate(static_cast<u64>(bit)) & (1ull << (static_cast<u64>(bit) & 63))) != 0; }
+        b8 test(u64 bit) const { return (*locate(static_cast<u64>(bit)) & (1ull << (static_cast<u64>(bit) & 63))) != 0; }
 
         /**
          * @brief Sets a bit to true.
          * @param bit The bit index to set.
          */
-        void set(Alias bit) { mutate(static_cast<u64>(bit), true); }
+        void set(u64 bit) { mutate(static_cast<u64>(bit), true); }
 
         /**
          * @brief Sets a bit to false.
          * @param bit The bit index to clear.
          */
-        void reset(Alias bit) { mutate(static_cast<u64>(bit), false); }
+        void reset(u64 bit) { mutate(static_cast<u64>(bit), false); }
 
         /**
          * @brief Toggles a bit.
          * @param bit The bit index to toggle.
          */
-        void flip(Alias bit) {
+        void flip(u64 bit) {
             u64* w = locate(static_cast<u64>(bit));
             *w ^= 1ull << (static_cast<u64>(bit) & 63);
         }
@@ -190,7 +185,7 @@ namespace rome::core {
         /**
          * @brief Sets all bits to false.
          */
-        void clear() noexcept {
+        void clear() {
             direct.fill(0);
             std::ranges::fill(spill, 0);
         }
@@ -208,13 +203,13 @@ namespace rome::core {
          * @brief Checks whether any bit is set.
          * @return True if at least one bit is set, false if no bits are set.
          */
-        b8 any() const noexcept { return !none(); }
+        b8 any() const { return !none(); }
 
         /**
          * @brief Checks whether no bits are set.
          * @return True if no bits are set, false if at least one bit is set.
          */
-        b8 none() const noexcept {
+        b8 none() const {
             for (u64 word : direct) {
                 if (word) return false;
             }
@@ -228,7 +223,7 @@ namespace rome::core {
          * @brief Counts the number of bits set.
          * @return The number of bits set.
          */
-        u64 count() const noexcept {
+        u64 count() const {
             u64 c = 0;
             for (u64 word : direct) {
                 c += std::popcount(word);
@@ -244,7 +239,7 @@ namespace rome::core {
          * @param other The other bitset to check against.
          * @return True if there is at least one bit set in both bitsets, false otherwise.
          */
-        b8 intersects(const BitSet& other) const noexcept {
+        b8 intersects(const BitSet& other) const {
             if (words() != other.words()) return false;
 
             for (u64 i = 0; i < words(); i++) {
@@ -257,20 +252,20 @@ namespace rome::core {
          * @brief Calculates the current storage footprint in 64‑bit words.
          * @return The number of words currently owned (stack + spill).
          */
-        u64 words() const noexcept { return direct.max_size() + spill.size(); }
+        u64 words() const { return direct.max_size() + spill.size(); }
 
         /**
          * @brief Returns a reference to the storage word at index.
          * @param index The index of the word to access.
          * @return A reference to the storage word at index.
          */
-        u64& at(u64 index) noexcept { return index < direct.max_size() ? direct[index] : spill[index - direct.max_size()]; }
+        u64& at(u64 index) { return index < direct.max_size() ? direct[index] : spill[index - direct.max_size()]; }
         /**
          * @brief Returns a reference to the storage word at index.
          * @param index The index of the word to access.
          * @return A reference to the storage word at index.
          */
-        const u64& at(u64 index) const noexcept { return index < direct.max_size() ? direct[index] : spill[index - direct.max_size()]; }
+        const u64& at(u64 index) const { return index < direct.max_size() ? direct[index] : spill[index - direct.max_size()]; }
 
         private:
         std::array<u64, Size / 64> direct{};  ///< Stack storage for the first Size bits.
@@ -281,7 +276,7 @@ namespace rome::core {
          * @param bit The global bit index to locate.
          * @return A pair of (container pointer, word index) where the bit resides.
          */
-        u64* locate(u64 bit) noexcept {
+        u64* locate(u64 bit) {
             if (bit < Size) return &direct[bit >> 6];
 
             const u64 word = (bit - Size) >> 6;
@@ -296,7 +291,7 @@ namespace rome::core {
          * @param bit The global bit index to locate.
          * @return A pair of (const container pointer, word index) where the bit resides.
          */
-        const u64* locate(u64 bit) const noexcept {
+        const u64* locate(u64 bit) const {
             if (bit < Size) return &direct[bit >> 6];
 
             const u64 word = (bit - Size) >> 6;

@@ -5,7 +5,7 @@
 namespace rome::core {
     Group::Group(const System::Descriptor& descriptor)
         : owning(descriptor.requireFull ? descriptor.writes | descriptor.reads : descriptor.writes),
-          partial(descriptor.allowPartial ? descriptor.reads - owning : BitSet<Component::ID>{}),
+          partial(descriptor.allowPartial ? descriptor.reads - owning : BitSet<>{}),
           emits(descriptor.emits),
           listens(descriptor.listens),
           world(descriptor.world),

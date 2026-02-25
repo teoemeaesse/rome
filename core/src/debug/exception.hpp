@@ -1,5 +1,7 @@
 #pragma once
 
+#include <source_location>
+
 #include "reflection/uuid.hpp"
 
 namespace rome::core {
@@ -59,7 +61,13 @@ namespace rome::core {
                 : type(type), message(message), file(file), line(line), function(function) {}
         };
 
-        std::vector<Frame> frames;  ///< The stack of frames.
+        std::vector<Frame> frames;  ///< The stack frame.
+        std::string message;        ///< The full error message.
+
+        /**
+         * @brief Updates the error message with the frames currently in stack.
+         */
+        void updateMessage();
 
         /**
          * @brief Converts the exception type to a string.
@@ -75,7 +83,8 @@ namespace rome::core {
  * @param type The type of exception.
  * @param message The error message.
  */
-#define THROW_CORE_EXCEPTION(type, message) throw rome::core::Exception(type, message, __FILE__, __LINE__, __FUNCTION__)
+#define THROW_CORE_EXCEPTION(type, message) \
+    throw rome::core::Exception(type, message, __FILE__, __LINE__, std::source_location::current().function_name())
 
 /**
  * @brief Follows up a prior exception with a new one.

@@ -22,11 +22,10 @@ namespace rome::core {
             Registry& operator=(Registry&& other) noexcept = delete;
 
             /**
-             * @brief Registers a component type with the registry.
+             * @brief Registers a component type.
              * @tparam T The component type to register.
              * @return The ID of the registered component.
-             * @note This is not strictly necessary but should be used as a sanity check.
-             *       This function is thread-safe.
+             * @note This function is thread-safe.
              */
             template <Component T>
             ID enter() {
@@ -54,27 +53,27 @@ namespace rome::core {
              * @brief Creates a new component for the given entity.
              * @tparam T The component type to create.
              * @param entity The entity to create the component for.
-             * @return The created component.
+             * @return The created component or None.
              * @warning This function is not thread-safe.
              */
             template <Component T>
-            T& create(const Entity& entity, T& component) {
+            [[nodiscard]] OptRef<T> create(const Entity& entity, T& component) {
                 Pool<T>* pool = getPool<T>();
                 pool->insert(entity, component);
                 return pool->get(entity);
             }
 
             /**
-             * @brief Creates a new component for the given entity.
+             * @brief Creates a new component in-place for the given entity.
              * @tparam T The component type to create.
-             * @tparam Args The types of the arguments to forward to the component constructor.
+             * @tparam ...Args The types of the arguments to forward to the component constructor.
              * @param entity The entity to create the component for.
              * @param ...args The arguments to forward to the component constructor.
-             * @return The created component.
+             * @return The created component or none.
              * @warning This function is not thread-safe.
              */
             template <Component T, typename... Args>
-            T& create(const Entity& entity, Args&&... args) {
+            [[nodiscard]] OptRef<T> emplace(const Entity& entity, Args&&... args) {
                 Pool<T>* pool = getPool<T>();
                 pool->emplace(entity, std::forward<Args>(args)...);
                 return pool->get(entity);
@@ -95,24 +94,23 @@ namespace rome::core {
              * @brief Gets the component for the given entity.
              * @tparam T The component type to get.
              * @param entity The entity to get the component for.
-             * @return The component for the given entity.
+             * @return The component for the given entity or None.
              * @warning This function is not thread-safe.
              */
             template <Component T>
-            T& get(const Entity& entity) {
+            [[nodiscard]] OptRef<T> get(const Entity& entity) noexcept {
                 return getPool<T>()->get(entity);
             }
 
             /**
              * @brief Gets the component for the given entity.
              * @tparam T The component type to get.
-             * @tparam T The component type to get.
              * @param entity The entity to get the component for.
-             * @return The component for the given entity.
+             * @return The component for the given entity or None.
              * @warning This function is not thread-safe.
              */
             template <Component T>
-            const T& get(const Entity& entity) const {
+            [[nodiscard]] OptRef<const T> get(const Entity& entity) const noexcept {
                 return getPool<T>()->get(entity);
             }
 
@@ -121,40 +119,36 @@ namespace rome::core {
              * @return The total number of component types.
              * @warning This function is not thread-safe.
              */
-            u32 getSize() const;
+            u32 getSize() const noexcept;
 
             /**
              * @brief Checks if an entity has the given component.
-             * @param entity The entity to check.
              * @tparam T The component type to check.
+             * @param entity The entity to check.
              * @return True if the entity has the component, false otherwise.
              * @warning This function is not thread-safe.
              */
             template <Component T>
-            b8 has(const Entity& entity) const {
+            b8 has(const Entity& entity) const noexcept {
                 return getPool<T>()->contains(entity);
             }
 
             /**
-             * @brief Checks if an entity's archetype contains the entirety of the given set of components.
+             * @brief Checks if an entity's archetype contains all the given components.
              * @param entity The entity to check.
              * @param components The set of components to check against.
              * @return True if the entity's archetype contains every component, false otherwise.
              * @warning This function is not thread-safe.
              * @note The archetype does not need to exactly match the given set of components.
              */
-            b8 contains(const Entity& entity, const BitSet<Component::ID>& components) {
-                const BitSet<Component::ID>& archetype = archetypes[entity.getIndex()];
-                return (components & archetype) == components;
-            }
+            b8 contains(const Entity& entity, const BitSet<>& components) noexcept;
 
             /**
              * @brief Gets the name of a component type given its ID.
              * @return The name of the component type.
              * @warning This function is not thread-safe.
-             * @throws Exception::Type::NotFound if the ID is not registered.
              */
-            const std::string& getName(ID id) const;
+            [[nodiscard]] std::string getName(ID id) const;
 
             /**
              * @brief Fetches the concrete pool for the given component type.
@@ -176,7 +170,7 @@ namespace rome::core {
             std::unordered_map<std::string, ID, TransparentSVHash, std::equal_to<>> ids;  ///< Maps component names to their IDs.
             std::unordered_map<ID, std::string> names;                                    ///< Reverse lookup.
             std::atomic_uint32_t nextId{0};                                               ///< The next available ID for a component.
-            std::unordered_map<u64, BitSet<ID>> archetypes;                               ///< Maps entity IDs to their archetype signatures.
+            std::unordered_map<u64, BitSet<>> archetypes;                                 ///< Maps entity IDs to their archetype signatures.
 
             /**
              * @brief Gets the component ID for the given component type.

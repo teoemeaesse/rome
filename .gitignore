@@ -36,3 +36,5 @@ bin/
 .vscode/
 .last_build
 .DS_Store
+.cache/
+compile_commands.json
