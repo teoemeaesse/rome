@@ -1,6 +1,6 @@
-#include "chrono/timer.hpp"
+#include "rm/chrono/timer.hpp"
 
-#include "platform/platform.hpp"
+#include "rm/platform/platform.hpp"
 
 namespace rome::core {
     void Timer::start() { lastTime = Platform::getInstance().time(); }

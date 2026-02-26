@@ -1,7 +1,7 @@
-#include "app/strategy.hpp"
+#include "rm/app/strategy.hpp"
 
-#include "app/app.hpp"
-#include "debug/log.hpp"
+#include "rm/app/app.hpp"
+#include "rm/debug/log.hpp"
 
 namespace rome::core {
     ApplicationStrategy::ApplicationStrategy(const std::function<void(f64)>& tick, const std::function<void(f64)>& render)

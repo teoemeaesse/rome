@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include "reflection/external/primitives.hpp"
-#include "reflection/external/string.hpp"
+#include "rm/reflection/external/primitives.hpp"
+#include "rm/reflection/external/string.hpp"
 
 // Automate the test for all simple types
 #define STRINGIFY(x) #x

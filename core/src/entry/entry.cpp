@@ -1,9 +1,9 @@
-#include "entry/entry.hpp"
+#include "rm/entry/entry.hpp"
 
 #include <signal.h>
 
-#include "debug/log.hpp"
-#include "platform/platform.hpp"
+#include "rm/debug/log.hpp"
+#include "rm/platform/platform.hpp"
 
 rome::i32 main(rome::i32 argc, char** argv) {
     // Initialize the engine.

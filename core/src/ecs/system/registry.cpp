@@ -1,6 +1,6 @@
-#include "ecs/system/registry.hpp"
+#include "rm/ecs/system/registry.hpp"
 
-#include "ecs/system/descriptor.hpp"
+#include "rm/ecs/system/descriptor.hpp"
 
 namespace rome::core {
     namespace System {

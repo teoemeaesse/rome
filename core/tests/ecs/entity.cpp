@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "ecs/entity/registry.hpp"
+#include "rm/ecs/entity/registry.hpp"
 
 using namespace rome::core;
 

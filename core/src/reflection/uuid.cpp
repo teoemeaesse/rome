@@ -1,11 +1,11 @@
-#include "reflection/uuid.hpp"
+#include "rm/reflection/uuid.hpp"
 
 #include <iomanip>
 #include <random>
 #include <sstream>
 
-#include "debug/exception.hpp"
-#include "platform/platform.hpp"
+#include "rm/debug/exception.hpp"
+#include "rm/platform/platform.hpp"
 
 namespace rome::core {
     static inline i32 hexToValue(char c) {

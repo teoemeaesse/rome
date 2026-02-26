@@ -9,6 +9,9 @@ NC='\033[0m'
 BUILD_TYPE="standard"
 BUILD_FLAG_FILE=".last_build"
 
+# Option B: core install prefix at repo root
+DIST_DIR="$(pwd)/dist"
+
 usage() {
     echo -e "Usage: $0 [options]"
     echo "Options:"
@@ -17,7 +20,6 @@ usage() {
     echo "  --help, -h       Display this help message."
 }
 
-RUN=0
 RELEASE=0
 TESTS=0
 for arg in "$@"; do
@@ -52,7 +54,7 @@ if [ "$TESTS" -eq 1 ]; then
 fi
 
 if [ -f "$BUILD_FLAG_FILE" ]; then
-    LAST_BUILD_TYPE=$(cat $BUILD_FLAG_FILE)
+    LAST_BUILD_TYPE=$(cat "$BUILD_FLAG_FILE")
     if [ "$LAST_BUILD_TYPE" != "$BUILD_TYPE" ]; then
         echo -e "${YELLOW}Build type has changed (last: $LAST_BUILD_TYPE, current: $BUILD_TYPE). Cleaning up...${NC}"
         ./clean.sh
@@ -61,17 +63,22 @@ fi
 
 echo "$BUILD_TYPE" > "$BUILD_FLAG_FILE"
 
+mkdir -p "$DIST_DIR"
+
 echo -e "${GREEN}Building core module...${NC}"
-(cd core && ./build.sh $RELEASE_FLAG $TESTS_FLAG)
-CORE_STATUS=$?
-if [ $CORE_STATUS -ne 0 ]; then
-    echo -e "${RED}Core build failed. Aborting.${NC}"
-    exit $CORE_STATUS
+# Option B: install core (unless running tests-only mode)
+if [ "$TESTS" -eq 0 ]; then
+    (cd core && ./build.sh $RELEASE_FLAG --install --prefix "../dist")
+else
+    (cd core && ./build.sh $RELEASE_FLAG $TESTS_FLAG)
 fi
 
+echo -e "${GREEN}Core build completed.${NC}"
+
 if [ "$TESTS" -eq 0 ]; then
-    echo -e "${GREEN}Building engine module...${NC}"
-    (cd engine && ./build.sh $RELEASE_FLAG)
+    echo -e "${GREEN}Building engine module (CORE_PREFIX=${DIST_DIR})...${NC}"
+    (cd engine && ./build.sh $RELEASE_FLAG --core-prefix "$DIST_DIR")
+
     echo -e "${GREEN}Building sandbox module...${NC}"
     (cd sandbox && ./build.sh $RELEASE_FLAG)
 else
@@ -81,6 +88,10 @@ fi
 echo -e "${GREEN}Root build script completed.${NC}"
 
 if [ "$TESTS" -eq 1 ]; then
-    echo -e "${GREEN}Test results.${NC}"
-    cat ./core/build/Testing/Temporary/LastTest.log  
+    echo -e "${GREEN}Test results:${NC}"
+    if [ -f "./core/build/Testing/Temporary/LastTest.log" ]; then
+        cat ./core/build/Testing/Temporary/LastTest.log
+    else
+        echo -e "${YELLOW}No LastTest.log found. Tests may not have run (ctest).${NC}"
+    fi
 fi

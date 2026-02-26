@@ -1,6 +1,6 @@
-#include "debug/exception.hpp"
+#include "rm/debug/exception.hpp"
 
-#include "debug/log.hpp"
+#include "rm/debug/log.hpp"
 
 namespace rome::core {
     const std::string& Exception::typeToString(Type type) noexcept {

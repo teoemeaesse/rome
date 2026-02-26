@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
-#include "ecs/component/registry.hpp"
-#include "ecs/entity/registry.hpp"
-#include "reflection/traits/field.hpp"
+#include "rm/ecs/component/registry.hpp"
+#include "rm/ecs/entity/registry.hpp"
+#include "rm/reflection/traits/field.hpp"
 
 using namespace rome::core;
 

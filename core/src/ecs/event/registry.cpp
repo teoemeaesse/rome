@@ -1,6 +1,6 @@
-#include "ecs/event/registry.hpp"
+#include "rm/ecs/event/registry.hpp"
 
-#include "debug/exception.hpp"
+#include "rm/debug/exception.hpp"
 
 namespace rome::core {
     namespace Event {

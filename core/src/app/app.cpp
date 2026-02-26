@@ -1,6 +1,6 @@
-#include "app/app.hpp"
+#include "rm/app/app.hpp"
 
-#include "app/twin_threads.hpp"
+#include "rm/app/twin_threads.hpp"
 
 namespace rome::core {
     Application::Application(const Config& config)

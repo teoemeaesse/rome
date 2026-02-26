@@ -1,4 +1,4 @@
-#include "platform/platform.hpp"
+#include "rm/platform/platform.hpp"
 
 #ifdef RM_LINUX
 
@@ -7,7 +7,7 @@
 
 #include <chrono>
 
-#include "debug/log.hpp"
+#include "rm/debug/log.hpp"
 
 namespace rome::core {
     static volatile sig_atomic_t sigInt = 0;   ///< SIGINT signal.

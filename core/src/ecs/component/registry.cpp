@@ -1,4 +1,4 @@
-#include "ecs/component/registry.hpp"
+#include "rm/ecs/component/registry.hpp"
 
 namespace rome::core {
     namespace Component {

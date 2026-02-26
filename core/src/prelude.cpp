@@ -1,6 +1,6 @@
-#include "prelude.hpp"
+#include "rm/prelude.hpp"
 
-#include "debug/log.hpp"
+#include "rm/debug/log.hpp"
 
 void assertFail(const char* expression, const char* file, int line, const char* function) {
     if (!expression || !file || !function) RM_ERROR("\"assertFail\" called with NULL argument(s)");

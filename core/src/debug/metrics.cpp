@@ -1,9 +1,9 @@
-#include "debug/metrics.hpp"
+#include "rm/debug/metrics.hpp"
 
 #include <new>
 
-#include "concurrency/thread.hpp"
-#include "debug/exception.hpp"
+#include "rm/concurrency/thread.hpp"
+#include "rm/debug/exception.hpp"
 
 static std::atomic_bool metricsRunning = false;       ///< Whether the metrics system should be logging performance data.
 static thread_local rome::b8 recursionGuard = false;  ///< Used to prevent circular new / delete calls.

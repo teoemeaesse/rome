@@ -1,6 +1,6 @@
-#include "ecs/group/group.hpp"
+#include "rm/ecs/group/group.hpp"
 
-#include "ecs/system/descriptor.hpp"
+#include "rm/ecs/system/descriptor.hpp"
 
 namespace rome::core {
     Group::Group(const System::Descriptor& descriptor)

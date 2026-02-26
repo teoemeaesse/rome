@@ -1,11 +1,11 @@
-#include "container/sparse_set.hpp"
+#include "rm/container/sparse_set.hpp"
 
 #include <gtest/gtest.h>
 
 #include <limits>
 
-#include "debug/exception.hpp"
-#include "prelude.hpp"
+#include "rm/debug/exception.hpp"
+#include "rm/prelude.hpp"
 
 using namespace rome::core;
 
