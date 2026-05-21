@@ -3,6 +3,8 @@
 #include <iomanip>
 #include <sstream>
 
+#include "rm/platform/platform.hpp"
+
 namespace rome::core {
     struct MD5::Context {
         u32 state[4];   // MD5 state (ABCD)
@@ -176,14 +178,20 @@ namespace rome::core {
 
     MD5::MD5(const std::string& input) : MD5::MD5(input.c_str(), input.length()) {}
 
-    MD5::MD5(const char* input, u32 length) { hash(input, length); }
+    MD5::MD5(const char* input, u32 length) {
+        hash(input, length);
 
-    MD5::operator std::string() const {
         std::ostringstream oss;
         oss << std::hex << std::setfill('0');
-        for (int i = 0; i < 16; ++i) oss << std::setw(2) << static_cast<u32>(digest[i]);
-        return oss.str();
+        for (i32 i = 0; i < 16; i++) oss << std::setw(2) << static_cast<u32>(digest[i]);
+        str = oss.str();
     }
+
+    MD5::operator const std::string&() const { return str; }
+
+    MD5::operator std::string_view() const { return std::string_view(str); }
+
+    MD5::operator const char*() const { return str.c_str(); }
 
     void MD5::hash(const char* input, u32 length) {
         Context context;

@@ -23,7 +23,7 @@ namespace rome::core {
          */
         template <Component::Component T>
         Component::ID registerComponent() {
-            return components.enter<T>();
+            return components.submit<T>();
         }
 
         /**

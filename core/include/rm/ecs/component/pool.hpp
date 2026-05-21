@@ -3,8 +3,7 @@
 #include "rm/container/sparse_set.hpp"
 #include "rm/debug/log.hpp"
 #include "rm/ecs/component/component.hpp"
-#include "rm/ecs/entity/registry.hpp"
-#include "rm/prelude.hpp"
+#include "rm/ecs/entity/entity.hpp"
 
 namespace rome::core {
     namespace Component {
@@ -23,7 +22,7 @@ namespace rome::core {
         template <Component T>
         class RM_API Pool final : public Storage {
             public:
-            Pool() : type(Reflect::reflect<T>().getType()) {}
+            Pool() = default;
             ~Pool() = default;
             Pool(const Pool& other) = delete;
             Pool(Pool&& other) noexcept = default;
@@ -33,16 +32,16 @@ namespace rome::core {
             /**
              * @brief Gets the component for the given entity.
              * @param entity The entity to get the component for.
-             * @return The component for the given entity or None.
+             * @return A pointer to the component for the given entity.
              */
-            [[nodiscard]] OptRef<T> get(const Entity& entity) noexcept { return entities[entity.getIndex()]; }
+            [[nodiscard]] T* get(const Entity& entity) noexcept { return entities[entity.getIndex()]; }
 
             /**
              * @brief Gets the component for the given entity.
              * @param entity The entity to get the component for.
-             * @return The component for the given entity or None.
+             * @return A const pointer to the component for the given entity.
              */
-            [[nodiscard]] OptRef<const T> get(const Entity& entity) const noexcept { return entities[entity.getIndex()]; }
+            [[nodiscard]] const T* get(const Entity& entity) const noexcept { return entities[entity.getIndex()]; }
 
             /**
              * @brief Inserts the component for the given entity.
@@ -98,6 +97,12 @@ namespace rome::core {
             std::pair<T*, u64> getData() noexcept { return entities.getData(); }
 
             /**
+             * @brief Retrieves a contiguous data pointer and the size of the pool.
+             * @return A pair containing a pointer to the start of the block and the size of the pool.
+             */
+            const std::pair<const T*, u64> getData() const noexcept { return entities.getData(); }
+
+            /**
              * @brief Gets the reflected type for this pool's component type.
              * @return The reflected type for this pool's component type.
              */
@@ -114,7 +119,6 @@ namespace rome::core {
 
             private:
             SparseSet<T> entities;  ///< The entities with this component.
-            Type& type;             ///< The reflected type for this component.
         };
     }  // namespace Component
 }  // namespace rome::core

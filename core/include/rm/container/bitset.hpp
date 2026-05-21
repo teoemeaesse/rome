@@ -1,5 +1,6 @@
 #pragma once
 
+#include "rm/debug/log.hpp"
 #include "rm/prelude.hpp"
 
 namespace rome::core {
@@ -159,31 +160,35 @@ namespace rome::core {
          * @param bit The bit index to test.
          * @return True if the bit is set, false otherwise.
          */
-        b8 test(u64 bit) const { return (*locate(static_cast<u64>(bit)) & (1ull << (static_cast<u64>(bit) & 63))) != 0; }
+        b8 test(u64 bit) const {
+            const u64* loc = locate(bit);
+            if (loc == nullptr) return false;
+            return (*loc & (1ull << (bit & 63))) != 0;
+        }
 
         /**
          * @brief Sets a bit to true.
          * @param bit The bit index to set.
          */
-        void set(u64 bit) { mutate(static_cast<u64>(bit), true); }
+        void set(u64 bit) { mutate(bit, true); }
 
         /**
          * @brief Sets a bit to false.
          * @param bit The bit index to clear.
          */
-        void reset(u64 bit) { mutate(static_cast<u64>(bit), false); }
+        void reset(u64 bit) { mutate(bit, false); }
 
         /**
          * @brief Toggles a bit.
          * @param bit The bit index to toggle.
          */
         void flip(u64 bit) {
-            u64* w = locate(static_cast<u64>(bit));
-            *w ^= 1ull << (static_cast<u64>(bit) & 63);
+            u64* w = locate(bit);
+            *w ^= 1ull << (bit & 63);
         }
 
         /**
-         * @brief Sets all bits to false.
+         * @brief Sets all bits to 0.
          */
         void clear() {
             direct.fill(0);
@@ -274,7 +279,7 @@ namespace rome::core {
         /**
          * @brief Locates the underlying 64‑bit word that contains a given bit (mutable).
          * @param bit The global bit index to locate.
-         * @return A pair of (container pointer, word index) where the bit resides.
+         * @return A pointer to where the bit resides.
          */
         u64* locate(u64 bit) {
             if (bit < Size) return &direct[bit >> 6];
@@ -289,17 +294,21 @@ namespace rome::core {
         /**
          * @brief Locates the underlying 64‑bit word that contains a given bit (const).
          * @param bit The global bit index to locate.
-         * @return A pair of (const container pointer, word index) where the bit resides.
+         * @return A pointer to where the bit resides.
          */
         const u64* locate(u64 bit) const {
             if (bit < Size) return &direct[bit >> 6];
 
             const u64 word = (bit - Size) >> 6;
+            if (spill.size() <= word) {
+                RM_DEBUG("Bit is out of bounds");
+                return nullptr;
+            }
             return &spill[word];
         }
 
         /**
-         * @brief Sets or clears a single bit without bounds checking.
+         * @brief Sets or clears a single bit.
          * @param bit The bit index to modify.
          * @param value True to set the bit, false to clear it.
          */

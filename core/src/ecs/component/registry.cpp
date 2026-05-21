@@ -5,15 +5,15 @@ namespace rome::core {
         u32 Registry::getSize() const noexcept { return store.size(); }
 
         b8 Registry::contains(const Entity& entity, const BitSet<>& components) noexcept {
-            return (archetypes[entity.getIndex()] & components) == components;
+            auto it = archetypes.find(entity.getIndex());
+            if (it == archetypes.end()) return false;
+            return (it->second & components) == components;
         }
 
         std::string Registry::getName(ID id) const {
+            std::shared_lock lock(idsLock);
             auto it = names.find(id);
-            if (it != names.end()) {
-                return it->second;
-            }
-            return "";
+            return it != names.end() ? it->second : std::string{};
         }
     }  // namespace Component
 }  // namespace rome::core

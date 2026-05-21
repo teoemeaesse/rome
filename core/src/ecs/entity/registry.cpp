@@ -16,6 +16,7 @@ namespace rome::core {
     }
 
     void Entity::Registry::destroy(Entity entity) {
+        if (!isAlive(entity)) return;
         const u64 index = getIndex(entity.id);
         setIndex(entities[index], next);
         setVersion(entities[index], getVersion(entities[index]) + 1);
@@ -23,5 +24,9 @@ namespace rome::core {
         available++;
     }
 
-    b8 Entity::Registry::isAlive(Entity entity) const { return getVersion(entities[getIndex(entity.id)]) == getVersion(entity.id); }
+    b8 Entity::Registry::isAlive(Entity entity) const {
+        const u64 index = getIndex(entity.id);
+
+        return index < entities.size() && getVersion(entities[index]) == getVersion(entity.id);
+    }
 }  // namespace rome::core

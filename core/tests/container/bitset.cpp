@@ -4,11 +4,65 @@
 
 using namespace rome::core;
 
-constexpr rome::u64 InlineBits = 100;
+constexpr rome::u64 InlineBits = 128;
 constexpr rome::u64 BigId = InlineBits + 123;  // forces spill resize
 
-TEST(BitSetMinimumFunctionalityTest, SetResetAndTestInline) {
-    BitSet<128> mask;
+TEST(BitSet, Constructors_DefaultCopyMove_OK) {
+    BitSet<InlineBits> mask;
+    EXPECT_FALSE(mask.test(127));
+    EXPECT_EQ(mask.count(), 0u);
+    mask.set(127);
+    EXPECT_TRUE(mask.test(127));
+    EXPECT_EQ(mask.count(), 1u);
+
+    BitSet<InlineBits> list({1, 3, 5, 7, 11, 13});
+    EXPECT_TRUE(list.test(1));
+    EXPECT_TRUE(list.test(3));
+    EXPECT_TRUE(list.test(5));
+    EXPECT_TRUE(list.test(7));
+    EXPECT_TRUE(list.test(11));
+    EXPECT_TRUE(list.test(13));
+
+    BitSet<InlineBits> copy(mask);
+    EXPECT_TRUE(copy.test(127));
+    EXPECT_EQ(copy.count(), 1u);
+    copy.set(42);
+    EXPECT_TRUE(copy.test(42));
+    EXPECT_EQ(copy.count(), 2u);
+
+    BitSet<InlineBits> move(std::move(copy));
+    EXPECT_TRUE(move.test(42));
+    EXPECT_EQ(move.count(), 2u);
+    move.set(13);
+    EXPECT_TRUE(move.test(13));
+    EXPECT_EQ(move.count(), 3u);
+}
+
+TEST(BitSet, Assignment_DefaultCopyMove_OK) {
+    BitSet<InlineBits> mask;
+    EXPECT_FALSE(mask.test(127));
+    EXPECT_EQ(mask.count(), 0u);
+    mask.set(127);
+    EXPECT_TRUE(mask.test(127));
+    EXPECT_EQ(mask.count(), 1u);
+
+    BitSet<InlineBits> copy = mask;
+    EXPECT_TRUE(copy.test(127));
+    EXPECT_EQ(copy.count(), 1u);
+    copy.set(42);
+    EXPECT_TRUE(copy.test(42));
+    EXPECT_EQ(copy.count(), 2u);
+
+    BitSet<InlineBits> move = std::move(copy);
+    EXPECT_TRUE(move.test(42));
+    EXPECT_EQ(move.count(), 2u);
+    move.set(13);
+    EXPECT_TRUE(move.test(13));
+    EXPECT_EQ(move.count(), 3u);
+}
+
+TEST(BitSet, SetReset_Always_OK) {
+    BitSet<InlineBits> mask;
     mask.set(3);
     mask.set(7);
     EXPECT_TRUE(mask.test(3));
@@ -18,8 +72,9 @@ TEST(BitSetMinimumFunctionalityTest, SetResetAndTestInline) {
     EXPECT_FALSE(mask.test(3));
     EXPECT_EQ(mask.count(), 1u);
 }
-TEST(BitSetFunctionalityTest, AnyNoneCount) {
-    BitSet<128> mask;
+
+TEST(BitSet, AnyNoneCount_Always_OK) {
+    BitSet<InlineBits> mask;
     EXPECT_TRUE(mask.none());
     EXPECT_FALSE(mask.any());
     EXPECT_EQ(mask.count(), 0u);
@@ -29,24 +84,28 @@ TEST(BitSetFunctionalityTest, AnyNoneCount) {
     EXPECT_FALSE(mask.none());
     EXPECT_EQ(mask.count(), 2u);
 }
-TEST(BitSetFunctionalityTest, SpillResizeAndAccess) {
-    BitSet<128> mask;
-    mask.resize(BigId + 1);
+
+TEST(BitSet, SetReset_Spills_Resizes) {
+    BitSet<InlineBits> mask;
     mask.set(BigId);
+    mask.set(BigId + 100);
     EXPECT_TRUE(mask.test(BigId));
-    EXPECT_EQ(mask.count(), 1u);
+    EXPECT_TRUE(mask.test(BigId + 100));
+    EXPECT_EQ(mask.count(), 2u);
 }
-TEST(BitSetFunctionalityTest, BinaryOrAndIntersects) {
-    BitSet<128> a, b;
+
+TEST(BitSet, AndOrIntersects_MatchingWidth_OK) {
+    BitSet<InlineBits> a, b;
     a.set(1);
-    a.set(BigId);
     b.set(BigId);
+    EXPECT_FALSE(a.intersects(b));
+    a.set(BigId);
     EXPECT_TRUE(a.intersects(b));
-    BitSet<128> c = a & b;
+    BitSet<InlineBits> c = a & b;
     EXPECT_TRUE(c.test(BigId));
     EXPECT_FALSE(c.test(1));
     EXPECT_EQ(c.count(), 1u);
-    BitSet<128> d = a | b;
+    BitSet<InlineBits> d = a | b;
     EXPECT_TRUE(d.test(1));
     EXPECT_TRUE(d.test(BigId));
     EXPECT_EQ(d.count(), 2u);
@@ -58,24 +117,22 @@ TEST(BitSetFunctionalityTest, BinaryOrAndIntersects) {
     EXPECT_TRUE(d.test(1));
     EXPECT_TRUE(d.test(BigId));
 }
-TEST(BitSetDeathTest, MismatchedCapacityAssertion) {
-    BitSet<128> small;
-    BitSet<128> big;
+
+TEST(BitSet, AndOrIntersectsExcept_DifferentWidth_Fails) {
+    BitSet<InlineBits> small;
+    BitSet<InlineBits> big;
     big.resize(2048);
-    EXPECT_DEATH({ small |= big; }, "");
+    EXPECT_DEATH(auto x = small | big, "");
+    EXPECT_DEATH(small |= big, "");
+    EXPECT_DEATH(auto x = small & big, "");
+    EXPECT_DEATH(small &= big, "");
+    EXPECT_DEATH(auto x = small - big, "");
+    EXPECT_DEATH(small -= big, "");
     EXPECT_FALSE(small.intersects(big));
 }
-TEST(BitSetFunctionalityTest, CopyAndMove) {
-    BitSet<128> a;
-    a.set(3);
-    a.set(BigId);
-    BitSet<128> copy(a);
-    EXPECT_EQ(copy.count(), 2u);
-    BitSet<128> moved(std::move(a));
-    EXPECT_EQ(moved.count(), 2u);
-}
-TEST(BitSetFunctionalityTest, ClearResetsAllBits) {
-    BitSet<128> mask;
+
+TEST(BitSet, Clear_Always_OK) {
+    BitSet<InlineBits> mask;
     mask.set(7);
     mask.set(BigId);
     EXPECT_TRUE(mask.any());
@@ -84,8 +141,9 @@ TEST(BitSetFunctionalityTest, ClearResetsAllBits) {
     EXPECT_TRUE(mask.none());
     EXPECT_EQ(mask.count(), 0u);
 }
-TEST(BitSetFunctionalityTest, FlipTogglesBits) {
-    BitSet<128> mask;
+
+TEST(BitSet, Flip_Always_OK) {
+    BitSet<InlineBits> mask;
     mask.flip(42);
     EXPECT_TRUE(mask.test(42));
     mask.flip(42);
@@ -95,14 +153,15 @@ TEST(BitSetFunctionalityTest, FlipTogglesBits) {
     mask.flip(BigId);
     EXPECT_FALSE(mask.test(BigId));
 }
-TEST(BitSetFunctionalityTest, Except) {
-    BitSet<128> a, b;
+
+TEST(BitSet, Except_MatchingWidth_OK) {
+    BitSet<InlineBits> a, b;
     a.set(1);
     a.set(2);
     a.set(BigId);
     b.set(2);
     b.set(BigId);
-    BitSet<128> diff = a - b;
+    BitSet<InlineBits> diff = a - b;
     EXPECT_TRUE(diff.test(1));
     EXPECT_FALSE(diff.test(2));
     EXPECT_FALSE(diff.test(BigId));
@@ -112,12 +171,4 @@ TEST(BitSetFunctionalityTest, Except) {
     EXPECT_FALSE(a.test(2));
     EXPECT_FALSE(a.test(BigId));
     EXPECT_EQ(a.count(), 1u);
-}
-TEST(BitSetFactoryTest, CreateInitialisesCorrectBits) {
-    const rome::u64 big_val = static_cast<rome::u64>(BigId);
-    auto mask = BitSet<128>::create({static_cast<rome::u64>(1), static_cast<rome::u64>(3), big_val});
-    EXPECT_TRUE(mask.test(1));
-    EXPECT_TRUE(mask.test(3));
-    EXPECT_TRUE(mask.test(BigId));
-    EXPECT_EQ(mask.count(), 3u);
 }

@@ -174,10 +174,10 @@ namespace rome {
     }
 
     /* Optional type alias */
-    template <typename T>
-    using Opt = std::optional<T>;
-    template <typename T>
-    using OptRef = std::optional<std::reference_wrapper<T>>;
+    // template <typename T>
+    // using Opt = std::optional<T>;
+    // template <typename T>
+    // using OptRef = std::optional<std::reference_wrapper<T>>;
     using NoneType = std::nullopt_t;
     inline constexpr NoneType None = std::nullopt;
 

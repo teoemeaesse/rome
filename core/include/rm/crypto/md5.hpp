@@ -1,6 +1,6 @@
 #pragma once
 
-#include "rm/platform/platform.hpp"
+#include "rm/prelude.hpp"
 
 namespace rome::core {
     /**
@@ -34,12 +34,25 @@ namespace rome::core {
          * @brief Get the MD5 hash as a string.
          * @return The MD5 hash as a string.
          */
-        operator std::string() const;
+        operator const std::string&() const;
+
+        /**
+         * @brief Get the MD5 hash as a string view.
+         * @return The MD5 hash as a string view.
+         */
+        operator std::string_view() const;
+
+        /**
+         * @brief Get the MD5 hash as a C string.
+         * @return The MD5 hash as a C string.
+         */
+        operator const char*() const;
 
         struct Context;
 
         private:
-        u8 digest[16];  ///< Hash.
+        u8 digest[16];    ///< Hash.
+        std::string str;  ///< Hex representation of the hash.
 
         /**
          * @brief Main hashing function.

@@ -2,85 +2,125 @@
 
 #include "rm/ecs/entity/registry.hpp"
 
+using namespace rome;
 using namespace rome::core;
 
-/**
- * @brief Tests basic creation, destruction, and reuse of Entity slots.
- */
-TEST(EntityRegistryTest, CreateDestroyReuse) {
+TEST(Entity, Comparison_SameHandle_IsEqual) {
     Entity::Registry registry;
+    Entity e = registry.create();
+    Entity copy = e;
 
-    Entity e1 = registry.create();
-    Entity e2 = registry.create();
-    EXPECT_TRUE(registry.isAlive(e1));
-    EXPECT_TRUE(registry.isAlive(e2));
-
-    // Entities should be different right after creation
-    EXPECT_NE(e1, e2);
-
-    registry.destroy(e2);
-    EXPECT_FALSE(registry.isAlive(e2));
-
-    // Create a third entity, which should reuse the e2 slot but with an incremented version
-    Entity e3 = registry.create();
-    EXPECT_TRUE(registry.isAlive(e3));
-
-    // The new entity should not be equal to the old e2 because its version has changed
-    EXPECT_NE(e2, e3);
-    EXPECT_NE(e1, e3);
+    EXPECT_TRUE(e == copy);
+    EXPECT_FALSE(e != copy);
 }
 
-/**
- * @brief Tests that multiple creates without destruction yield distinct entities.
- */
-TEST(EntityRegistryTest, MultipleCreateDistinct) {
+TEST(Entity, Comparison_DifferentHandle_NotEqual) {
     Entity::Registry registry;
-
-    // Create several entities in a row
+    Entity e0 = registry.create();
     Entity e1 = registry.create();
-    Entity e2 = registry.create();
-    Entity e3 = registry.create();
-    EXPECT_TRUE(registry.isAlive(e1));
-    EXPECT_TRUE(registry.isAlive(e2));
-    EXPECT_TRUE(registry.isAlive(e3));
 
-    // All should differ
-    EXPECT_NE(e1, e2);
-    EXPECT_NE(e2, e3);
-    EXPECT_NE(e1, e3);
+    EXPECT_TRUE(e0 != e1);
+    EXPECT_FALSE(e0 == e1);
 }
 
-/**
- * @brief Tests destruction of multiple entities in random order.
- */
-TEST(EntityRegistryTest, DestroyInDifferentOrder) {
+TEST(EntityRegistry, Create_InBounds_ReturnsAliveEntity) {
     Entity::Registry registry;
 
+    Entity e0 = registry.create();
     Entity e1 = registry.create();
     Entity e2 = registry.create();
-    Entity e3 = registry.create();
+
+    EXPECT_TRUE(registry.isAlive(e0));
     EXPECT_TRUE(registry.isAlive(e1));
     EXPECT_TRUE(registry.isAlive(e2));
-    EXPECT_TRUE(registry.isAlive(e3));
+}
 
-    registry.destroy(e2);
-    EXPECT_FALSE(registry.isAlive(e2));
+TEST(EntityRegistry, Destroy_InBounds_KillsEntity) {
+    Entity::Registry registry;
+    Entity e = registry.create();
 
-    // Create a new entity (should reuse the slot from e2)
-    Entity e4 = registry.create();
-    EXPECT_TRUE(registry.isAlive(e4));
-    EXPECT_NE(e2, e4);
+    ASSERT_TRUE(registry.isAlive(e));
 
-    // Now destroy the first one
-    registry.destroy(e1);
-    EXPECT_FALSE(registry.isAlive(e1));
+    registry.destroy(e);
 
-    // Create another entity (should reuse the slot from e1)
-    Entity e5 = registry.create();
-    EXPECT_TRUE(registry.isAlive(e5));
-    EXPECT_NE(e1, e5);
+    EXPECT_FALSE(registry.isAlive(e));
+}
 
-    // e3 is still alive and should be distinct from newly created entities
-    EXPECT_NE(e3, e4);
-    EXPECT_NE(e3, e5);
+TEST(EntityRegistry, Destroy_ThenCreate_RecyclesEntity) {
+    Entity::Registry registry;
+    Entity e0 = registry.create();
+
+    registry.destroy(e0);
+    Entity e1 = registry.create();
+
+    EXPECT_EQ(e1.getIndex(), e0.getIndex());
+    EXPECT_EQ(e1.getVersion(), e0.getVersion() + 1);
+    EXPECT_NE(e1, e0);
+
+    EXPECT_FALSE(registry.isAlive(e0));
+    EXPECT_TRUE(registry.isAlive(e1));
+}
+
+TEST(EntityRegistry, Destroy_Repeated_IncrementsVersion) {
+    Entity::Registry registry;
+    Entity e = registry.create();
+
+    for (u64 expectedVersion = 1; expectedVersion <= 128; ++expectedVersion) {
+        registry.destroy(e);
+        EXPECT_FALSE(registry.isAlive(e));
+
+        e = registry.create();
+        EXPECT_EQ(e.getIndex(), 0);
+        EXPECT_EQ(e.getVersion(), expectedVersion);
+        EXPECT_TRUE(registry.isAlive(e));
+    }
+}
+
+TEST(EntityRegistry, Destroy_Repeated_KillsEntities) {
+    Entity::Registry registry;
+
+    std::vector<Entity> entities;
+    for (u64 i = 0; i < 128; ++i) entities.push_back(registry.create());
+
+    for (Entity e : entities) registry.destroy(e);
+    for (Entity e : entities) EXPECT_FALSE(registry.isAlive(e));
+}
+
+TEST(EntityRegistry, Destroy_Duplicate_OK) {
+    Entity::Registry registry;
+    Entity e = registry.create();
+
+    registry.destroy(e);
+    registry.destroy(e);
+    registry.destroy(e);
+    registry.destroy(e);
+
+    EXPECT_FALSE(registry.isAlive(e));
+}
+
+TEST(EntityRegistry, Destroy_StaleHandle_NoEffect) {
+    Entity::Registry registry;
+    Entity first = registry.create();
+
+    registry.destroy(first);
+    Entity second = registry.create();
+
+    ASSERT_EQ(first.getIndex(), second.getIndex());
+    ASSERT_NE(first.getVersion(), second.getVersion());
+
+    registry.destroy(first);
+
+    EXPECT_TRUE(registry.isAlive(second));
+    EXPECT_FALSE(registry.isAlive(first));
+    ASSERT_EQ(first.getIndex(), second.getIndex());
+    ASSERT_NE(first.getVersion(), second.getVersion());
+}
+
+TEST(EntityRegistry, IsAlive_WrongRegistry_OK) {
+    Entity::Registry registry0;
+    Entity::Registry registry1;
+
+    Entity created = registry0.create();
+
+    EXPECT_FALSE(registry1.isAlive(created));
 }

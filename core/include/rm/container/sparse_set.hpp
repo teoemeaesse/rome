@@ -53,7 +53,7 @@ namespace rome::core {
          * @return True if the insert succeeded, false otherwise.
          */
         b8 try_insert(u64 index, T&& value) {
-            if (index == std::numeric_limits<u64>::max()) {
+            if (index < 0 || index >= std::numeric_limits<u64>::max()) {
                 RM_DEBUG("Index is out of bounds");
                 return false;
             }
@@ -172,20 +172,24 @@ namespace rome::core {
         }
 
         /**
-         * @brief Swaps two elements in the sparse set.
+         * @brief Swaps the internal position of two elements.
          * @param index1 The index of the first element to swap.
          * @param index2 The index of the second element to swap.
+         * @warning Invalidates all iterators.
          */
         void swap(u64 index1, u64 index2) noexcept {
             if (index1 == index2 || !contains(index1) || !contains(index2)) {
+                RM_DEBUG("Tried to swap invalid indices");
                 return;
             }
             u64 pos1 = sparse[index1];
             u64 pos2 = sparse[index2];
 
             std::swap(dense[pos1], dense[pos2]);
-            std::swap(sparse[index1], sparse[index2]);
             std::swap(data[pos1], data[pos2]);
+
+            sparse[dense[pos1]] = pos1;
+            sparse[dense[pos2]] = pos2;
         }
 
         /**
@@ -196,11 +200,18 @@ namespace rome::core {
         std::pair<T*, u64> getData() noexcept { return {data.data(), size}; }
 
         /**
+         * @brief Fetches the data of the sparse set.
+         * @return A pair containing a pointer to the data and the size of the sparse set.
+         * @warning The data pointer is only valid as long as the sparse set's size does not change.
+         */
+        std::pair<const T*, u64> getData() const noexcept { return {data.data(), size}; }
+
+        /**
          * @brief Gets a pointer to the given index.
          * @param index The index to get the value from.
          * @return The pointer to the given index.
          */
-        const T* operator[](u64 index) const noexcept {
+        T* operator[](u64 index) noexcept {
             if (!contains(index)) {
                 return nullptr;
             }
@@ -212,7 +223,7 @@ namespace rome::core {
          * @param index The index to get the value from.
          * @return The pointer to the given index.
          */
-        T* operator[](u64 index) noexcept {
+        const T* operator[](u64 index) const noexcept {
             if (!contains(index)) {
                 return nullptr;
             }
@@ -252,7 +263,7 @@ namespace rome::core {
          * @param index The index to check.
          * @return True if the sparse set contains a value at the given index, false otherwise.
          */
-        b8 contains(u64 index) const noexcept { return index < sparse.size() && sparse[index] < dense.size() && dense[sparse[index]] == index; }
+        b8 contains(u64 index) const noexcept { return index < sparse.size() && sparse[index] < size && dense[sparse[index]] == index; }
 
         /**
          * @brief Returns the number of elements in the sparse set.

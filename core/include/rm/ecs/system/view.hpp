@@ -100,7 +100,7 @@ namespace rome::core {
                 constexpr u64 index = index_of<remove_all_qualifiers_t<T>, remove_all_qualifiers_t<Components>...>::value;
                 auto* pool = ctx.world.components.getPool<remove_all_qualifiers_t<T>>();
                 auto [ptr, _] = pool->getData();
-                if (ctx.group.owning.test(ctx.world.components.enter<remove_all_qualifiers_t<T>>())) {
+                if (ctx.group.owning.test(ctx.world.components.submit<remove_all_qualifiers_t<T>>())) {
                     std::get<index>(owned) = ptr;
                     std::get<index>(pools) = nullptr;
                 } else {

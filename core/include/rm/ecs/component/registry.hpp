@@ -28,25 +28,25 @@ namespace rome::core {
              * @note This function is thread-safe.
              */
             template <Component T>
-            ID enter() {
+            ID submit() {
                 static const std::string_view name = Reflect::reflect<T>().getType().getName();
 
                 {
-                    std::shared_lock read(idsLock);
+                    std::shared_lock readLock(idsLock);
                     auto it = ids.find(name);
                     if (it != ids.end()) return it->second;
                 }
 
-                std::unique_lock write(idsLock);
-                auto [it, inserted] = ids.emplace(name, nextId.load());
-                if (inserted) {
-                    ID id = nextId.fetch_add(1);
-                    it->second = id;
-                    names.emplace(id, std::string(name));
-                    store.emplace(id, std::make_unique<Pool<T>>());
-                    return id;
-                }
-                return it->second;
+                std::unique_lock writeLock(idsLock);
+
+                auto existing = ids.find(name);
+                if (existing != ids.end()) return existing->second;
+
+                ID id = nextId.fetch_add(1);
+                ids.emplace(name, id);
+                names.emplace(id, std::string(name));
+                store.emplace(id, MakeUnique<Pool<T>>());
+                return id;
             }
 
             /**
@@ -57,9 +57,11 @@ namespace rome::core {
              * @warning This function is not thread-safe.
              */
             template <Component T>
-            [[nodiscard]] OptRef<T> create(const Entity& entity, T& component) {
+            [[nodiscard]] T* create(const Entity& entity, const T& component) {
+                ID id = submit<T>();
                 Pool<T>* pool = getPool<T>();
                 pool->insert(entity, component);
+                archetypes[entity.getIndex()].set(id);
                 return pool->get(entity);
             }
 
@@ -73,9 +75,11 @@ namespace rome::core {
              * @warning This function is not thread-safe.
              */
             template <Component T, typename... Args>
-            [[nodiscard]] OptRef<T> emplace(const Entity& entity, Args&&... args) {
+            [[nodiscard]] T* emplace(const Entity& entity, Args&&... args) {
+                ID id = submit<T>();
                 Pool<T>* pool = getPool<T>();
                 pool->emplace(entity, std::forward<Args>(args)...);
+                archetypes[entity.getIndex()].set(id);
                 return pool->get(entity);
             }
 
@@ -87,7 +91,14 @@ namespace rome::core {
              */
             template <Component T>
             void remove(const Entity& entity) {
-                getPool<T>()->remove(entity);
+                ID id = getID<T>();
+                Pool<T>* pool = getPool<T>();
+                if (pool) pool->remove(entity);
+
+                if (id != INVALID_ID) {
+                    auto it = archetypes.find(entity.getIndex());
+                    if (it != archetypes.end()) it->second.reset(id);
+                }
             }
 
             /**
@@ -98,8 +109,9 @@ namespace rome::core {
              * @warning This function is not thread-safe.
              */
             template <Component T>
-            [[nodiscard]] OptRef<T> get(const Entity& entity) noexcept {
-                return getPool<T>()->get(entity);
+            [[nodiscard]] T* get(const Entity& entity) noexcept {
+                Pool<T>* pool = getPool<T>();
+                return pool ? pool->get(entity) : nullptr;
             }
 
             /**
@@ -110,8 +122,9 @@ namespace rome::core {
              * @warning This function is not thread-safe.
              */
             template <Component T>
-            [[nodiscard]] OptRef<const T> get(const Entity& entity) const noexcept {
-                return getPool<T>()->get(entity);
+            [[nodiscard]] const T* get(const Entity& entity) const noexcept {
+                const Pool<T>* pool = getPool<T>();
+                return pool ? pool->get(entity) : nullptr;
             }
 
             /**
@@ -130,7 +143,8 @@ namespace rome::core {
              */
             template <Component T>
             b8 has(const Entity& entity) const noexcept {
-                return getPool<T>()->contains(entity);
+                const Pool<T>* pool = getPool<T>();
+                return pool ? pool->contains(entity) : false;
             }
 
             /**
@@ -146,7 +160,7 @@ namespace rome::core {
             /**
              * @brief Gets the name of a component type given its ID.
              * @return The name of the component type.
-             * @warning This function is not thread-safe.
+             * @warning This function is thread-safe.
              */
             [[nodiscard]] std::string getName(ID id) const;
 
@@ -159,12 +173,30 @@ namespace rome::core {
             template <Component T>
             Pool<T>* getPool() {
                 ID id = getID<T>();
+                if (id == INVALID_ID) return nullptr;
                 std::shared_lock readLock(idsLock);
                 auto it = store.find(id);
-                return static_cast<Pool<T>*>(it != store.end() ? it->second.get() : nullptr);
+                return static_cast<Pool<T>*>(it->second.get());
+            }
+
+            /**
+             * @brief Fetches the concrete pool for the given component type.
+             * @tparam T The component type to fetch the pool for.
+             * @return The pool for the given component type.
+             * @note This function is thread-safe.
+             */
+            template <Component T>
+            const Pool<T>* getPool() const {
+                ID id = getID<T>();
+                if (id == INVALID_ID) return nullptr;
+                std::shared_lock readLock(idsLock);
+                auto it = store.find(id);
+                return static_cast<const Pool<T>*>(it->second.get());
             }
 
             private:
+            static constexpr ID INVALID_ID = std::numeric_limits<ID>::max();
+
             mutable std::shared_mutex idsLock;                                            ///< Ensure thread-safe access to the IDs map.
             std::unordered_map<ID, Unique<Storage>> store;                                ///< Storage for component pools.
             std::unordered_map<std::string, ID, TransparentSVHash, std::equal_to<>> ids;  ///< Maps component names to their IDs.
@@ -179,8 +211,11 @@ namespace rome::core {
              * @note This function is thread-safe.
              */
             template <Component T>
-            ID getID() {
-                return enter<T>();
+            [[nodiscard]] ID getID() const {
+                static const std::string_view name = Reflect::reflect<T>().getType().getName();
+                std::shared_lock lock(idsLock);
+                auto it = ids.find(name);
+                return it != ids.end() ? it->second : INVALID_ID;
             }
         };
     }  // namespace Component

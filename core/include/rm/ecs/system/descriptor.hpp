@@ -39,7 +39,7 @@ namespace rome::core {
              */
             template <Component::Component... Args>
             Builder& reads() {
-                descriptor.reads({world.components.enter<Args>()...});
+                descriptor.reads({world.components.submit<Args>()...});
                 return *this;
             }
 
@@ -50,7 +50,7 @@ namespace rome::core {
              */
             template <Component::Component... Args>
             Builder& writes() {
-                descriptor.writes({world.components.enter<Args>()...});
+                descriptor.writes({world.components.submit<Args>()...});
                 return *this;
             }
 
