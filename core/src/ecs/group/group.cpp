@@ -24,7 +24,7 @@ namespace rome::core {
             debug += world.components.getName(id);
         };
 
-        for (Component::ID id = 0; id < world.components.getSize(); id++) {
+        for (Component::ID id = 1; id <= world.components.getSize(); id++) {
             if (owning.test(id))
                 emit(id, '+');
             else if (partial.test(id))

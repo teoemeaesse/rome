@@ -2,6 +2,7 @@
 
 #include <shared_mutex>
 
+#include "rm/ecs/system/descriptor.hpp"
 #include "rm/ecs/group/group.hpp"
 
 namespace rome::core {
@@ -19,8 +20,7 @@ namespace rome::core {
 
             /**
              * @brief Registers a new system with the given descriptor.
-             * @return The ID of the newly registered system.
-             * @throws Exception::Type::InvalidArgument if a system with the same name or ID already exists.
+             * @return The ID of the newly registered system, or 0 if registration fails.
              * @note This function is thread-safe.
              */
             ID enter(Descriptor&& descriptor);
@@ -65,6 +65,7 @@ namespace rome::core {
             std::unordered_map<ID, const std::string> names;                              ///< Reverse lookup.
             std::unordered_map<ID, Descriptor> descriptors;                               ///< Maps system IDs to their descriptors.
             std::queue<ID> freeIDs;                                                       ///< Queue of free IDs for reuse.
+            ID nextId = 1;                                                                ///< The next available non-null system ID.
         };
     }  // namespace System
 }  // namespace rome::core

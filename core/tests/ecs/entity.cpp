@@ -30,6 +30,9 @@ TEST(EntityRegistry, Create_InBounds_ReturnsAliveEntity) {
     Entity e1 = registry.create();
     Entity e2 = registry.create();
 
+    EXPECT_NE(e0.getIndex(), 0);
+    EXPECT_NE(e1.getIndex(), 0);
+    EXPECT_NE(e2.getIndex(), 0);
     EXPECT_TRUE(registry.isAlive(e0));
     EXPECT_TRUE(registry.isAlive(e1));
     EXPECT_TRUE(registry.isAlive(e2));
@@ -70,7 +73,7 @@ TEST(EntityRegistry, Destroy_Repeated_IncrementsVersion) {
         EXPECT_FALSE(registry.isAlive(e));
 
         e = registry.create();
-        EXPECT_EQ(e.getIndex(), 0);
+        EXPECT_EQ(e.getIndex(), 1);
         EXPECT_EQ(e.getVersion(), expectedVersion);
         EXPECT_TRUE(registry.isAlive(e));
     }

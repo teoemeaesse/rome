@@ -48,7 +48,7 @@ namespace rome::core {
          * @tparam Function The function type to run in the thread.
          * @tparam ...Args The types of arguments to pass to the function.
          * @param function The function to run in the thread.
-         * @param ...args The arguments to pass to the function.s
+         * @param ...args The arguments to pass to the function.
          */
         template <typename Function, typename... Args>
         void run(Function&& function, Args&&... args) {

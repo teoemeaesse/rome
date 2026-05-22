@@ -1,5 +1,6 @@
 #pragma once
 
+#include "rm/ecs/system/registry.hpp"
 #include "rm/ecs/world.hpp"
 
 namespace rome::core {

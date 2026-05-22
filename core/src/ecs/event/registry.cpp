@@ -1,10 +1,10 @@
 #include "rm/ecs/event/registry.hpp"
 
-#include "rm/debug/exception.hpp"
-
 namespace rome::core {
     namespace Event {
         ID Registry::enter(const std::string& name) {
+            if (name.empty()) return 0;
+
             {
                 std::shared_lock lock(eventsLock);
                 if (ids.contains(name)) {
@@ -21,7 +21,7 @@ namespace rome::core {
                     id = freeIDs.front();
                     freeIDs.pop();
                 } else {
-                    id = static_cast<ID>(ids.size());
+                    id = nextId++;
                 }
 
                 ids[name] = id;
@@ -35,8 +35,7 @@ namespace rome::core {
             if (it != ids.end()) {
                 return it->second;
             }
-            std::string msg = "Event '" + name + "' not found in the registry.";
-            THROW_CORE_EXCEPTION(Exception::Type::NotFound, msg.c_str());
+            return 0;
         }
 
         b8 Registry::contains(const std::string& name) const { return ids.contains(name); }

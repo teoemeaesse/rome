@@ -9,7 +9,7 @@ namespace rome::core {
      */
     class RM_API Entity::Registry final {
         public:
-        Registry() = default;
+        Registry();
         ~Registry() = default;
 
         /**

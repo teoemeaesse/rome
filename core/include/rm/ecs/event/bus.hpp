@@ -92,7 +92,7 @@ namespace rome::core {
                 std::unique_lock lock(queuesLock);
                 auto it = queues.find(world.events.get<E>());
                 if (it != queues.end()) {
-                    std::string msg = "Event queue for '" + Reflect::reflect<E>().name + "' already exists";
+                    std::string msg = "Event queue for '" + Reflect::reflect<E>().getType().getName() + "' already exists";
                     THROW_CORE_EXCEPTION(Exception::Type::InvalidArgument, msg.c_str());
                 }
                 queues.emplace(world.events.get<E>(), MakeUnique<Storage<E>>());
@@ -111,7 +111,7 @@ namespace rome::core {
 
                 auto it = queues.find(id);
                 if (it == queues.end()) {
-                    std::string msg = "Event queue for '" + Reflect::reflect<E>().name + "' does not exist";
+                    std::string msg = "Event queue for '" + Reflect::reflect<E>().getType().getName() + "' does not exist";
                     THROW_CORE_EXCEPTION(Exception::Type::InvalidArgument, msg.c_str());
                 }
                 return *static_cast<Storage<E>*>(it->second.get());

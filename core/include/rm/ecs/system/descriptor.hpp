@@ -13,7 +13,7 @@ namespace rome::core {
         struct RM_API Descriptor {
             const World& world;                            ///< Reference to the world instance.
             const std::string name = "null descriptor";    ///< The name of the system. Must be unique.
-            const std::function<void(Context&)> callback;  ///< The function to be called every time the system is executed.
+            std::function<void(Context&)> callback;        ///< The function to be called every time the system is executed.
             BitSet<> reads;                                ///< The components this system reads.
             BitSet<> writes;                               ///< The components this system writes.
             BitSet<> emits;                                ///< The events this system emits.
@@ -39,7 +39,7 @@ namespace rome::core {
              */
             template <Component::Component... Args>
             Builder& reads() {
-                descriptor.reads({world.components.submit<Args>()...});
+                descriptor.reads = BitSet<>::create<Component::ID>({world.components.submit<Args>()...});
                 return *this;
             }
 
@@ -50,7 +50,7 @@ namespace rome::core {
              */
             template <Component::Component... Args>
             Builder& writes() {
-                descriptor.writes({world.components.submit<Args>()...});
+                descriptor.writes = BitSet<>::create<Component::ID>({world.components.submit<Args>()...});
                 return *this;
             }
 

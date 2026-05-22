@@ -30,8 +30,7 @@ namespace rome::core {
             /**
              * @brief Retrieves the unique ID of an event by its name.
              * @param name The name of the event.
-             * @return The unique ID of the event.
-             * @throws Exception::Type::NotFound if the event does not exist.
+             * @return The unique ID of the event, or 0 if the event does not exist.
              * @warning This function is not thread-safe.
              */
             ID get(const std::string& name) const;
@@ -47,13 +46,12 @@ namespace rome::core {
             /**
              * @brief Retrieves the unique ID of an event by its type.
              * @tparam E The type of the event.
-             * @return The unique ID of the event.
-             * @throws Exception::Type::NotFound if the event does not exist.
+             * @return The unique ID of the event, or 0 if the event does not exist.
              * @warning This function is not thread-safe.
              */
             template <Event E>
             ID get() const {
-                return get(Reflect::reflect<E>().name);
+                return get(Reflect::reflect<E>().getType().getName());
             }
 
             private:
@@ -61,6 +59,7 @@ namespace rome::core {
             std::unordered_map<std::string, ID, TransparentSVHash, std::equal_to<>> ids;  ///< Maps event names to their IDs.
             std::unordered_map<ID, std::string> names;                                    ///< Reverse lookup.
             std::queue<ID> freeIDs;                                                       ///< Queue of free IDs for reuse.
+            ID nextId = 1;                                                                ///< The next available non-null event ID.
         };
     }  // namespace Event
 }  // namespace rome::core

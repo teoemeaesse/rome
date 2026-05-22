@@ -1,6 +1,8 @@
 #include "rm/ecs/entity/registry.hpp"
 
 namespace rome::core {
+    Entity::Registry::Registry() : entities{0} {}
+
     Entity Entity::Registry::create() {
         if (available == 0) {
             const u64 index = entities.size();

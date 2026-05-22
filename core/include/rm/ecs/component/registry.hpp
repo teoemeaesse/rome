@@ -159,7 +159,7 @@ namespace rome::core {
 
             /**
              * @brief Gets the name of a component type given its ID.
-             * @return The name of the component type.
+             * @return The name of the component type, or an empty string for unknown IDs.
              * @warning This function is thread-safe.
              */
             [[nodiscard]] std::string getName(ID id) const;
@@ -176,7 +176,7 @@ namespace rome::core {
                 if (id == INVALID_ID) return nullptr;
                 std::shared_lock readLock(idsLock);
                 auto it = store.find(id);
-                return static_cast<Pool<T>*>(it->second.get());
+                return it != store.end() ? static_cast<Pool<T>*>(it->second.get()) : nullptr;
             }
 
             /**
@@ -191,17 +191,17 @@ namespace rome::core {
                 if (id == INVALID_ID) return nullptr;
                 std::shared_lock readLock(idsLock);
                 auto it = store.find(id);
-                return static_cast<const Pool<T>*>(it->second.get());
+                return it != store.end() ? static_cast<const Pool<T>*>(it->second.get()) : nullptr;
             }
 
             private:
-            static constexpr ID INVALID_ID = std::numeric_limits<ID>::max();
+            static constexpr ID INVALID_ID = 0;
 
             mutable std::shared_mutex idsLock;                                            ///< Ensure thread-safe access to the IDs map.
             std::unordered_map<ID, Unique<Storage>> store;                                ///< Storage for component pools.
             std::unordered_map<std::string, ID, TransparentSVHash, std::equal_to<>> ids;  ///< Maps component names to their IDs.
             std::unordered_map<ID, std::string> names;                                    ///< Reverse lookup.
-            std::atomic_uint32_t nextId{0};                                               ///< The next available ID for a component.
+            std::atomic_uint32_t nextId{1};                                               ///< The next available non-null ID for a component.
             std::unordered_map<u64, BitSet<>> archetypes;                                 ///< Maps entity IDs to their archetype signatures.
 
             /**
