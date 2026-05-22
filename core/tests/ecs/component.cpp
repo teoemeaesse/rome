@@ -166,7 +166,7 @@ TEST(ComponentRegistry, Submit_DuplicateComponent_OK) {
     Component::ID id0 = registry.submit<Position>();
     Component::ID id1 = registry.submit<Position>();
 
-    EXPECT_NE(id0, 0);
+    EXPECT_NE(id0, Component::INVALID_ID);
     EXPECT_EQ(id0, id1);
     EXPECT_EQ(registry.getSize(), 1);
 }
@@ -177,8 +177,8 @@ TEST(ComponentRegistry, Submit_DifferentComponents_DifferentIDs) {
     Component::ID positionID = registry.submit<Position>();
     Component::ID velocityID = registry.submit<Velocity>();
 
-    EXPECT_NE(positionID, 0);
-    EXPECT_NE(velocityID, 0);
+    EXPECT_NE(positionID, Component::INVALID_ID);
+    EXPECT_NE(velocityID, Component::INVALID_ID);
     EXPECT_NE(positionID, velocityID);
     EXPECT_EQ(registry.getSize(), 2);
 }
@@ -194,7 +194,7 @@ TEST(ComponentRegistry, GetName_InBounds_OK) {
 TEST(ComponentRegistry, GetName_OutOfBounds_Empty) {
     Component::Registry registry;
 
-    Component::ID id = 0;
+    Component::ID id = Component::INVALID_ID;
 
     EXPECT_TRUE(registry.getName(id).empty());
 }

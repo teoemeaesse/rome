@@ -8,7 +8,7 @@ namespace rome::core {
             std::unique_lock lock(systemsLock);
 
             if (descriptor.name.empty() || ids.find(descriptor.name) != ids.end()) {
-                return 0;
+                return INVALID_ID;
             }
 
             ID id;
@@ -20,7 +20,7 @@ namespace rome::core {
             }
 
             if (descriptors.find(id) != descriptors.end()) {
-                return 0;
+                return INVALID_ID;
             }
 
             ids.emplace(descriptor.name, id);

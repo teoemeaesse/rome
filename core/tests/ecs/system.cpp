@@ -67,7 +67,7 @@ TEST(SystemRegistry, Enter_ValidDescriptor_OK) {
 
     System::ID id = systems.enter(System::Builder("movement", world).writes<SystemPosition>().build([](System::Context&) {}));
 
-    EXPECT_NE(id, 0);
+    EXPECT_NE(id, System::INVALID_ID);
     EXPECT_TRUE(systems.contains(id));
     EXPECT_EQ(systems.get(id).name, "movement");
 }
@@ -81,7 +81,7 @@ TEST(SystemRegistry, Enter_DuplicateName_ReturnsNullID) {
 
     systems.enter(System::Builder("movement", world).writes<SystemPosition>().build([](System::Context&) {}));
 
-    EXPECT_EQ(systems.enter(System::Builder("movement", world).writes<SystemVelocity>().build([](System::Context&) {})), 0);
+    EXPECT_EQ(systems.enter(System::Builder("movement", world).writes<SystemVelocity>().build([](System::Context&) {})), System::INVALID_ID);
 }
 
 TEST(SystemRegistry, Erase_InBounds_RemovesSystem) {

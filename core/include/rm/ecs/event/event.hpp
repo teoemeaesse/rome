@@ -5,6 +5,7 @@
 namespace rome::core {
     namespace Event {
         using ID = u32;
+        inline constexpr ID INVALID_ID = 0;
 
         template <typename T>
         concept Event = std::copy_constructible<T> && requires { Reflect::reflect<T>(); };

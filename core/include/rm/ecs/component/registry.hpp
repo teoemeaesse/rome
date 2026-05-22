@@ -195,8 +195,6 @@ namespace rome::core {
             }
 
             private:
-            static constexpr ID INVALID_ID = 0;
-
             mutable std::shared_mutex idsLock;                                            ///< Ensure thread-safe access to the IDs map.
             std::unordered_map<ID, Unique<Storage>> store;                                ///< Storage for component pools.
             std::unordered_map<std::string, ID, TransparentSVHash, std::equal_to<>> ids;  ///< Maps component names to their IDs.

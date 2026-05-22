@@ -10,6 +10,7 @@ namespace rome::core {
          * 48 most significant bits for the index, 16 least significant bits for the version.
          */
         using ID = u64;
+        static constexpr ID INVALID_ID = 0;
 
         ~Entity() = default;
 

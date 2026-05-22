@@ -31,7 +31,7 @@ TEST(EventRegistry, Enter_DuplicateEvent_OK) {
     Event::ID id0 = registry.enter("TestEvent");
     Event::ID id1 = registry.enter("TestEvent");
 
-    EXPECT_NE(id0, 0);
+    EXPECT_NE(id0, Event::INVALID_ID);
     EXPECT_EQ(id0, id1);
     EXPECT_TRUE(registry.contains("TestEvent"));
 }
@@ -42,15 +42,15 @@ TEST(EventRegistry, Enter_DifferentEvents_DifferentIDs) {
     Event::ID first = registry.enter("TestEvent");
     Event::ID second = registry.enter("OtherTestEvent");
 
-    EXPECT_NE(first, 0);
-    EXPECT_NE(second, 0);
+    EXPECT_NE(first, Event::INVALID_ID);
+    EXPECT_NE(second, Event::INVALID_ID);
     EXPECT_NE(first, second);
 }
 
 TEST(EventRegistry, Get_OutOfBounds_ReturnsNullID) {
     Event::Registry registry;
 
-    EXPECT_EQ(registry.get("MissingEvent"), 0);
+    EXPECT_EQ(registry.get("MissingEvent"), Event::INVALID_ID);
 }
 
 TEST(EventStorage, PushSwapRead_Always_OK) {

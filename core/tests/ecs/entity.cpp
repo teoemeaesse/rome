@@ -30,9 +30,9 @@ TEST(EntityRegistry, Create_InBounds_ReturnsAliveEntity) {
     Entity e1 = registry.create();
     Entity e2 = registry.create();
 
-    EXPECT_NE(e0.getIndex(), 0);
-    EXPECT_NE(e1.getIndex(), 0);
-    EXPECT_NE(e2.getIndex(), 0);
+    EXPECT_NE(e0.getIndex(), Entity::INVALID_ID);
+    EXPECT_NE(e1.getIndex(), Entity::INVALID_ID);
+    EXPECT_NE(e2.getIndex(), Entity::INVALID_ID);
     EXPECT_TRUE(registry.isAlive(e0));
     EXPECT_TRUE(registry.isAlive(e1));
     EXPECT_TRUE(registry.isAlive(e2));

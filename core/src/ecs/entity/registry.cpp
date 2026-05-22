@@ -1,7 +1,7 @@
 #include "rm/ecs/entity/registry.hpp"
 
 namespace rome::core {
-    Entity::Registry::Registry() : entities{0} {}
+    Entity::Registry::Registry() : entities{Entity::INVALID_ID} {}
 
     Entity Entity::Registry::create() {
         if (available == 0) {

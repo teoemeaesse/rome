@@ -3,7 +3,7 @@
 namespace rome::core {
     namespace Event {
         ID Registry::enter(const std::string& name) {
-            if (name.empty()) return 0;
+            if (name.empty()) return INVALID_ID;
 
             {
                 std::shared_lock lock(eventsLock);
@@ -35,7 +35,7 @@ namespace rome::core {
             if (it != ids.end()) {
                 return it->second;
             }
-            return 0;
+            return INVALID_ID;
         }
 
         b8 Registry::contains(const std::string& name) const { return ids.contains(name); }

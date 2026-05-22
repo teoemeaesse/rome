@@ -8,6 +8,7 @@
 namespace rome::core {
     namespace System {
         using ID = u32;
+        inline constexpr ID INVALID_ID = 0;
 
         class RM_API Registry final {
             public:
@@ -20,7 +21,7 @@ namespace rome::core {
 
             /**
              * @brief Registers a new system with the given descriptor.
-             * @return The ID of the newly registered system, or 0 if registration fails.
+             * @return The ID of the newly registered system, or INVALID_ID if registration fails.
              * @note This function is thread-safe.
              */
             ID enter(Descriptor&& descriptor);

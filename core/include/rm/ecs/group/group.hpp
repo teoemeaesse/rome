@@ -28,6 +28,7 @@ namespace rome::core {
 
         class Registry;
         using ID = u32;
+        static constexpr ID INVALID_ID = 0;
 
         /**
          * @brief Returns a debug string representation of the group.
