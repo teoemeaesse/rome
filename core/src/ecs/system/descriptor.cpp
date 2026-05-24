@@ -15,13 +15,13 @@ namespace rome::core {
             return *this;
         }
 
-        Builder& Builder::requireFull(b8 value) {
-            descriptor.requireFull = value;
+        Builder& Builder::requireFull() {
+            descriptor.requireFull = true;
             return *this;
         }
 
-        Builder& Builder::allowPartial(b8 value) {
-            descriptor.allowPartial = value;
+        Builder& Builder::allowPartial() {
+            descriptor.allowPartial = true;
             return *this;
         }
     }  // namespace System

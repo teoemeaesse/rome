@@ -71,7 +71,7 @@ TEST(Group, Constructors_FullOwning_OK) {
     World world = makeGroupWorld(systems, components, entities, events);
 
     System::Descriptor descriptor =
-        System::Builder("movement", world).reads<Position>().writes<Velocity>().requireFull(true).build([](System::Context&) {});
+        System::Builder("movement", world).reads<Position>().writes<Velocity>().requireFull().build([](System::Context&) {});
     Group group(descriptor);
 
     EXPECT_TRUE(group.owning.test(components.submit<Position>()));
@@ -88,7 +88,7 @@ TEST(Group, Constructors_Partial_OK) {
     World world = makeGroupWorld(systems, components, entities, events);
 
     System::Descriptor descriptor =
-        System::Builder("movement", world).reads<Position>().writes<Velocity>().requireFull(false).allowPartial(true).build([](System::Context&) {});
+        System::Builder("movement", world).reads<Position>().writes<Velocity>().allowPartial().build([](System::Context&) {});
     Group group(descriptor);
 
     EXPECT_TRUE(group.owning.test(components.submit<Velocity>()));
@@ -103,7 +103,7 @@ TEST(Group, Constructors_NonOwning_OK) {
     World world = makeGroupWorld(systems, components, entities, events);
 
     System::Descriptor descriptor =
-        System::Builder("watch", world).reads<Position, Velocity>().requireFull(false).allowPartial(true).build([](System::Context&) {});
+        System::Builder("watch", world).reads<Position, Velocity>().allowPartial().build([](System::Context&) {});
     Group group(descriptor);
 
     EXPECT_TRUE(group.owning.none());
@@ -166,7 +166,7 @@ TEST(Group, AddRemoveEntity_WithMatchingArchetype_OK) {
     Entity::Registry entities;
     Event::Registry events;
     World world = makeGroupWorld(systems, components, entities, events);
-    Group group(System::Builder("movement", world).writes<Position>().requireFull(true).build([](System::Context&) {}));
+    Group group(System::Builder("movement", world).writes<Position>().requireFull().build([](System::Context&) {}));
     Entity entity = entities.create();
     ASSERT_NE(components.emplace<Position>(entity, 1.0f, 2.0f), nullptr);
 
@@ -188,8 +188,7 @@ TEST(Group, ToString_WithRegisteredComponents_OK) {
     Event::Registry events;
     World world = makeGroupWorld(systems, components, entities, events);
 
-    Group group(
-        System::Builder("movement", world).reads<Position>().writes<Velocity>().requireFull(false).allowPartial(true).build([](System::Context&) {}));
+    Group group(System::Builder("movement", world).reads<Position>().writes<Velocity>().allowPartial().build([](System::Context&) {}));
 
     EXPECT_NE(group.toString().find("+Velocity"), std::string::npos);
     EXPECT_NE(group.toString().find("~Position"), std::string::npos);
@@ -229,11 +228,11 @@ TEST(Group, MixedGroups_AllArchetypes_MatchExpected) {
     addGroupComponent<GroupC>(components, abc, 12);
 
     System::ID fullAB =
-        systems.enter(System::Builder("fullAB", world).reads<GroupA>().writes<GroupB>().requireFull(true).build([](System::Context&) {}));
+        systems.enter(System::Builder("fullAB", world).reads<GroupA>().writes<GroupB>().requireFull().build([](System::Context&) {}));
     System::ID partialAC = systems.enter(
-        System::Builder("partialAC", world).reads<GroupC>().writes<GroupA>().requireFull(false).allowPartial(true).build([](System::Context&) {}));
-    System::ID nonOwningBC = systems.enter(
-        System::Builder("nonOwningBC", world).reads<GroupB, GroupC>().requireFull(false).allowPartial(true).build([](System::Context&) {}));
+        System::Builder("partialAC", world).reads<GroupC>().writes<GroupA>().allowPartial().build([](System::Context&) {}));
+    System::ID nonOwningBC =
+        systems.enter(System::Builder("nonOwningBC", world).reads<GroupB, GroupC>().allowPartial().build([](System::Context&) {}));
 
     expectContains(systems.getGroup(fullAB), {ab, abc}, {a, b, c, ac, bc});
     expectContains(systems.getGroup(partialAC), {ac, abc}, {a, b, c, ab, bc});
@@ -248,11 +247,11 @@ TEST(Group, MixedGroups_ComponentChanges_UpdateExpected) {
     World world = makeGroupWorld(systems, components, entities, events);
 
     System::ID fullAB =
-        systems.enter(System::Builder("fullAB", world).reads<GroupA>().writes<GroupB>().requireFull(true).build([](System::Context&) {}));
+        systems.enter(System::Builder("fullAB", world).reads<GroupA>().writes<GroupB>().requireFull().build([](System::Context&) {}));
     System::ID partialAC = systems.enter(
-        System::Builder("partialAC", world).reads<GroupC>().writes<GroupA>().requireFull(false).allowPartial(true).build([](System::Context&) {}));
-    System::ID nonOwningBC = systems.enter(
-        System::Builder("nonOwningBC", world).reads<GroupB, GroupC>().requireFull(false).allowPartial(true).build([](System::Context&) {}));
+        System::Builder("partialAC", world).reads<GroupC>().writes<GroupA>().allowPartial().build([](System::Context&) {}));
+    System::ID nonOwningBC =
+        systems.enter(System::Builder("nonOwningBC", world).reads<GroupB, GroupC>().allowPartial().build([](System::Context&) {}));
 
     Entity entity = entities.create();
 

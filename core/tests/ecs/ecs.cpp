@@ -27,7 +27,7 @@ TEST(ECS, RunSystem_GroupView_MatchesGroup) {
     u32 iterations = 0;
 
     System::ID id =
-        ecs.registerSystem(ecs.createSystem("movement").reads<Velocity>().writes<Position>().requireFull(true).build([&](System::Context& ctx) {
+        ecs.registerSystem(ecs.createSystem("movement").reads<Velocity>().writes<Position>().requireFull().build([&](System::Context& ctx) {
             System::View<Position, Velocity> view(ctx);
             for (auto&& [position, velocity] : view) {
                 position.x += velocity.dx;
@@ -61,7 +61,7 @@ TEST(ECS, RegisterSystem_ExistingEntity_MatchesGroup) {
     ecs.addComponent<Velocity>(entity, 3.0f, 4.0f);
 
     System::ID id =
-        ecs.registerSystem(ecs.createSystem("movement").reads<Velocity>().writes<Position>().requireFull(true).build([&](System::Context& ctx) {
+        ecs.registerSystem(ecs.createSystem("movement").reads<Velocity>().writes<Position>().requireFull().build([&](System::Context& ctx) {
             System::View<Position, Velocity> view(ctx);
             for (auto&& [position, velocity] : view) {
                 position.x += velocity.dx;

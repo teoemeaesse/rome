@@ -44,8 +44,7 @@ TEST(SystemBuilder, Build_WithMasks_OK) {
                                         .writes<Velocity>()
                                         .emits({emitted})
                                         .listens({listened})
-                                        .requireFull(true)
-                                        .allowPartial(false)
+                                        .requireFull()
                                         .build([](System::Context&) {});
 
     EXPECT_EQ(descriptor.name, "movement");
@@ -109,7 +108,7 @@ TEST(SystemRegistry, UpdateEntity_FullMatch_TracksEntity) {
     World world = makeWorld(systems, components, entities, events);
 
     System::ID id =
-        systems.enter(System::Builder("movement", world).reads<Velocity>().writes<Position>().requireFull(true).build([](System::Context&) {}));
+        systems.enter(System::Builder("movement", world).reads<Velocity>().writes<Position>().requireFull().build([](System::Context&) {}));
     Entity entity = entities.create();
 
     ASSERT_NE(components.emplace<Position>(entity, 1.0f, 2.0f), nullptr);
@@ -132,8 +131,8 @@ TEST(SystemRegistry, UpdateEntity_PartialMatch_TracksEntity) {
     Event::Registry events;
     World world = makeWorld(systems, components, entities, events);
 
-    System::ID id = systems.enter(
-        System::Builder("movement", world).reads<Velocity>().writes<Position>().requireFull(false).allowPartial(true).build([](System::Context&) {}));
+    System::ID id =
+        systems.enter(System::Builder("movement", world).reads<Velocity>().writes<Position>().allowPartial().build([](System::Context&) {}));
     Entity entity = entities.create();
 
     ASSERT_NE(components.emplace<Position>(entity, 1.0f, 2.0f), nullptr);

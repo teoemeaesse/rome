@@ -18,7 +18,7 @@ namespace rome::core {
             BitSet<> writes;                               ///< The components this system writes.
             BitSet<> emits;                                ///< The events this system emits.
             BitSet<> listens;                              ///< The events this system listens to.
-            b8 requireFull = true;                         ///< Whether the system must operate on a full-owning group.
+            b8 requireFull = false;                        ///< Whether the system must operate on a full-owning group.
             b8 allowPartial = false;                       ///< Whether the system can operate on partial groups.
             b8 active = true;                              ///< Whether the system is currently active.
         };
@@ -69,18 +69,16 @@ namespace rome::core {
             Builder& listens(std::initializer_list<Event::ID> events);
 
             /**
-             * @brief Sets whether the system must operate on a full-owning group.
-             * @param value Whether to require full ownership.
+             * @brief Requires the system to operate on a full-owning group.
              * @return This builder instance for chaining.
              */
-            Builder& requireFull(b8 value = true);
+            Builder& requireFull();
 
             /**
-             * @brief Sets whether the system can operate on partial groups.
-             * @param value Whether to allow partial groups.
+             * @brief Allows the system to operate on partial groups.
              * @return This builder instance for chaining.
              */
-            Builder& allowPartial(b8 value = true);
+            Builder& allowPartial();
 
             /**
              * @brief Creates a ready-to-register system descriptor.
