@@ -10,7 +10,12 @@ namespace rome::core {
         struct index_of;
         template <typename T, typename First, typename... Rest>
         struct index_of<T, First, Rest...> {
-            static constexpr u64 value = std::is_same<T, First>::value ? 0 : 1 + index_of<T, Rest...>::value;
+            static constexpr u64 value = [] {
+                if constexpr (std::is_same_v<T, First>)
+                    return 0;
+                else
+                    return 1 + index_of<T, Rest...>::value;
+            }();
         };
         template <typename T>
         struct index_of<T> {
@@ -25,10 +30,9 @@ namespace rome::core {
         template <Component::Component... Components>
         class RM_API ViewIterator final {
             public:
-            ViewIterator(const std::tuple<remove_all_qualifiers_t<Components>*...>& owned,
-                         const std::tuple<Component::Pool<remove_all_qualifiers_t<Components>>*...>& pools, const Entity* entities, u64 index,
+            ViewIterator(const std::tuple<Component::Pool<remove_all_qualifiers_t<Components>>*...>& pools, const Entity* entities, u64 index,
                          u64 max)
-                : owned(owned), pools(pools), entities(entities), index(index), max(max) {}
+                : pools(pools), entities(entities), index(index), max(max) {}
 
             bool operator!=(const ViewIterator& iter) const { return index != iter.index; }
             ViewIterator& operator++() {
@@ -38,16 +42,11 @@ namespace rome::core {
 
             decltype(auto) operator*() const {
                 return std::apply(
-                    [this](auto*... owned) {
-                        return std::apply(
-                            [this, owned...](auto*... pool) { return std::forward_as_tuple(fetch<Components>(owned, pool, entities[index])...); },
-                            pools);
-                    },
-                    owned);
+                    [this](auto*... pool) { return std::forward_as_tuple(fetch<Components>(pool, entities[index])...); },
+                    pools);
             }
 
             private:
-            const std::tuple<remove_all_qualifiers_t<Components>*...> owned;                   ///< Pointers to owned components, if any.
             const std::tuple<Component::Pool<remove_all_qualifiers_t<Components>>*...> pools;  ///< Pointers to component pools.
             const Entity* entities;                                                            ///< Pointer to the entities.
             const u64 max;                                                                     ///< Maximum number of entities in the view.
@@ -62,18 +61,14 @@ namespace rome::core {
              * @return A reference to the component.
              */
             template <class T>
-            static decltype(auto) fetch(auto* owned, auto* pool, Entity e) {
-                if (owned) {
-                    if constexpr (std::is_const_v<T>)
-                        return static_cast<const remove_all_qualifiers_t<T>&>(*(owned));
-                    else
-                        return static_cast<remove_all_qualifiers_t<T>&>(*(owned));
-                } else {
-                    if constexpr (std::is_const_v<T>)
-                        return static_cast<const remove_all_qualifiers_t<T>&>(pool->get(e));
-                    else
-                        return static_cast<remove_all_qualifiers_t<T>&>(pool->get(e));
-                }
+            static decltype(auto) fetch(auto* pool, Entity e) {
+                auto* component = pool->get(e);
+                RM_ASSERT_MSG(component != nullptr, "Entity is missing a component required by the view");
+
+                if constexpr (std::is_const_v<T>)
+                    return static_cast<const remove_all_qualifiers_t<T>&>(*component);
+                else
+                    return static_cast<remove_all_qualifiers_t<T>&>(*component);
             }
         };
 
@@ -85,31 +80,24 @@ namespace rome::core {
         class RM_API View final {
             public:
             explicit View(Context& ctx) : count(ctx.group.getSize()) {
-                auto entities = ctx.group.getEntities();
-                this->entities = entities.data();
+                auto [entities, _] = ctx.group.getEntities().getData();
+                this->entities = entities;
 
                 (void)std::initializer_list<int>{(source<Components>(ctx), 0)...};
             }
 
-            ViewIterator<Components...> begin() const { return ViewIterator<Components...>{owned, pools, entities, 0, count}; }
-            ViewIterator<Components...> end() const { return ViewIterator<Components...>{owned, pools, entities, count, count}; }
+            ViewIterator<Components...> begin() const { return ViewIterator<Components...>{pools, entities, 0, count}; }
+            ViewIterator<Components...> end() const { return ViewIterator<Components...>{pools, entities, count, count}; }
 
             private:
             template <Component::Component T>
             void source(Context& ctx) {
                 constexpr u64 index = index_of<remove_all_qualifiers_t<T>, remove_all_qualifiers_t<Components>...>::value;
                 auto* pool = ctx.world.components.getPool<remove_all_qualifiers_t<T>>();
-                auto [ptr, _] = pool->getData();
-                if (ctx.group.owning.test(ctx.world.components.submit<remove_all_qualifiers_t<T>>())) {
-                    std::get<index>(owned) = ptr;
-                    std::get<index>(pools) = nullptr;
-                } else {
-                    std::get<index>(owned) = nullptr;
-                    std::get<index>(pools) = pool;
-                }
+                RM_ASSERT_MSG(pool != nullptr, "View requested an unregistered component pool");
+                std::get<index>(pools) = pool;
             }
 
-            std::tuple<remove_all_qualifiers_t<Components>*...> owned;                   ///< Pointers to owned components, if any.
             std::tuple<Component::Pool<remove_all_qualifiers_t<Components>>*...> pools;  ///< Pointers to component pools.
             const Entity* entities;                                                      ///< Pointer to the entities.
             const u64 count;                                                             ///< Number of entities in the view.

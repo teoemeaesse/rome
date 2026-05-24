@@ -28,6 +28,46 @@ namespace rome::core {
         }
 
         /**
+         * @brief Creates a new entity.
+         * @return The created entity.
+         */
+        Entity createEntity() { return entities.create(); }
+
+        /**
+         * @brief Destroys an entity, removing it from every group.
+         * @param entity The entity to destroy.
+         */
+        void destroyEntity(const Entity& entity) {
+            systems.removeEntity(entity);
+            entities.destroy(entity);
+        }
+
+        /**
+         * @brief Registers a new system.
+         * @param descriptor The descriptor for the system.
+         * @return The ID for the registered system, or System::INVALID_ID.
+         */
+        System::ID registerSystem(System::Descriptor&& descriptor) { return systems.enter(std::move(descriptor)); }
+
+        /**
+         * @brief Creates a system builder bound to this ECS world.
+         * @param name The unique name of the system.
+         * @return A builder ready to describe and build the system.
+         */
+        System::Builder createSystem(const std::string& name) { return System::Builder(name, world); }
+
+        /**
+         * @brief Executes one active system.
+         * @param id The ID of the system to execute.
+         */
+        void runSystem(System::ID id) { systems.run(id); }
+
+        /**
+         * @brief Executes every active system.
+         */
+        void runSystems() { systems.run(); }
+
+        /**
          * @brief Adds a component to the given entity.
          * @tparam T The component type to add.
          * @param entity The entity to add the component to.
@@ -35,7 +75,9 @@ namespace rome::core {
          */
         template <Component::Component T>
         T& addComponent(const Entity& entity) {
-            return components.create<T>(entity);
+            T* component = components.emplace<T>(entity);
+            systems.updateEntity(entity);
+            return *component;
         }
 
         /**
@@ -48,7 +90,9 @@ namespace rome::core {
          */
         template <Component::Component T, typename... Args>
         T& addComponent(const Entity& entity, Args&&... args) {
-            return components.create<T>(entity, std::forward<Args>(args)...);
+            T* component = components.emplace<T>(entity, std::forward<Args>(args)...);
+            systems.updateEntity(entity);
+            return *component;
         }
 
         /**
@@ -59,6 +103,7 @@ namespace rome::core {
         template <Component::Component T>
         void removeComponent(const Entity& entity) {
             components.remove<T>(entity);
+            systems.updateEntity(entity);
         }
 
         /**
@@ -69,7 +114,7 @@ namespace rome::core {
          */
         template <Component::Component T>
         T& getComponent(const Entity& entity) {
-            return components.get<T>(entity);
+            return *components.get<T>(entity);
         }
 
         /**
@@ -80,7 +125,7 @@ namespace rome::core {
          */
         template <Component::Component T>
         const T& getComponent(const Entity& entity) const {
-            return components.get<T>(entity);
+            return *components.get<T>(entity);
         }
 
         /**

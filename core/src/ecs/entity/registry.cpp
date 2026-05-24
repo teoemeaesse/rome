@@ -1,5 +1,7 @@
 #include "rm/ecs/entity/registry.hpp"
 
+#include "rm/debug/exception.hpp"
+
 namespace rome::core {
     Entity::Registry::Registry() : entities{Entity::INVALID_ID} {}
 
@@ -15,6 +17,23 @@ namespace rome::core {
         setIndex(entities[index], index);
         available--;
         return Entity(entities[index]);
+    }
+
+    u64 Entity::Registry::getCapacity() const noexcept { return entities.size(); }
+
+    b8 Entity::Registry::isOccupied(u64 index) const noexcept { return index < entities.size() && getIndex(entities[index]) == index; }
+
+    Entity Entity::Registry::get(u64 index) const {
+        if (!isOccupied(index)) {
+            std::string msg = "Entity at index " + std::to_string(index) + " not found";
+            THROW_CORE_EXCEPTION(Exception::Type::NotFound, msg.c_str());
+        }
+
+        Entity entity(entities[index]);
+        if (isAlive(entity)) return entity;
+
+        std::string msg = "Entity at index " + std::to_string(index) + " not found";
+        THROW_CORE_EXCEPTION(Exception::Type::NotFound, msg.c_str());
     }
 
     void Entity::Registry::destroy(Entity entity) {

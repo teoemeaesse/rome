@@ -1,6 +1,7 @@
 #pragma once
 
 #include "rm/container/bitset.hpp"
+#include "rm/container/sparse_set.hpp"
 #include "rm/ecs/component/component.hpp"
 #include "rm/ecs/entity/entity.hpp"
 #include "rm/ecs/event/event.hpp"
@@ -67,6 +68,13 @@ namespace rome::core {
         void removeEntityOwned(const Entity& entity);
 
         /**
+         * @brief Checks whether an entity's archetype matches this group.
+         * @param entity The entity to check.
+         * @return True if the entity has every owned and partial component.
+         */
+        b8 matches(const Entity& entity) const noexcept;
+
+        /**
          * @brief Checks if an entity is in this group.
          * @param entity The entity to check.
          * @return True if the entity is in this group, false otherwise.
@@ -75,9 +83,9 @@ namespace rome::core {
 
         /**
          * @brief Returns the entities currently in this group.
-         * @return A vector of entities in this group.
+         * @return A sparse set of entities in this group.
          */
-        const std::vector<Entity>& getEntities() const noexcept;
+        const SparseSet<Entity>& getEntities() const noexcept;
 
         /**
          * @brief Returns the number of entities in this group.
@@ -93,7 +101,7 @@ namespace rome::core {
 
         private:
         const World& world;            ///< The world instance for accessing ECS data.
-        std::vector<Entity> entities;  ///< The entities that match this group.
+        SparseSet<Entity> entities;    ///< The entities that match this group.
         u64 head;                      ///< The head of the group, used for iterating on owned groups.
     };
 }  // namespace rome::core

@@ -36,34 +36,39 @@ namespace rome::core {
 
     void Group::addEntity(const Entity& entity) {
         RM_ASSERT_MSG(!contains(entity), "Entity is already in the group");
-        entities.push_back(entity);
+        entities.insert(entity.getIndex(), entity);
     }
 
     void Group::removeEntity(const Entity& entity) {
         RM_ASSERT_MSG(contains(entity), "Entity is not in the group");
-        entities.erase(std::remove(entities.begin(), entities.end(), entity), entities.end());
+        entities.erase(entity.getIndex());
     }
 
     void Group::addEntityOwned(const Entity& entity) {
         RM_ASSERT_MSG(!contains(entity), "Entity is already in the group");
-        RM_ASSERT_MSG(world.components.contains(entity, owning), "Entity archetype does not match the required owning components for the group");
+        RM_ASSERT_MSG(matches(entity), "Entity archetype does not match the group");
 
-        entities.push_back(entity);
+        entities.insert(entity.getIndex(), entity);
         head++;
     }
 
     void Group::removeEntityOwned(const Entity& entity) {
         RM_ASSERT_MSG(contains(entity), "Entity is not in the group");
 
-        entities.erase(std::remove(entities.begin(), entities.end(), entity), entities.end());
+        entities.erase(entity.getIndex());
         head--;
     }
 
-    b8 Group::contains(const Entity& entity) const noexcept { return std::find(entities.begin(), entities.end(), entity) != entities.end(); }
+    b8 Group::contains(const Entity& entity) const noexcept {
+        const Entity* stored = entities[entity.getIndex()];
+        return stored != nullptr && *stored == entity;
+    }
 
-    const std::vector<Entity>& Group::getEntities() const noexcept { return entities; }
+    b8 Group::matches(const Entity& entity) const noexcept { return world.components.contains(entity, owning | partial); }
 
-    u64 Group::getSize() const noexcept { return entities.size(); }
+    const SparseSet<Entity>& Group::getEntities() const noexcept { return entities; }
 
-    b8 Group::isEmpty() const noexcept { return entities.empty(); }
+    u64 Group::getSize() const noexcept { return entities.getSize(); }
+
+    b8 Group::isEmpty() const noexcept { return entities.getSize() == 0; }
 }  // namespace rome::core
