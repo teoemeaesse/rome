@@ -1,7 +1,0 @@
-{
-	"InstallScripts" : 
-	[
-		"/Users/tomasmarques/iodine/core/build-tests/_deps/googletest-subbuild/cmake_install.cmake"
-	],
-	"Parallel" : false
-}
