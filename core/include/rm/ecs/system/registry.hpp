@@ -10,7 +10,7 @@ namespace rome::core {
         using ID = u32;
         inline constexpr ID INVALID_ID = 0;
 
-        class RM_API Registry final {
+        class Registry final {
             public:
             Registry() = default;
             ~Registry() = default;
@@ -103,7 +103,7 @@ namespace rome::core {
              * @return True if the system was found and removed, false otherwise.
              * @note This function is thread-safe.
              */
-            void erase(ID id);
+            b8 erase(ID id);
 
             private:
             mutable std::shared_mutex systemsLock;                                        ///< Mutex for thread-safe access.

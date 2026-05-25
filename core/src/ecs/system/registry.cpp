@@ -115,15 +115,16 @@ namespace rome::core {
             }
         }
 
-        void Registry::erase(ID id) {
+        b8 Registry::erase(ID id) {
             std::unique_lock lock(systemsLock);
             auto it = descriptors.find(id);
-            if (it == descriptors.end()) return;
+            if (it == descriptors.end()) return false;
             ids.erase(names[id]);
             names.erase(id);
             groups.erase(id);
             descriptors.erase(it);
             freeIDs.push(id);
+            return true;
         }
     }  // namespace System
 }  // namespace rome::core

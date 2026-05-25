@@ -93,11 +93,18 @@ TEST(SystemRegistry, Erase_InBounds_RemovesSystem) {
 
     System::ID id = systems.enter(System::Builder("movement", world).writes<Position>().build([](System::Context&) {}));
 
-    systems.erase(id);
+    EXPECT_TRUE(systems.erase(id));
 
     EXPECT_FALSE(systems.contains(id));
     EXPECT_THROW(systems.get(id), Exception);
     EXPECT_THROW(systems.getGroup(id), Exception);
+}
+
+TEST(SystemRegistry, Erase_MissingID_ReturnsFalse) {
+    System::Registry systems;
+
+    EXPECT_FALSE(systems.erase(System::INVALID_ID));
+    EXPECT_FALSE(systems.erase(42));
 }
 
 TEST(SystemRegistry, UpdateEntity_FullMatch_TracksEntity) {

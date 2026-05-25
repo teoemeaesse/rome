@@ -13,7 +13,7 @@ namespace rome::core {
         struct Descriptor;
     }
 
-    class RM_API Group final {
+    class Group final {
         public:
         const BitSet<> owning;   ///< The components that this group fully owns.
         const BitSet<> partial;  ///< The components that this group partially owns.

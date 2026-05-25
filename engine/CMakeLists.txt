@@ -5,29 +5,6 @@ set(CMAKE_CXX_STANDARD 20)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-file(GLOB_RECURSE ENGINE_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
-     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc"
-     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cxx")
-
-if(ENGINE_SOURCES STREQUAL "")
-  message(
-    FATAL_ERROR "No engine sources found under: ${CMAKE_CURRENT_SOURCE_DIR}/src"
-  )
-endif()
-
-add_library(engine SHARED ${ENGINE_SOURCES})
-
-target_compile_definitions(engine PRIVATE RM_EXPORT_ON RM_ASSERTS_ON)
-
-if(CMAKE_BUILD_TYPE STREQUAL "Release")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -DNDEBUG")
-else()
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
-  target_compile_definitions(engine PRIVATE RM_DEBUG_ON)
-endif()
-
-target_include_directories(engine PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
-
 set(CORE_PREFIX
     ""
     CACHE PATH "Path to core install prefix (dist folder)")
@@ -38,10 +15,30 @@ if(NOT CORE_PREFIX)
 endif()
 
 find_package(core CONFIG REQUIRED PATHS "${CORE_PREFIX}")
-target_link_libraries(engine PUBLIC core::core)
 
-set_target_properties(
-  engine
-  PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin"
-             LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin"
-             ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
+function(add_rome_engine_plugin target)
+  add_library(${target} SHARED ${ARGN})
+
+  target_compile_definitions(${target} PRIVATE RM_EXPORT_ON RM_ASSERTS_ON)
+
+  if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    target_compile_options(${target} PRIVATE -O3)
+    target_compile_definitions(${target} PRIVATE NDEBUG)
+  else()
+    target_compile_options(${target} PRIVATE -g)
+    target_compile_definitions(${target} PRIVATE RM_DEBUG_ON)
+  endif()
+
+  target_include_directories(${target}
+                             PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
+  target_link_libraries(${target} PUBLIC core::core)
+
+  set_target_properties(
+    ${target}
+    PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin"
+               LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin"
+               ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
+endfunction()
+
+add_rome_engine_plugin(engine_physics_newton
+                       "${CMAKE_CURRENT_SOURCE_DIR}/src/physics/newton.cpp")

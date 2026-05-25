@@ -9,7 +9,7 @@ namespace rome::core {
         class Registry;
     }
 
-    struct RM_API World {
+    struct World {
         System::Registry& systems;        ///< The registry for all systems in the ECS.
         Component::Registry& components;  ///< The registry for all components in the ECS.
         Entity::Registry& entities;       ///< The registry for all entities in the ECS.

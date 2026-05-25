@@ -10,7 +10,7 @@ namespace rome::core {
          * @brief A registry for managing events and their unique runtime IDs.
          * @warning This registry is not thread-safe outside event registration.
          */
-        class RM_API Registry final {
+        class Registry final {
             public:
             Registry() = default;
             ~Registry() = default;

@@ -24,7 +24,7 @@ namespace rome::core {
     /**
      * @brief A generic type that can be reflected.
      */
-    class RM_API Type {
+    class Type {
         public:
         ~Type() = default;
         Type(Type&&) noexcept = default;
@@ -142,7 +142,7 @@ namespace rome::core {
     /**
      * @brief Information about a reflected type such as its base type, size, qualifiers, etc.
      */
-    class RM_API TypeInfo {
+    class TypeInfo {
         public:
         ~TypeInfo() = default;
 
@@ -209,7 +209,7 @@ namespace rome::core {
      * @brief Declares a generic reflection for a given type.
      * @note Mostly just here to circumvent private member access.
      */
-    struct RM_API Reflect {
+    struct Reflect {
         /**
          * @brief Reflects the given type, storing some of its metadata.
          * @tparam T The fully-qualified type to reflect.

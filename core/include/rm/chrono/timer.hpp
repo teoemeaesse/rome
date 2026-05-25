@@ -6,7 +6,7 @@ namespace rome::core {
     /**
      * @brief A simple timer class meant to measure time between two points.
      */
-    class RM_API Timer {
+    class Timer {
         public:
         Timer() = default;
         ~Timer() = default;

@@ -12,7 +12,7 @@ namespace rome::core {
      *              You can go over this size, falling back to dynamic storage.
      */
     template <u64 Size = 512>
-    class RM_API BitSet final {
+    class BitSet final {
         STATIC_ASSERT(Size % 64 == 0, "Size must be a multiple of 64 bits");
 
         public:

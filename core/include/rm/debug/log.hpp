@@ -6,7 +6,7 @@ namespace rome::core {
     /**
      * @brief Log types in ascending order of importance.
      */
-    enum class RM_API LogLevel : u8 { Trace = 0, Debug = 1, Info = 2, Warn = 3, Error = 4, Fatal = 5 };
+    enum class LogLevel : u8 { Trace = 0, Debug = 1, Info = 2, Warn = 3, Error = 4, Fatal = 5 };
 
     /**
      * @brief Writes out a log message to stdout.

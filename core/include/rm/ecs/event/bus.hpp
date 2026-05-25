@@ -7,7 +7,7 @@ namespace rome::core {
         /**
          * @brief A base class for event queue storage.
          */
-        class RM_API Queue {
+        class Queue {
             public:
             virtual ~Queue() = default;
 
@@ -22,7 +22,7 @@ namespace rome::core {
          * @tparam E The event type to store.
          */
         template <Event E>
-        class RM_API Storage final : public Queue {
+        class Storage final : public Queue {
             public:
             Storage() = default;
             ~Storage() = default;
@@ -72,7 +72,7 @@ namespace rome::core {
             std::vector<E> back;   ///< Producers write to this vector.
         };
 
-        class RM_API Bus final {
+        class Bus final {
             public:
             Bus(World& world);
             ~Bus() = default;

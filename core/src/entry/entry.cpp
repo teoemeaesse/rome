@@ -18,6 +18,7 @@ rome::i32 main(rome::i32 argc, char** argv) {
     // Run the application.
     app->setup();
     app->start();
+    app->shutdown();
 
     // Cleanup.
     delete app;

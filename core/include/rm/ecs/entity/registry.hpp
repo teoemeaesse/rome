@@ -7,7 +7,7 @@ namespace rome::core {
      * @brief A registry to manage the creation and destruction of entities.
      * @warning This registry is not thread-safe.
      */
-    class RM_API Entity::Registry final {
+    class Entity::Registry final {
         public:
         Registry();
         ~Registry() = default;

@@ -8,7 +8,7 @@ namespace rome::core {
     /**
      * @brief The base class for all rome applications.
      */
-    class RM_API Application {
+    class Application {
         public:
         friend class ApplicationStrategy;
         struct Config;

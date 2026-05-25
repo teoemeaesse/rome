@@ -34,7 +34,7 @@ namespace rome::core {
     /**
      * @brief A class that represents a thread of execution. Should be instantiated via a pool / dispatcher.
      */
-    class RM_API Thread {
+    class Thread {
         public:
         Thread(const std::string& alias);
         ~Thread();

@@ -10,7 +10,7 @@ namespace rome::core {
         /**
          * @brief A system's descriptor defines its static properties such as name, scheduling, etc.
          */
-        struct RM_API Descriptor {
+        struct Descriptor {
             World& world;                                  ///< Reference to the world instance.
             const std::string name = "null descriptor";    ///< The name of the system. Must be unique.
             std::function<void(Context&)> callback;        ///< The function to be called every time the system is executed.
@@ -23,7 +23,7 @@ namespace rome::core {
             b8 active = true;                              ///< Whether the system is currently active.
         };
 
-        class RM_API Builder {
+        class Builder {
             public:
             Builder(const std::string& name, World& world);
             ~Builder() = default;

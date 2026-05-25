@@ -8,7 +8,7 @@ namespace rome::core {
     /**
      * @brief Class representing the current platform.
      */
-    class RM_API Platform {
+    class Platform {
         public:
         /**
          * @brief Enum representing the low-level program signals.

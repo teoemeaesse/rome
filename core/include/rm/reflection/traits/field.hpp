@@ -8,7 +8,7 @@ namespace rome::core {
     /**
      * @brief A reflectable struct or class field.
      */
-    class RM_API Field {
+    class Field {
         friend class Fields;
 
         public:
@@ -95,7 +95,7 @@ namespace rome::core {
     /**
      * @brief A list of reflectable fields. Stores any number of Field<T> objects in a tuple.
      */
-    class RM_API Fields : public Trait {
+    class Fields : public Trait {
         public:
         Fields();
 

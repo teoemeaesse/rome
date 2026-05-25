@@ -10,7 +10,7 @@ namespace rome::core {
         /**
          * @brief Acts as an interface for the storage of components.
          */
-        class RM_API Storage {
+        class Storage {
             public:
             virtual ~Storage() = default;
         };
@@ -20,7 +20,7 @@ namespace rome::core {
          * @tparam T The component type to manage.
          */
         template <Component T>
-        class RM_API Pool final : public Storage {
+        class Pool final : public Storage {
             public:
             Pool() = default;
             ~Pool() = default;

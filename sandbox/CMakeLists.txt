@@ -25,9 +25,14 @@ if(NOT CORE_PREFIX)
   message(FATAL_ERROR "Set -DCORE_PREFIX=/path/to/dist")
 endif()
 
+find_package(core CONFIG REQUIRED PATHS "${CORE_PREFIX}")
 add_subdirectory(../engine ${CMAKE_CURRENT_BINARY_DIR}/engine_build)
 
-target_link_libraries(sandbox PRIVATE engine)
+target_link_libraries(sandbox PRIVATE core::core)
+target_include_directories(sandbox PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../engine/include)
+target_compile_definitions(sandbox
+                           PRIVATE RM_NEWTON_PLUGIN_PATH="$<TARGET_FILE:engine_physics_newton>")
+add_dependencies(sandbox engine_physics_newton)
 
 set_target_properties(
   sandbox

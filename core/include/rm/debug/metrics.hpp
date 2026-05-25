@@ -7,7 +7,7 @@ namespace rome::core {
     /**
      * @brief Tracks program time and memory performance over time.
      */
-    class RM_API Metrics {
+    class Metrics {
         public:
         Metrics() = default;
         ~Metrics();

@@ -12,7 +12,7 @@ namespace rome::core {
          * @note This registry is not thread-safe outside component registration.
          * @warning Every component must implement reflection and a copy-constructor to be registered.
          */
-        class RM_API Registry final {
+        class Registry final {
             public:
             Registry() = default;
             ~Registry() = default;

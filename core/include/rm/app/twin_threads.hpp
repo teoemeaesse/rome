@@ -9,7 +9,7 @@ namespace rome::core {
     /**
      * @brief An application strategy consisting of one tick thread and one render thread.
      */
-    class RM_API TwinStrategy : public ApplicationStrategy {
+    class TwinStrategy : public ApplicationStrategy {
         public:
         TwinStrategy(Application& app, b8 memoryMetrics = true);
         ~TwinStrategy() override = default;

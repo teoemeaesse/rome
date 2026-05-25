@@ -22,13 +22,13 @@ namespace rome::core {
             STATIC_ASSERT(sizeof(T) == 0, "Type not found in index_of");
         };
 
-        struct RM_API Context {
+        struct Context {
             const Group& group;  ///< The group this system is operating on.
             World& world;        ///< Reference to the world instance.
         };
 
         template <Component::Component... Components>
-        class RM_API ViewIterator final {
+        class ViewIterator final {
             public:
             ViewIterator(const std::tuple<Component::Pool<remove_all_qualifiers_t<Components>>*...>& pools, const Entity* entities, u64 index,
                          u64 max)
@@ -77,13 +77,13 @@ namespace rome::core {
          * @tparam ...Components The component types to include in the view.
          */
         template <Component::Component... Components>
-        class RM_API View final {
+        class View final {
             public:
             explicit View(Context& ctx) : count(ctx.group.getSize()) {
                 auto [entities, _] = ctx.group.getEntities().getData();
                 this->entities = entities;
 
-                (void)std::initializer_list<int>{(source<Components>(ctx), 0)...};
+                (source<Components>(ctx), ...);
             }
 
             ViewIterator<Components...> begin() const { return ViewIterator<Components...>{pools, entities, 0, count}; }

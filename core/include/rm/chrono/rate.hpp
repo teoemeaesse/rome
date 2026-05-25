@@ -6,7 +6,7 @@ namespace rome::core {
     /**
      * @brief Tracks the running rate of an application.
      */
-    class RM_API RateTracker {
+    class RateTracker {
         public:
         /**
          * @brief Creates a new rate tracker.

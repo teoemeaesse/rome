@@ -9,7 +9,7 @@ namespace rome::core {
      * @brief Defines how an application should tick and render.
      * @note Subclass this to configure your own game loop.
      */
-    class RM_API ApplicationStrategy {
+    class ApplicationStrategy {
         public:
         /**
          * @brief Creates a new application strategy.

@@ -2,15 +2,16 @@
 
 #include "rm/ecs/system/registry.hpp"
 #include "rm/ecs/world.hpp"
+#include "rm/plugin/registry.hpp"
 
 namespace rome::core {
     /**
      * @brief The "ECS" is the primary interface for the ECS (Entity-Component-System) framework.
      */
-    class RM_API ECS {
+    class ECS {
         public:
         ECS() : systems(), components(), entities(), events(), world{systems, components, entities, events} {}
-        ~ECS() = default;
+        ~ECS() { unloadPlugins(); }
         ECS(const ECS&) = delete;
         ECS& operator=(const ECS&) = delete;
         ECS(ECS&&) = delete;
@@ -50,6 +51,13 @@ namespace rome::core {
         System::ID registerSystem(System::Descriptor&& descriptor) { return systems.enter(std::move(descriptor)); }
 
         /**
+         * @brief Removes a registered system.
+         * @param id The system ID to remove.
+         * @return True if the system existed and was removed, false otherwise.
+         */
+        b8 unregisterSystem(System::ID id) { return systems.erase(id); }
+
+        /**
          * @brief Creates a system builder bound to this ECS world.
          * @param name The unique name of the system.
          * @return A builder ready to describe and build the system.
@@ -66,6 +74,31 @@ namespace rome::core {
          * @brief Executes every active system.
          */
         void runSystems() { systems.run(); }
+
+        /**
+         * @brief Loads a plugin dynamic library.
+         * @param path The plugin library path.
+         * @return The loaded plugin ID, or Plugin::INVALID_ID.
+         */
+        Plugin::ID loadPlugin(const std::string& path) { return plugins.load(path, *this); }
+
+        /**
+         * @brief Unloads a plugin dynamic library.
+         * @param id The loaded plugin ID.
+         * @return True if the plugin existed and was unloaded.
+         */
+        b8 unloadPlugin(Plugin::ID id) { return plugins.unload(id, *this); }
+
+        /**
+         * @brief Unloads every loaded plugin dynamic library.
+         */
+        void unloadPlugins() { plugins.unload(*this); }
+
+        /**
+         * @brief Gets the number of loaded plugins.
+         * @return The number of loaded plugins.
+         */
+        u32 getPluginCount() const noexcept { return plugins.getSize(); }
 
         /**
          * @brief Adds a component to the given entity.
@@ -140,5 +173,6 @@ namespace rome::core {
         Entity::Registry entities;       ///< The registry for all entities in the ECS.
         Event::Registry events;          ///< The registry for all events in the ECS.
         World world;                     ///< A reference to the ECS state.
+        Plugin::Registry plugins;        ///< Loaded plugin dynamic libraries.
     };
 }  // namespace rome::core

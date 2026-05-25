@@ -6,7 +6,7 @@ namespace rome::core {
 /**
  * @brief A reflectable property of a type.
  */
-class RM_API Trait {
+class Trait {
 public:
   virtual ~Trait() = default;
 

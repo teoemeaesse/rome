@@ -54,6 +54,10 @@ if(APPLE)
     PRIVATE ${CMAKE_SOURCE_DIR}/lib/SDL/build/libSDL3.a)
 endif()
 
+if(UNIX AND NOT APPLE)
+  target_link_libraries(core PUBLIC pthread dl m)
+endif()
+
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
@@ -102,10 +106,55 @@ if(BUILD_TESTS)
   enable_testing()
 
   file(GLOB_RECURSE TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
+  list(REMOVE_ITEM TEST_SOURCES
+       ${CMAKE_CURRENT_SOURCE_DIR}/tests/plugin/test_plugin.cpp
+       ${CMAKE_CURRENT_SOURCE_DIR}/tests/plugin/dependency_plugin.cpp
+       ${CMAKE_CURRENT_SOURCE_DIR}/tests/plugin/dependent_plugin.cpp)
+
+  add_library(core_test_plugin SHARED
+              ${CMAKE_CURRENT_SOURCE_DIR}/tests/plugin/test_plugin.cpp)
+  target_link_libraries(core_test_plugin PRIVATE core)
+  target_compile_definitions(core_test_plugin PRIVATE RM_EXPORT_ON
+                                                      RM_ASSERTS_ON
+                                                      RM_DEBUG_ON)
+  set_target_properties(
+    core_test_plugin
+    PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+               LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+               ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+  add_library(core_test_dependency_plugin SHARED
+              ${CMAKE_CURRENT_SOURCE_DIR}/tests/plugin/dependency_plugin.cpp)
+  target_link_libraries(core_test_dependency_plugin PRIVATE core)
+  target_compile_definitions(core_test_dependency_plugin
+                             PRIVATE RM_EXPORT_ON RM_ASSERTS_ON RM_DEBUG_ON)
+  set_target_properties(
+    core_test_dependency_plugin
+    PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+               LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+               ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+  add_library(core_test_dependent_plugin SHARED
+              ${CMAKE_CURRENT_SOURCE_DIR}/tests/plugin/dependent_plugin.cpp)
+  target_link_libraries(core_test_dependent_plugin PRIVATE core)
+  target_compile_definitions(
+    core_test_dependent_plugin
+    PRIVATE RM_EXPORT_ON RM_ASSERTS_ON RM_DEBUG_ON
+            RM_TEST_DEPENDENCY_PLUGIN_FILE="$<TARGET_FILE_NAME:core_test_dependency_plugin>"
+  )
+  set_target_properties(
+    core_test_dependent_plugin
+    PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+               LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+               ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
   add_executable(core_tests ${TEST_SOURCES})
+  add_dependencies(core_tests core_test_plugin core_test_dependency_plugin
+                   core_test_dependent_plugin)
   target_link_libraries(core_tests PRIVATE core gtest gtest_main)
   target_compile_definitions(core_tests PRIVATE RM_EXPORT_ON RM_ASSERTS_ON
-                                                RM_DEBUG_ON)
+                                                RM_DEBUG_ON
+                                                RM_TEST_PLUGIN_PATH="$<TARGET_FILE:core_test_plugin>"
+                                                RM_TEST_DEPENDENT_PLUGIN_PATH="$<TARGET_FILE:core_test_dependent_plugin>")
   add_test(NAME CoreTests COMMAND core_tests)
 endif()
