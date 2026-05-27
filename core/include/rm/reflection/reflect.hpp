@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string_view>
+
 #include "rm/reflection/trait.hpp"
 
 /**
@@ -18,6 +20,10 @@
     inline rome::core::Type& rome::core::Reflect::_reflect<type>() {                                     \
         static rome::core::Type instance = rome::core::Type::make<type>(name __VA_OPT__(, __VA_ARGS__)); \
         return instance;                                                                                 \
+    }                                                                                                    \
+    template <>                                                                                          \
+    consteval std::string_view rome::core::Reflect::_getName<type>() noexcept {                          \
+        return name;                                                                                     \
     }
 
 namespace rome::core {
@@ -221,6 +227,16 @@ namespace rome::core {
             return info;
         }
 
+        /**
+         * @brief Gets the reflected name for a type at compile time.
+         * @tparam T The fully-qualified type to query.
+         * @return The reflected name for the unqualified type.
+         */
+        template <typename T>
+        static consteval std::string_view getName() noexcept {
+            return _getName<remove_all_qualifiers_t<T>>();
+        }
+
         private:
         /**
          * @brief Reflect a type. Returns the base type's reflection information.
@@ -229,6 +245,14 @@ namespace rome::core {
          */
         template <typename T>
         static Type& _reflect();
+
+        /**
+         * @brief Gets the reflected name for the given base type at compile time.
+         * @tparam T The type to query.
+         * @return The reflected name for the type.
+         */
+        template <typename T>
+        static consteval std::string_view _getName() noexcept;
     };
 
     // Primary is_reflectable trait: Defaults to false
