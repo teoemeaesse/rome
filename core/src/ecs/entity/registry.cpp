@@ -21,10 +21,8 @@ namespace rome::core {
 
     u64 Entity::Registry::getCapacity() const noexcept { return entities.size(); }
 
-    b8 Entity::Registry::isOccupied(u64 index) const noexcept { return index < entities.size() && getIndex(entities[index]) == index; }
-
     Entity Entity::Registry::get(u64 index) const {
-        if (!isOccupied(index)) {
+        if (index >= entities.size()) {
             std::string msg = "Entity at index " + std::to_string(index) + " not found";
             THROW_CORE_EXCEPTION(Exception::Type::NotFound, msg.c_str());
         }
@@ -35,6 +33,10 @@ namespace rome::core {
         std::string msg = "Entity at index " + std::to_string(index) + " not found";
         THROW_CORE_EXCEPTION(Exception::Type::NotFound, msg.c_str());
     }
+
+    Entity::Registry::Iterator Entity::Registry::begin() const { return Iterator{*this, 0}; }
+
+    Entity::Registry::Iterator Entity::Registry::end() const { return Iterator{*this, entities.size()}; }
 
     void Entity::Registry::destroy(Entity entity) {
         if (!isAlive(entity)) return;
@@ -48,6 +50,24 @@ namespace rome::core {
     b8 Entity::Registry::isAlive(Entity entity) const {
         const u64 index = getIndex(entity.id);
 
-        return index < entities.size() && getVersion(entities[index]) == getVersion(entity.id);
+        return entity.id != Entity::INVALID_ID && index < entities.size() && entities[index] == entity.id;
+    }
+
+    Entity::Registry::Iterator::Iterator(const Registry& registry, u64 index) : registry(registry), index(index) { advance(); }
+
+    Entity::Registry::Iterator& Entity::Registry::Iterator::operator++() {
+        index++;
+        advance();
+        return *this;
+    }
+
+    Entity Entity::Registry::Iterator::operator*() const { return Entity(registry.entities[index]); }
+
+    void Entity::Registry::Iterator::advance() {
+        while (index < registry.entities.size()) {
+            const Entity entity(registry.entities[index]);
+            if (registry.isAlive(entity)) return;
+            index++;
+        }
     }
 }  // namespace rome::core

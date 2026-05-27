@@ -74,8 +74,8 @@ TEST(Group, Constructors_FullOwning_OK) {
         System::Builder("movement", world).reads<Position>().writes<Velocity>().requireFull().build([](System::Context&) {});
     Group group(descriptor);
 
-    EXPECT_TRUE(group.owning.test(components.submit<Position>()));
-    EXPECT_TRUE(group.owning.test(components.submit<Velocity>()));
+    EXPECT_TRUE(group.owning.test(components.getID<Position>()));
+    EXPECT_TRUE(group.owning.test(components.getID<Velocity>()));
     EXPECT_TRUE(group.partial.none());
     EXPECT_TRUE(group.isEmpty());
 }
@@ -91,8 +91,8 @@ TEST(Group, Constructors_Partial_OK) {
         System::Builder("movement", world).reads<Position>().writes<Velocity>().allowPartial().build([](System::Context&) {});
     Group group(descriptor);
 
-    EXPECT_TRUE(group.owning.test(components.submit<Velocity>()));
-    EXPECT_TRUE(group.partial.test(components.submit<Position>()));
+    EXPECT_TRUE(group.owning.test(components.getID<Velocity>()));
+    EXPECT_TRUE(group.partial.test(components.getID<Position>()));
 }
 
 TEST(Group, Constructors_NonOwning_OK) {
@@ -107,8 +107,8 @@ TEST(Group, Constructors_NonOwning_OK) {
     Group group(descriptor);
 
     EXPECT_TRUE(group.owning.none());
-    EXPECT_TRUE(group.partial.test(components.submit<Position>()));
-    EXPECT_TRUE(group.partial.test(components.submit<Velocity>()));
+    EXPECT_TRUE(group.partial.test(components.getID<Position>()));
+    EXPECT_TRUE(group.partial.test(components.getID<Velocity>()));
 }
 
 TEST(Group, AddRemoveEntity_Always_OK) {
@@ -227,12 +227,13 @@ TEST(Group, MixedGroups_AllArchetypes_MatchExpected) {
     addGroupComponent<GroupB>(components, abc, 11);
     addGroupComponent<GroupC>(components, abc, 12);
 
-    System::ID fullAB =
-        systems.enter(System::Builder("fullAB", world).reads<GroupA>().writes<GroupB>().requireFull().build([](System::Context&) {}));
-    System::ID partialAC = systems.enter(
-        System::Builder("partialAC", world).reads<GroupC>().writes<GroupA>().allowPartial().build([](System::Context&) {}));
-    System::ID nonOwningBC =
-        systems.enter(System::Builder("nonOwningBC", world).reads<GroupB, GroupC>().allowPartial().build([](System::Context&) {}));
+    EXPECT_TRUE(systems.submit(System::Builder("fullAB", world).reads<GroupA>().writes<GroupB>().requireFull().build([](System::Context&) {})));
+    EXPECT_TRUE(
+        systems.submit(System::Builder("partialAC", world).reads<GroupC>().writes<GroupA>().allowPartial().build([](System::Context&) {})));
+    EXPECT_TRUE(systems.submit(System::Builder("nonOwningBC", world).reads<GroupB, GroupC>().allowPartial().build([](System::Context&) {})));
+    System::ID fullAB = systems.get("fullAB");
+    System::ID partialAC = systems.get("partialAC");
+    System::ID nonOwningBC = systems.get("nonOwningBC");
 
     expectContains(systems.getGroup(fullAB), {ab, abc}, {a, b, c, ac, bc});
     expectContains(systems.getGroup(partialAC), {ac, abc}, {a, b, c, ab, bc});
@@ -246,12 +247,13 @@ TEST(Group, MixedGroups_ComponentChanges_UpdateExpected) {
     Event::Registry events;
     World world = makeGroupWorld(systems, components, entities, events);
 
-    System::ID fullAB =
-        systems.enter(System::Builder("fullAB", world).reads<GroupA>().writes<GroupB>().requireFull().build([](System::Context&) {}));
-    System::ID partialAC = systems.enter(
-        System::Builder("partialAC", world).reads<GroupC>().writes<GroupA>().allowPartial().build([](System::Context&) {}));
-    System::ID nonOwningBC =
-        systems.enter(System::Builder("nonOwningBC", world).reads<GroupB, GroupC>().allowPartial().build([](System::Context&) {}));
+    EXPECT_TRUE(systems.submit(System::Builder("fullAB", world).reads<GroupA>().writes<GroupB>().requireFull().build([](System::Context&) {})));
+    EXPECT_TRUE(
+        systems.submit(System::Builder("partialAC", world).reads<GroupC>().writes<GroupA>().allowPartial().build([](System::Context&) {})));
+    EXPECT_TRUE(systems.submit(System::Builder("nonOwningBC", world).reads<GroupB, GroupC>().allowPartial().build([](System::Context&) {})));
+    System::ID fullAB = systems.get("fullAB");
+    System::ID partialAC = systems.get("partialAC");
+    System::ID nonOwningBC = systems.get("nonOwningBC");
 
     Entity entity = entities.create();
 

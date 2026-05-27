@@ -9,43 +9,32 @@ namespace rome::core {
      */
     class Entity::Registry final {
         public:
+        class Iterator;
         Registry();
         ~Registry() = default;
 
         /**
          * @brief Creates a new entity.
          * @return The ID of the new entity.
-         * @warning This function is not thread-safe.
          */
         Entity create();
 
         /**
          * @brief Returns the number of slots in the entity pool.
          * @return The number of slots in the entity pool, including reusable holes.
-         * @warning This function is not thread-safe.
          */
         u64 getCapacity() const noexcept;
-
-        /**
-         * @brief Returns true if the slot currently stores a live entity.
-         * @param index The entity slot index.
-         * @return True if the slot stores a live entity, false otherwise.
-         * @warning This function is not thread-safe.
-         */
-        b8 isOccupied(u64 index) const noexcept;
 
         /**
          * @brief Gets the live entity stored at a slot.
          * @param index The entity slot index.
          * @return The entity stored at the slot.
-         * @warning This function is not thread-safe.
          */
         Entity get(u64 index) const;
 
         /**
          * @brief Destroys an entity.
          * @param entity The entity to destroy.
-         * @warning This function is not thread-safe.
          */
         void destroy(Entity entity);
 
@@ -53,9 +42,27 @@ namespace rome::core {
          * @brief Checks if an entity is alive.
          * @param entity The entity to check.
          * @return True if the entity is alive, false otherwise.
-         * @warning This function is not thread-safe.
          */
         b8 isAlive(Entity entity) const;
+
+        /* Non-const iterator interfaces */
+        Iterator begin() const;
+        Iterator end() const;
+
+        class Iterator final {
+            public:
+            Iterator(const Registry& registry, u64 index);
+
+            bool operator!=(const Iterator& iter) const { return index != iter.index; }
+            Iterator& operator++();
+            Entity operator*() const;
+
+            private:
+            void advance();
+
+            const Registry& registry;
+            u64 index;
+        };
 
         private:
         std::vector<u64> entities;  ///< The entity pool.

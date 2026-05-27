@@ -163,8 +163,10 @@ TEST(ComponentPool, Iterator_Always_OK) {
 TEST(ComponentRegistry, Submit_DuplicateComponent_OK) {
     Component::Registry registry;
 
-    Component::ID id0 = registry.submit<Position>();
-    Component::ID id1 = registry.submit<Position>();
+    EXPECT_TRUE(registry.submit<Position>());
+    Component::ID id0 = registry.getID<Position>();
+    EXPECT_FALSE(registry.submit<Position>());
+    Component::ID id1 = registry.getID<Position>();
 
     EXPECT_NE(id0, Component::INVALID_ID);
     EXPECT_EQ(id0, id1);
@@ -174,8 +176,10 @@ TEST(ComponentRegistry, Submit_DuplicateComponent_OK) {
 TEST(ComponentRegistry, Submit_DifferentComponents_DifferentIDs) {
     Component::Registry registry;
 
-    Component::ID positionID = registry.submit<Position>();
-    Component::ID velocityID = registry.submit<Velocity>();
+    EXPECT_TRUE(registry.submit<Position>());
+    EXPECT_TRUE(registry.submit<Velocity>());
+    Component::ID positionID = registry.getID<Position>();
+    Component::ID velocityID = registry.getID<Velocity>();
 
     EXPECT_NE(positionID, Component::INVALID_ID);
     EXPECT_NE(velocityID, Component::INVALID_ID);
@@ -183,10 +187,23 @@ TEST(ComponentRegistry, Submit_DifferentComponents_DifferentIDs) {
     EXPECT_EQ(registry.getSize(), 2);
 }
 
+TEST(ComponentRegistry, Check_SubmittedComponent_OK) {
+    Component::Registry registry;
+
+    EXPECT_FALSE(registry.check<Position>());
+    EXPECT_TRUE(registry.submit<Position>());
+    EXPECT_TRUE(registry.check<Position>());
+    EXPECT_FALSE(registry.submit<Position>());
+    registry.revoke<Position>();
+    EXPECT_FALSE(registry.check<Position>());
+    EXPECT_EQ(registry.getID<Position>(), Component::INVALID_ID);
+}
+
 TEST(ComponentRegistry, GetName_InBounds_OK) {
     Component::Registry registry;
 
-    Component::ID id = registry.submit<Position>();
+    EXPECT_TRUE(registry.submit<Position>());
+    Component::ID id = registry.getID<Position>();
 
     EXPECT_EQ(registry.getName(id), "Position");
 }
@@ -202,7 +219,7 @@ TEST(ComponentRegistry, GetName_OutOfBounds_Empty) {
 TEST(ComponentRegistry, GetPool_InBounds_OK) {
     Component::Registry registry;
 
-    registry.submit<Position>();
+    EXPECT_TRUE(registry.submit<Position>());
 
     EXPECT_NE(registry.getPool<Position>(), nullptr);
 }
@@ -302,12 +319,35 @@ TEST(ComponentRegistry, GetSize_Always_OK) {
 
     EXPECT_EQ(registry.getSize(), 0);
 
-    registry.submit<Position>();
+    EXPECT_TRUE(registry.submit<Position>());
     EXPECT_EQ(registry.getSize(), 1);
 
-    registry.submit<Velocity>();
+    EXPECT_TRUE(registry.submit<Velocity>());
     EXPECT_EQ(registry.getSize(), 2);
 
-    registry.submit<Position>();
+    EXPECT_FALSE(registry.submit<Position>());
     EXPECT_EQ(registry.getSize(), 2);
+}
+
+TEST(ComponentRegistry, Revoke_InBounds_RemovesStorageAndArchetypes) {
+    Component::Registry registry;
+    e1 = er.create();
+
+    EXPECT_TRUE(registry.submit<Position>());
+    const Component::ID id = registry.getID<Position>();
+    [[maybe_unused]] Position* position = registry.emplace<Position>(e1, 1.0f, 2.0f);
+    EXPECT_TRUE(registry.has<Position>(e1));
+
+    EXPECT_TRUE(registry.revoke<Position>());
+
+    EXPECT_EQ(registry.getSize(), 0);
+    EXPECT_TRUE(registry.getName(id).empty());
+    EXPECT_EQ(registry.getPool<Position>(), nullptr);
+    EXPECT_FALSE(registry.has<Position>(e1));
+}
+
+TEST(ComponentRegistry, Revoke_Missing_ReturnsFalse) {
+    Component::Registry registry;
+
+    EXPECT_FALSE(registry.revoke<Position>());
 }

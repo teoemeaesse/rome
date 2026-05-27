@@ -36,8 +36,10 @@ TEST(SystemBuilder, Build_WithMasks_OK) {
     Event::Registry events;
     World world = makeWorld(systems, components, entities, events);
 
-    Event::ID emitted = events.enter("Emitted");
-    Event::ID listened = events.enter("Listened");
+    EXPECT_TRUE(events.submit("Emitted"));
+    EXPECT_TRUE(events.submit("Listened"));
+    Event::ID emitted = events.get("Emitted");
+    Event::ID listened = events.get("Listened");
 
     System::Descriptor descriptor = System::Builder("movement", world)
                                         .reads<Position>()
@@ -48,8 +50,8 @@ TEST(SystemBuilder, Build_WithMasks_OK) {
                                         .build([](System::Context&) {});
 
     EXPECT_EQ(descriptor.name, "movement");
-    EXPECT_TRUE(descriptor.reads.test(components.submit<Position>()));
-    EXPECT_TRUE(descriptor.writes.test(components.submit<Velocity>()));
+    EXPECT_TRUE(descriptor.reads.test(components.getID<Position>()));
+    EXPECT_TRUE(descriptor.writes.test(components.getID<Velocity>()));
     EXPECT_TRUE(descriptor.emits.test(emitted));
     EXPECT_TRUE(descriptor.listens.test(listened));
     EXPECT_TRUE(descriptor.requireFull);
@@ -57,54 +59,56 @@ TEST(SystemBuilder, Build_WithMasks_OK) {
     EXPECT_TRUE(descriptor.active);
 }
 
-TEST(SystemRegistry, Enter_ValidDescriptor_OK) {
+TEST(SystemRegistry, Submit_ValidDescriptor_OK) {
     System::Registry systems;
     Component::Registry components;
     Entity::Registry entities;
     Event::Registry events;
     World world = makeWorld(systems, components, entities, events);
 
-    System::ID id = systems.enter(System::Builder("movement", world).writes<Position>().build([](System::Context&) {}));
+    EXPECT_TRUE(systems.submit(System::Builder("movement", world).writes<Position>().build([](System::Context&) {})));
+    System::ID id = systems.get("movement");
 
     EXPECT_NE(id, System::INVALID_ID);
-    EXPECT_TRUE(systems.contains(id));
+    EXPECT_TRUE(systems.check(id));
     EXPECT_EQ(systems.get(id).name, "movement");
     EXPECT_TRUE(systems.getGroup(id).isEmpty());
 }
 
-TEST(SystemRegistry, Enter_DuplicateName_ReturnsNullID) {
+TEST(SystemRegistry, Submit_DuplicateName_ReturnsFalse) {
     System::Registry systems;
     Component::Registry components;
     Entity::Registry entities;
     Event::Registry events;
     World world = makeWorld(systems, components, entities, events);
 
-    systems.enter(System::Builder("movement", world).writes<Position>().build([](System::Context&) {}));
+    EXPECT_TRUE(systems.submit(System::Builder("movement", world).writes<Position>().build([](System::Context&) {})));
 
-    EXPECT_EQ(systems.enter(System::Builder("movement", world).writes<Velocity>().build([](System::Context&) {})), System::INVALID_ID);
+    EXPECT_FALSE(systems.submit(System::Builder("movement", world).writes<Velocity>().build([](System::Context&) {})));
 }
 
-TEST(SystemRegistry, Erase_InBounds_RemovesSystem) {
+TEST(SystemRegistry, Revoke_InBounds_RevokesSystem) {
     System::Registry systems;
     Component::Registry components;
     Entity::Registry entities;
     Event::Registry events;
     World world = makeWorld(systems, components, entities, events);
 
-    System::ID id = systems.enter(System::Builder("movement", world).writes<Position>().build([](System::Context&) {}));
+    EXPECT_TRUE(systems.submit(System::Builder("movement", world).writes<Position>().build([](System::Context&) {})));
+    System::ID id = systems.get("movement");
 
-    EXPECT_TRUE(systems.erase(id));
+    EXPECT_TRUE(systems.revoke(id));
 
-    EXPECT_FALSE(systems.contains(id));
+    EXPECT_FALSE(systems.check(id));
     EXPECT_THROW(systems.get(id), Exception);
     EXPECT_THROW(systems.getGroup(id), Exception);
 }
 
-TEST(SystemRegistry, Erase_MissingID_ReturnsFalse) {
+TEST(SystemRegistry, Revoke_MissingID_ReturnsFalse) {
     System::Registry systems;
 
-    EXPECT_FALSE(systems.erase(System::INVALID_ID));
-    EXPECT_FALSE(systems.erase(42));
+    EXPECT_FALSE(systems.revoke(System::INVALID_ID));
+    EXPECT_FALSE(systems.revoke(42));
 }
 
 TEST(SystemRegistry, UpdateEntity_FullMatch_TracksEntity) {
@@ -114,8 +118,9 @@ TEST(SystemRegistry, UpdateEntity_FullMatch_TracksEntity) {
     Event::Registry events;
     World world = makeWorld(systems, components, entities, events);
 
-    System::ID id =
-        systems.enter(System::Builder("movement", world).reads<Velocity>().writes<Position>().requireFull().build([](System::Context&) {}));
+    EXPECT_TRUE(
+        systems.submit(System::Builder("movement", world).reads<Velocity>().writes<Position>().requireFull().build([](System::Context&) {})));
+    System::ID id = systems.get("movement");
     Entity entity = entities.create();
 
     ASSERT_NE(components.emplace<Position>(entity, 1.0f, 2.0f), nullptr);
@@ -138,8 +143,9 @@ TEST(SystemRegistry, UpdateEntity_PartialMatch_TracksEntity) {
     Event::Registry events;
     World world = makeWorld(systems, components, entities, events);
 
-    System::ID id =
-        systems.enter(System::Builder("movement", world).reads<Velocity>().writes<Position>().allowPartial().build([](System::Context&) {}));
+    EXPECT_TRUE(
+        systems.submit(System::Builder("movement", world).reads<Velocity>().writes<Position>().allowPartial().build([](System::Context&) {})));
+    System::ID id = systems.get("movement");
     Entity entity = entities.create();
 
     ASSERT_NE(components.emplace<Position>(entity, 1.0f, 2.0f), nullptr);

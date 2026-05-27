@@ -20,39 +20,53 @@ namespace rome::core {
             Registry& operator=(Registry&&) = delete;
 
             /**
-             * @brief Loads a plugin and runs its load entry point.
+             * @brief Submits a plugin declaration and runs its load entry point.
              * @param path The plugin library path.
              * @param ecs The ECS instance exposed to the plugin.
-             * @return The loaded plugin ID, or Plugin::INVALID_ID.
+             * @return True if the plugin was newly submitted, false otherwise.
              */
-            ID load(const std::string& path, ECS& ecs);
+            b8 submit(const std::string& path, ECS& ecs);
 
             /**
-             * @brief Unloads a plugin.
-             * @param id The loaded plugin ID.
+             * @brief Revokes a plugin declaration and runs its unload entry point.
+             * @param id The submitted plugin ID.
              * @param ecs The ECS instance exposed to the plugin.
-             * @return True if the plugin existed and was unloaded.
+             * @return True if the plugin existed and was revoked.
              */
-            b8 unload(ID id, ECS& ecs);
+            b8 revoke(ID id, ECS& ecs);
 
             /**
-             * @brief Unloads every loaded plugin.
+             * @brief Revokes every submitted plugin declaration.
              * @param ecs The ECS instance exposed to each plugin.
              */
-            void unload(ECS& ecs);
+            void revoke(ECS& ecs);
 
             /**
-             * @brief Gets the number of loaded plugins.
-             * @return The number of loaded plugins.
+             * @brief Checks whether a plugin declaration with the given ID exists.
+             * @param id The submitted plugin ID.
+             * @return True if the plugin exists, false otherwise.
+             */
+            b8 check(ID id) const noexcept;
+
+            /**
+             * @brief Gets a submitted plugin ID by path.
+             * @param path The plugin library path.
+             * @return The submitted plugin ID, or Plugin::INVALID_ID if the path has not been submitted.
+             */
+            ID get(const std::string& path) const;
+
+            /**
+             * @brief Gets the number of submitted plugins.
+             * @return The number of submitted plugins.
              */
             u32 getSize() const noexcept;
 
             private:
             std::string resolvePath(const std::string& path) const;
 
-            mutable std::shared_mutex pluginsLock;  ///< Guards loaded library storage.
-            std::unordered_map<ID, Library> libraries;  ///< Maps plugin IDs to loaded libraries.
-            ID nextId = 1;  ///< Next plugin ID to assign.
+            mutable std::shared_mutex pluginsLock;      ///< Guards submitted library storage.
+            std::unordered_map<ID, Library> libraries;  ///< Maps plugin IDs to submitted libraries.
+            ID nextId = 1;                              ///< Next plugin ID to assign.
         };
     }  // namespace Plugin
 }  // namespace rome::core

@@ -5,11 +5,11 @@
 
 namespace rome::core {
     namespace System {
-        ID Registry::enter(Descriptor&& descriptor) {
+        b8 Registry::submit(Descriptor&& descriptor) {
             std::unique_lock lock(systemsLock);
 
             if (descriptor.name.empty() || ids.find(descriptor.name) != ids.end()) {
-                return INVALID_ID;
+                return false;
             }
 
             ID id;
@@ -21,7 +21,7 @@ namespace rome::core {
             }
 
             if (descriptors.find(id) != descriptors.end()) {
-                return INVALID_ID;
+                return false;
             }
 
             ids.emplace(descriptor.name, id);
@@ -31,17 +31,23 @@ namespace rome::core {
             RM_ASSERT(groupInserted);
 
             const Entity::Registry& entities = descriptors.at(id).world.entities;
-            for (u64 index = 1; index < entities.getCapacity(); index++) {
-                if (!entities.isOccupied(index)) continue;
-
-                const Entity entity = entities.get(index);
+            for (const Entity entity : entities) {
                 if (groupIt->second.matches(entity)) groupIt->second.addEntity(entity);
             }
 
-            return id;
+            return true;
         }
 
-        b8 Registry::contains(ID id) const noexcept { return descriptors.find(id) != descriptors.end(); }
+        b8 Registry::check(ID id) const noexcept {
+            std::shared_lock lock(systemsLock);
+            return descriptors.find(id) != descriptors.end();
+        }
+
+        ID Registry::get(const std::string& name) const noexcept {
+            std::shared_lock lock(systemsLock);
+            auto it = ids.find(name);
+            return it != ids.end() ? it->second : INVALID_ID;
+        }
 
         Descriptor& Registry::get(ID id) {
             auto it = descriptors.find(id);
@@ -115,7 +121,7 @@ namespace rome::core {
             }
         }
 
-        b8 Registry::erase(ID id) {
+        b8 Registry::revoke(ID id) {
             std::unique_lock lock(systemsLock);
             auto it = descriptors.find(id);
             if (it == descriptors.end()) return false;

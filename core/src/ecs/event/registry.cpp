@@ -1,20 +1,17 @@
 #include "rm/ecs/event/registry.hpp"
 
+#include "rm/ecs/event/event.hpp"
+
 namespace rome::core {
     namespace Event {
-        ID Registry::enter(const std::string& name) {
-            if (name.empty()) return INVALID_ID;
-
-            {
-                std::shared_lock lock(eventsLock);
-                if (ids.contains(name)) {
-                    return ids[name];
-                }
-            }
+        b8 Registry::submit(const std::string_view name) {
+            if (name.empty()) return false;
 
             std::unique_lock lock(eventsLock);
+            if (!check(name)) return false;
+
             if (ids.contains(name)) {
-                return ids[name];
+                return false;
             } else {
                 ID id;
                 if (!freeIDs.empty()) {
@@ -24,20 +21,30 @@ namespace rome::core {
                     id = nextId++;
                 }
 
-                ids[name] = id;
-                names[id] = name;
-                return id;
+                ids.emplace(std::string(name), id);
+                names.emplace(id, name);
+                return true;
             }
         }
 
-        ID Registry::get(const std::string& name) const {
+        b8 Registry::revoke(const std::string_view name) {
+            if (name.empty()) return false;
+
+            std::unique_lock lock(eventsLock);
+            const ID id = getID(name);
+            if (id == INVALID_ID) return false;
+
+            ids.erase(std::string(name));
+            names.erase(id);
+            freeIDs.push(id);
+            return true;
+        }
+
+        b8 Registry::check(const std::string_view name) const { return !name.empty() && ids.contains(name); }
+
+        ID Registry::getID(const std::string_view name) const {
             auto it = ids.find(name);
-            if (it != ids.end()) {
-                return it->second;
-            }
-            return INVALID_ID;
+            return it != ids.end() ? it->second : INVALID_ID;
         }
-
-        b8 Registry::contains(const std::string& name) const { return ids.contains(name); }
     }  // namespace Event
 }  // namespace rome::core

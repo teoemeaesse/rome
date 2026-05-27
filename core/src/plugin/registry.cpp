@@ -74,14 +74,14 @@ namespace rome::core {
             return resolved.string();
         }
 
-        ID Registry::load(const std::string& path, ECS& ecs) {
+        b8 Registry::submit(const std::string& path, ECS& ecs) {
             const std::string resolvedPath = resolvePath(path);
             {
                 std::unique_lock lock(pluginsLock);
                 for (auto& [id, library] : libraries) {
                     if (library.getLoadingPath() == resolvedPath) {
                         library.addReference();
-                        return id;
+                        return false;
                     }
                 }
             }
@@ -89,21 +89,21 @@ namespace rome::core {
             for (const LoadingContext* context = activeLoadingContext; context; context = context->parent) {
                 if (context->path == resolvedPath) {
                     RM_ERROR("Could not load plugin '%s': circular plugin dependency", resolvedPath.c_str());
-                    return INVALID_ID;
+                    return false;
                 }
             }
 
             void* handle = openLibrary(resolvedPath);
             if (!handle) {
                 RM_ERROR("Could not load plugin '%s': %s", resolvedPath.c_str(), getLibraryError());
-                return INVALID_ID;
+                return false;
             }
 
             auto* loadSymbol = findSymbol(handle, LOAD_SYMBOL);
             if (!loadSymbol) {
                 RM_ERROR("Plugin '%s' is missing '%s': %s", resolvedPath.c_str(), LOAD_SYMBOL, getLibraryError());
                 Library{INVALID_ID, resolvedPath, handle, nullptr};
-                return INVALID_ID;
+                return false;
             }
 
             auto* unloadSymbol = findSymbol(handle, UNLOAD_SYMBOL);
@@ -116,10 +116,10 @@ namespace rome::core {
             std::unique_lock lock(pluginsLock);
             ID id = nextId++;
             libraries.try_emplace(id, id, resolvedPath, handle, unload);
-            return id;
+            return true;
         }
 
-        b8 Registry::unload(ID id, ECS& ecs) {
+        b8 Registry::revoke(ID id, ECS& ecs) {
             decltype(libraries)::node_type library;
             {
                 std::unique_lock lock(pluginsLock);
@@ -139,7 +139,7 @@ namespace rome::core {
             return true;
         }
 
-        void Registry::unload(ECS& ecs) {
+        void Registry::revoke(ECS& ecs) {
             while (true) {
                 ID id = INVALID_ID;
                 {
@@ -149,8 +149,22 @@ namespace rome::core {
                         if (libraryId > id) id = libraryId;
                     }
                 }
-                unload(id, ecs);
+                revoke(id, ecs);
             }
+        }
+
+        b8 Registry::check(ID id) const noexcept {
+            std::shared_lock lock(pluginsLock);
+            return libraries.find(id) != libraries.end();
+        }
+
+        ID Registry::get(const std::string& path) const {
+            const std::string resolvedPath = resolvePath(path);
+            std::shared_lock lock(pluginsLock);
+            for (const auto& [id, library] : libraries) {
+                if (library.getLoadingPath() == resolvedPath) return id;
+            }
+            return INVALID_ID;
         }
 
         u32 Registry::getSize() const noexcept {

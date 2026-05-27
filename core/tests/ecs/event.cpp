@@ -25,22 +25,26 @@ struct OtherTestEvent {
 };
 RM_REFLECT_IMPL(OtherTestEvent, "OtherTestEvent", Fields().with("value", &OtherTestEvent::value));
 
-TEST(EventRegistry, Enter_DuplicateEvent_OK) {
+TEST(EventRegistry, Submit_DuplicateEvent_OK) {
     Event::Registry registry;
 
-    Event::ID id0 = registry.enter("TestEvent");
-    Event::ID id1 = registry.enter("TestEvent");
+    EXPECT_TRUE(registry.submit("TestEvent"));
+    Event::ID id0 = registry.get("TestEvent");
+    EXPECT_FALSE(registry.submit("TestEvent"));
+    Event::ID id1 = registry.get("TestEvent");
 
     EXPECT_NE(id0, Event::INVALID_ID);
     EXPECT_EQ(id0, id1);
-    EXPECT_TRUE(registry.contains("TestEvent"));
+    EXPECT_TRUE(registry.check("TestEvent"));
 }
 
-TEST(EventRegistry, Enter_DifferentEvents_DifferentIDs) {
+TEST(EventRegistry, Submit_DifferentEvents_DifferentIDs) {
     Event::Registry registry;
 
-    Event::ID first = registry.enter("TestEvent");
-    Event::ID second = registry.enter("OtherTestEvent");
+    EXPECT_TRUE(registry.submit("TestEvent"));
+    EXPECT_TRUE(registry.submit("OtherTestEvent"));
+    Event::ID first = registry.get("TestEvent");
+    Event::ID second = registry.get("OtherTestEvent");
 
     EXPECT_NE(first, Event::INVALID_ID);
     EXPECT_NE(second, Event::INVALID_ID);
@@ -51,6 +55,20 @@ TEST(EventRegistry, Get_OutOfBounds_ReturnsNullID) {
     Event::Registry registry;
 
     EXPECT_EQ(registry.get("MissingEvent"), Event::INVALID_ID);
+}
+
+TEST(EventRegistry, Revoke_SubmittedEvent_OK) {
+    Event::Registry registry;
+
+    EXPECT_TRUE(registry.submit("TestEvent"));
+    Event::ID id = registry.get("TestEvent");
+    ASSERT_NE(id, Event::INVALID_ID);
+    EXPECT_TRUE(registry.check("TestEvent"));
+
+    EXPECT_TRUE(registry.revoke("TestEvent"));
+    EXPECT_FALSE(registry.check("TestEvent"));
+    EXPECT_EQ(registry.get("TestEvent"), Event::INVALID_ID);
+    EXPECT_FALSE(registry.revoke("TestEvent"));
 }
 
 TEST(EventStorage, PushSwapRead_Always_OK) {
@@ -80,7 +98,7 @@ TEST(EventBus, Queue_Always_OK) {
     Entity::Registry entities;
     Event::Registry events;
     World world{systems, components, entities, events};
-    events.enter(Reflect::reflect<TestEvent>().getType().getName());
+    events.submit(Reflect::reflect<TestEvent>().getType().getName());
     Event::Bus bus(world);
 
     bus.enter<TestEvent>();
@@ -94,13 +112,13 @@ TEST(EventBus, Queue_Always_OK) {
     EXPECT_EQ(bus.queue<TestEvent>().read()[0].value, 42);
 }
 
-TEST(EventBus, Enter_Duplicate_Throws) {
+TEST(EventBus, Submit_Duplicate_Throws) {
     System::Registry systems;
     Component::Registry components;
     Entity::Registry entities;
     Event::Registry events;
     World world{systems, components, entities, events};
-    events.enter(Reflect::reflect<TestEvent>().getType().getName());
+    events.submit(Reflect::reflect<TestEvent>().getType().getName());
     Event::Bus bus(world);
 
     bus.enter<TestEvent>();
@@ -114,7 +132,7 @@ TEST(EventBus, Queue_MissingQueue_Throws) {
     Entity::Registry entities;
     Event::Registry events;
     World world{systems, components, entities, events};
-    events.enter(Reflect::reflect<TestEvent>().getType().getName());
+    events.submit(Reflect::reflect<TestEvent>().getType().getName());
     Event::Bus bus(world);
 
     EXPECT_THROW(bus.queue<TestEvent>(), Exception);

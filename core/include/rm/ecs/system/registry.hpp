@@ -2,8 +2,8 @@
 
 #include <shared_mutex>
 
-#include "rm/ecs/system/descriptor.hpp"
 #include "rm/ecs/group/group.hpp"
+#include "rm/ecs/system/descriptor.hpp"
 
 namespace rome::core {
     namespace System {
@@ -20,34 +20,49 @@ namespace rome::core {
             Registry& operator=(Registry&&) = delete;
 
             /**
-             * @brief Registers a new system with the given descriptor.
-             * @return The ID of the newly registered system, or INVALID_ID if registration fails.
+             * @brief Submits a system with the given descriptor.
+             * @return True if the system did not exist in the registry, false otherwise.
              * @note This function is thread-safe.
              */
-            ID enter(Descriptor&& descriptor);
+            b8 submit(Descriptor&& descriptor);
 
             /**
-             * @brief Checks whether a system with the given ID exists.
-             * @return True if the system exists, false otherwise.
-             * @warning This function is not thread-safe.
+             * @brief Revokes a system from the registry.
+             * @param id The ID of the system to remove.
+             * @return True if the system existed in the registry, false otherwise.
+             * @note This function is thread-safe.
              */
-            b8 contains(ID id) const noexcept;
+            b8 revoke(ID id);
+
+            /**
+             * @brief Checks whether a system declaration with the given ID exists.
+             * @return True if the system exists in the registry, false otherwise.
+             * @warning This function is thread-safe.
+             */
+            b8 check(ID id) const noexcept;
+
+            /**
+             * @brief Retrieves a system ID by name.
+             * @param name The name of the system.
+             * @return The system ID, or INVALID_ID if the name has not been submitted.
+             * @warning This function is thread-safe.
+             */
+            ID get(const std::string& name) const noexcept;
 
             /**
              * @brief Retrieves a mutable reference to a system descriptor.
              * @param id The ID of the system.
              * @return A mutable reference to the system descriptor.
              * @warning This function is not thread-safe.
-             * @throws Exception::Type::NotFound if the ID is not registered.
+             * @throws Exception::Type::NotFound if the ID is not submitted.
              */
             Descriptor& get(ID id);
 
             /**
              * @brief Retrieves a const reference to a system descriptor.
-             * @throws Exception::Type::NotFound if the ID is not registered.
              * @return A const reference to the system descriptor.
              * @warning This function is not thread-safe.
-             * @throws Exception::Type::NotFound if the ID is not registered.
+             * @throws Exception::Type::NotFound if the ID is not submitted.
              */
             const Descriptor& get(ID id) const;
 
@@ -56,7 +71,7 @@ namespace rome::core {
              * @param id The ID of the system.
              * @return A mutable reference to the system group.
              * @warning This function is not thread-safe.
-             * @throws Exception::Type::NotFound if the ID is not registered.
+             * @throws Exception::Type::NotFound if the ID is not submitted.
              */
             Group& getGroup(ID id);
 
@@ -65,19 +80,19 @@ namespace rome::core {
              * @param id The ID of the system.
              * @return A const reference to the system group.
              * @warning This function is not thread-safe.
-             * @throws Exception::Type::NotFound if the ID is not registered.
+             * @throws Exception::Type::NotFound if the ID is not submitted.
              */
             const Group& getGroup(ID id) const;
 
             /**
-             * @brief Updates one entity's membership in every registered group.
+             * @brief Updates one entity's membership in every submitted group.
              * @param entity The entity whose component archetype changed.
              * @note This function is thread-safe.
              */
             void updateEntity(const Entity& entity);
 
             /**
-             * @brief Removes an entity from every registered group.
+             * @brief Removes an entity from every submitted group.
              * @param entity The entity to remove.
              * @note This function is thread-safe.
              */
@@ -87,23 +102,16 @@ namespace rome::core {
              * @brief Executes one active system against its group.
              * @param id The ID of the system to run.
              * @warning This function is not thread-safe.
-             * @throws Exception::Type::NotFound if the ID is not registered.
+             * @throws Exception::Type::NotFound if the ID is not submitted.
              */
             void run(ID id);
 
             /**
              * @brief Executes every active system against its group.
              * @warning This function is not thread-safe.
+             * TODO: System scheduler for system concurrency
              */
             void run();
-
-            /**
-             * @brief Removes a system by ID. Its ID becomes reusable.
-             * @param id The ID of the system to remove.
-             * @return True if the system was found and removed, false otherwise.
-             * @note This function is thread-safe.
-             */
-            b8 erase(ID id);
 
             private:
             mutable std::shared_mutex systemsLock;                                        ///< Mutex for thread-safe access.

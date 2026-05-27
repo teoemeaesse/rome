@@ -15,12 +15,13 @@ RM_REFLECT_IMPL(DependencyPluginState, "DependencyPluginState", Fields().with("v
 
 static System::ID dependencySystemId = System::INVALID_ID;
 
-extern "C" RM_API void rome_load_plugin(ECS& ecs) {
-    ecs.registerComponent<DependencyPluginState>();
-    dependencySystemId =
-        ecs.registerSystem(ecs.createSystem("test.plugin.dependency").writes<DependencyPluginState>().requireFull().build([](System::Context&) {}));
+extern "C" RM_PLUGIN_API void rome_load_plugin(ECS& ecs) {
+    ecs.submitComponent<DependencyPluginState>();
+    ecs.submitSystem(ecs.createSystem("test.plugin.dependency").writes<DependencyPluginState>().requireFull().build([](System::Context&) {}));
+    dependencySystemId = ecs.getSystemID("test.plugin.dependency");
 }
 
-extern "C" RM_API void rome_unload_plugin(ECS& ecs) {
-    if (ecs.unregisterSystem(dependencySystemId)) dependencySystemId = System::INVALID_ID;
+extern "C" RM_PLUGIN_API void rome_unload_plugin(ECS& ecs) {
+    if (ecs.revokeSystem(dependencySystemId)) dependencySystemId = System::INVALID_ID;
+    ecs.revokeComponent<DependencyPluginState>();
 }

@@ -8,9 +8,9 @@
 namespace rome::core {
     namespace Component {
         /**
-         * @brief Manages the registration, creation, and destruction of components.
+         * @brief Manages the lifecycle of components within the ECS.
          * @note This registry is not thread-safe outside component registration.
-         * @warning Every component must implement reflection and a copy-constructor to be registered.
+         * @warning Every component must implement reflection and a copy-constructor to be submitted.
          */
         class Registry final {
             public:
@@ -22,46 +22,112 @@ namespace rome::core {
             Registry& operator=(Registry&& other) noexcept = delete;
 
             /**
-             * @brief Registers a component type.
-             * @tparam T The component type to register.
-             * @return The ID of the registered component.
+             * @brief Submits a component to the registry.
+             * @param name The name of the component.
+             * @return True if the component did not exist in the registry, false otherwise.
              * @note This function is thread-safe.
              */
-            template <Component T>
-            ID submit() {
-                static const std::string_view name = Reflect::reflect<T>().getType().getName();
+            b8 submit(const std::string_view name);
 
-                {
-                    std::shared_lock readLock(idsLock);
-                    auto it = ids.find(name);
-                    if (it != ids.end()) return it->second;
-                }
+            /**
+             * @brief Submits a component to the registry by type.
+             * @tparam C The component type to submit.
+             * @return True if the component did not exist in the registry, false otherwise.
+             * @note This function is thread-safe.
+             */
+            template <Component C>
+            b8 submit() {
+                static const std::string_view name = Reflect::reflect<C>().getType().getName();
 
                 std::unique_lock writeLock(idsLock);
 
                 auto existing = ids.find(name);
-                if (existing != ids.end()) return existing->second;
+                if (existing != ids.end()) return false;
 
-                ID id = nextId.fetch_add(1);
+                ID id = nextId++;
                 ids.emplace(name, id);
                 names.emplace(id, std::string(name));
-                store.emplace(id, MakeUnique<Pool<T>>());
-                return id;
+                store.emplace(id, MakeUnique<Pool<C>>());
+                return true;
+            }
+
+            /**
+             * @brief Revokes a component from the registry by type and destroys its storage.
+             * @param name The name of the component.
+             * @return True if the component existed in the registry, false otherwise.
+             * @note This function is thread-safe.
+             */
+            b8 revoke(const std::string_view name);
+
+            /**
+             * @brief Revokes a component from the registry by type and destroys its storage.
+             * @tparam C The component type to revoke.
+             * @return True if the component existed in the registry, false otherwise.
+             * @note This function is thread-safe.
+             */
+            template <Component C>
+            b8 revoke() {
+                static const std::string_view name = Reflect::reflect<C>().getType().getName();
+
+                std::unique_lock lock(idsLock);
+                auto idIt = ids.find(name);
+                if (idIt == ids.end()) return false;
+
+                const ID id = idIt->second;
+                store.erase(id);
+                names.erase(id);
+                ids.erase(idIt);
+
+                for (auto& [entity, archetype] : archetypes) {
+                    archetype.reset(id);
+                }
+
+                return true;
+            }
+
+            /**
+             * @brief Checks whether a component has been submitted.
+             * @param name The name of the component.
+             * @return True if the component exists in the registry, false otherwise.
+             */
+            b8 check(const std::string_view name);
+
+            /**
+             * @brief Checks whether a component has been submitted by type.
+             * @tparam C The component type to check.
+             * @return True if the component exists in the registry, false otherwise.
+             */
+            template <Component C>
+            b8 check() const {
+                return getID<C>() != INVALID_ID;
+            }
+
+            /**
+             * @brief Gets the component ID for a component type.
+             * @tparam C The component type to get the ID for.
+             * @return The ID of the component type, or INVALID_ID if it has not been submitted.
+             * @note This function is thread-safe.
+             */
+            template <Component C>
+            [[nodiscard]] ID getID() const {
+                auto it = ids.find(name);
+                return it != ids.end() ? it->second : INVALID_ID;
             }
 
             /**
              * @brief Creates a new component for the given entity.
-             * @tparam T The component type to create.
+             * @tparam C The component type to create.
              * @param entity The entity to create the component for.
-             * @return The created component or None.
+             * @return The created component or nullptr.
              * @warning This function is not thread-safe.
              */
-            template <Component T>
-            [[nodiscard]] T* create(const Entity& entity, const T& component) {
-                ID id = submit<T>();
-                Pool<T>* pool = getPool<T>();
+            template <Component C>
+            [[nodiscard]] C* create(const Entity& entity, const T& component) {
+                if (!check<C>()) return nullptr;
+                ID id = getID<C>();
+                Pool<T>* pool = getPool<C>();
                 pool->insert(entity, component);
-                archetypes[entity.getIndex()].set(id);
+                archetypes[entity.getID()].set(id);
                 return pool->get(entity);
             }
 
@@ -71,15 +137,16 @@ namespace rome::core {
              * @tparam ...Args The types of the arguments to forward to the component constructor.
              * @param entity The entity to create the component for.
              * @param ...args The arguments to forward to the component constructor.
-             * @return The created component or none.
+             * @return The created component or nullptr.
              * @warning This function is not thread-safe.
              */
             template <Component T, typename... Args>
             [[nodiscard]] T* emplace(const Entity& entity, Args&&... args) {
-                ID id = submit<T>();
+                if (!check<T>()) return nullptr;
+                ID id = getID<T>();
                 Pool<T>* pool = getPool<T>();
                 pool->emplace(entity, std::forward<Args>(args)...);
-                archetypes[entity.getIndex()].set(id);
+                archetypes[entity.getID()].set(id);
                 return pool->get(entity);
             }
 
@@ -91,14 +158,11 @@ namespace rome::core {
              */
             template <Component T>
             void remove(const Entity& entity) {
+                if (!check<T>()) return;
                 ID id = getID<T>();
-                Pool<T>* pool = getPool<T>();
-                if (pool) pool->remove(entity);
-
-                if (id != INVALID_ID) {
-                    auto it = archetypes.find(entity.getIndex());
-                    if (it != archetypes.end()) it->second.reset(id);
-                }
+                getPool<T>()->remove(entity);
+                auto it = archetypes.find(entity.getID());
+                if (it != archetypes.end()) it->second.reset(id);
             }
 
             /**
@@ -133,7 +197,6 @@ namespace rome::core {
              * @warning This function is not thread-safe.
              */
             u32 getSize() const noexcept;
-
             /**
              * @brief Checks if an entity has the given component.
              * @tparam T The component type to check.
@@ -183,37 +246,33 @@ namespace rome::core {
              * @brief Fetches the concrete pool for the given component type.
              * @tparam T The component type to fetch the pool for.
              * @return The pool for the given component type.
-             * @note This function is thread-safe.
              */
-            template <Component T>
-            const Pool<T>* getPool() const {
-                ID id = getID<T>();
+            template <Component C>
+            const Pool<C>* getPool() const {
+                ID id = getID<C>();
                 if (id == INVALID_ID) return nullptr;
-                std::shared_lock readLock(idsLock);
                 auto it = store.find(id);
-                return it != store.end() ? static_cast<const Pool<T>*>(it->second.get()) : nullptr;
+                return it != store.end() ? static_cast<const Pool<C>*>(it->second.get()) : nullptr;
             }
 
             private:
             mutable std::shared_mutex idsLock;                                            ///< Ensure thread-safe access to the IDs map.
             std::unordered_map<ID, Unique<Storage>> store;                                ///< Storage for component pools.
+            std::unordered_map<Entity::ID, BitSet<>> archetypes;                          ///< Maps entity IDs to their archetype signatures.
             std::unordered_map<std::string, ID, TransparentSVHash, std::equal_to<>> ids;  ///< Maps component names to their IDs.
             std::unordered_map<ID, std::string> names;                                    ///< Reverse lookup.
-            std::atomic_uint32_t nextId{1};                                               ///< The next available non-null ID for a component.
-            std::unordered_map<u64, BitSet<>> archetypes;                                 ///< Maps entity IDs to their archetype signatures.
+            std::queue<ID> freeIDs;                                                       ///< Queue of free IDs for reuse.
+            ID nextId = 1;                                                                ///< The next available non-null ID for a component.
 
             /**
-             * @brief Gets the component ID for the given component type.
-             * @tparam T The component type to get the ID for.
-             * @return The ID of the component type.
-             * @note This function is thread-safe.
+             * @brief Retrieves the name of an component by its type.
+             * @tparam E The type of the component.
+             * @return The name of the component.
+             * @note The component does not need to exist in the registry.
              */
-            template <Component T>
-            [[nodiscard]] ID getID() const {
-                static const std::string_view name = Reflect::reflect<T>().getType().getName();
-                std::shared_lock lock(idsLock);
-                auto it = ids.find(name);
-                return it != ids.end() ? it->second : INVALID_ID;
+            template <Component C>
+            constexpr const std::string_view getName() {
+                return Reflect::reflect<C>().getType().getName();
             }
         };
     }  // namespace Component

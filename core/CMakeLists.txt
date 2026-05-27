@@ -5,6 +5,7 @@ project(core LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 
 option(BUILD_TESTS "Build unit tests" OFF)
+option(BUILD_SHARED_CORE "Build core as a shared library" ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -14,7 +15,11 @@ if(BUILD_TESTS)
   list(REMOVE_ITEM CORE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/entry/entry.cpp)
 endif()
 
-add_library(core STATIC ${CORE_SOURCES})
+if(BUILD_SHARED_CORE)
+  add_library(core SHARED ${CORE_SOURCES})
+else()
+  add_library(core STATIC ${CORE_SOURCES})
+endif()
 add_library(core::core ALIAS core)
 
 set_target_properties(core PROPERTIES POSITION_INDEPENDENT_CODE ON)
@@ -35,11 +40,24 @@ target_include_directories(
   PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src
           ${CMAKE_CURRENT_SOURCE_DIR}/lib/SDL/include)
 
+if(BUILD_TESTS)
+  set(CORE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+else()
+  set(CORE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
+endif()
+
 set_target_properties(
   core
-  PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin
-             LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin
-             ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
+  PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CORE_OUTPUT_DIRECTORY}
+             LIBRARY_OUTPUT_DIRECTORY ${CORE_OUTPUT_DIRECTORY}
+             ARCHIVE_OUTPUT_DIRECTORY ${CORE_OUTPUT_DIRECTORY})
+
+if(BUILD_SHARED_CORE)
+  set_target_properties(core PROPERTIES
+                        MACOSX_RPATH ON
+                        BUILD_RPATH "@loader_path;@executable_path"
+                        INSTALL_RPATH "@loader_path")
+endif()
 
 if(APPLE)
   target_link_libraries(
@@ -114,9 +132,7 @@ if(BUILD_TESTS)
   add_library(core_test_plugin SHARED
               ${CMAKE_CURRENT_SOURCE_DIR}/tests/plugin/test_plugin.cpp)
   target_link_libraries(core_test_plugin PRIVATE core)
-  target_compile_definitions(core_test_plugin PRIVATE RM_EXPORT_ON
-                                                      RM_ASSERTS_ON
-                                                      RM_DEBUG_ON)
+  target_compile_definitions(core_test_plugin PRIVATE RM_ASSERTS_ON RM_DEBUG_ON)
   set_target_properties(
     core_test_plugin
     PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
@@ -127,7 +143,7 @@ if(BUILD_TESTS)
               ${CMAKE_CURRENT_SOURCE_DIR}/tests/plugin/dependency_plugin.cpp)
   target_link_libraries(core_test_dependency_plugin PRIVATE core)
   target_compile_definitions(core_test_dependency_plugin
-                             PRIVATE RM_EXPORT_ON RM_ASSERTS_ON RM_DEBUG_ON)
+                             PRIVATE RM_ASSERTS_ON RM_DEBUG_ON)
   set_target_properties(
     core_test_dependency_plugin
     PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
@@ -139,7 +155,7 @@ if(BUILD_TESTS)
   target_link_libraries(core_test_dependent_plugin PRIVATE core)
   target_compile_definitions(
     core_test_dependent_plugin
-    PRIVATE RM_EXPORT_ON RM_ASSERTS_ON RM_DEBUG_ON
+    PRIVATE RM_ASSERTS_ON RM_DEBUG_ON
             RM_TEST_DEPENDENCY_PLUGIN_FILE="$<TARGET_FILE_NAME:core_test_dependency_plugin>"
   )
   set_target_properties(
@@ -152,8 +168,7 @@ if(BUILD_TESTS)
   add_dependencies(core_tests core_test_plugin core_test_dependency_plugin
                    core_test_dependent_plugin)
   target_link_libraries(core_tests PRIVATE core gtest gtest_main)
-  target_compile_definitions(core_tests PRIVATE RM_EXPORT_ON RM_ASSERTS_ON
-                                                RM_DEBUG_ON
+  target_compile_definitions(core_tests PRIVATE RM_ASSERTS_ON RM_DEBUG_ON
                                                 RM_TEST_PLUGIN_PATH="$<TARGET_FILE:core_test_plugin>"
                                                 RM_TEST_DEPENDENT_PLUGIN_PATH="$<TARGET_FILE:core_test_dependent_plugin>")
   add_test(NAME CoreTests COMMAND core_tests)

@@ -11,21 +11,52 @@ namespace rome::core {
     class ECS {
         public:
         ECS() : systems(), components(), entities(), events(), world{systems, components, entities, events} {}
-        ~ECS() { unloadPlugins(); }
+        ~ECS() { revokePlugins(); }
         ECS(const ECS&) = delete;
         ECS& operator=(const ECS&) = delete;
         ECS(ECS&&) = delete;
         ECS& operator=(ECS&&) = delete;
 
         /**
-         * @brief Registers a new component type with the ECS.
-         * @tparam T The component type to register.
-         * @return The ID for the registered component type.
+         * @brief Submits a new component type declaration with the ECS.
+         * @tparam T The component type to submit.
+         * @return True if the component type was newly submitted, false otherwise.
          * @note This should be used by plugins on load.
          */
         template <Component::Component T>
-        Component::ID registerComponent() {
+        b8 submitComponent() {
             return components.submit<T>();
+        }
+
+        /**
+         * @brief Revokes a component type declaration and destroys all of its component instances.
+         * @tparam T The component type to revoke.
+         * @return True if the component type existed and was removed.
+         * @note This should be used by plugins on unload for plugin-defined component types.
+         */
+        template <Component::Component T>
+        b8 revokeComponent() {
+            return components.revoke<T>();
+        }
+
+        /**
+         * @brief Checks whether a component type declaration has been submitted.
+         * @tparam T The component type to check.
+         * @return True if the component type has been submitted, false otherwise.
+         */
+        template <Component::Component T>
+        b8 checkComponent() const {
+            return components.check<T>();
+        }
+
+        /**
+         * @brief Gets the ID for a submitted component type declaration.
+         * @tparam T The component type to look up.
+         * @return The component ID, or Component::INVALID_ID if it has not been submitted.
+         */
+        template <Component::Component T>
+        Component::ID getComponentID() const {
+            return components.getID<T>();
         }
 
         /**
@@ -44,18 +75,32 @@ namespace rome::core {
         }
 
         /**
-         * @brief Registers a new system.
+         * @brief Submits a new system declaration.
          * @param descriptor The descriptor for the system.
-         * @return The ID for the registered system, or System::INVALID_ID.
+         * @return True if the system was newly submitted, false otherwise.
          */
-        System::ID registerSystem(System::Descriptor&& descriptor) { return systems.enter(std::move(descriptor)); }
+        b8 submitSystem(System::Descriptor&& descriptor) { return systems.submit(std::move(descriptor)); }
 
         /**
-         * @brief Removes a registered system.
+         * @brief Revokes a submitted system declaration.
          * @param id The system ID to remove.
          * @return True if the system existed and was removed, false otherwise.
          */
-        b8 unregisterSystem(System::ID id) { return systems.erase(id); }
+        b8 revokeSystem(System::ID id) { return systems.revoke(id); }
+
+        /**
+         * @brief Checks whether a system declaration has been submitted.
+         * @param id The system ID to check.
+         * @return True if the system exists, false otherwise.
+         */
+        b8 checkSystem(System::ID id) const noexcept { return systems.check(id); }
+
+        /**
+         * @brief Gets a submitted system ID by name.
+         * @param name The system name to look up.
+         * @return The system ID, or System::INVALID_ID if it has not been submitted.
+         */
+        System::ID getSystemID(const std::string& name) const noexcept { return systems.get(name); }
 
         /**
          * @brief Creates a system builder bound to this ECS world.
@@ -76,27 +121,41 @@ namespace rome::core {
         void runSystems() { systems.run(); }
 
         /**
-         * @brief Loads a plugin dynamic library.
+         * @brief Submits a plugin dynamic library declaration.
          * @param path The plugin library path.
-         * @return The loaded plugin ID, or Plugin::INVALID_ID.
+         * @return True if the plugin was newly submitted, false otherwise.
          */
-        Plugin::ID loadPlugin(const std::string& path) { return plugins.load(path, *this); }
+        b8 submitPlugin(const std::string& path) { return plugins.submit(path, *this); }
 
         /**
-         * @brief Unloads a plugin dynamic library.
-         * @param id The loaded plugin ID.
-         * @return True if the plugin existed and was unloaded.
+         * @brief Revokes a submitted plugin dynamic library declaration.
+         * @param id The submitted plugin ID.
+         * @return True if the plugin existed and was revoked.
          */
-        b8 unloadPlugin(Plugin::ID id) { return plugins.unload(id, *this); }
+        b8 revokePlugin(Plugin::ID id) { return plugins.revoke(id, *this); }
 
         /**
-         * @brief Unloads every loaded plugin dynamic library.
+         * @brief Revokes every submitted plugin dynamic library declaration.
          */
-        void unloadPlugins() { plugins.unload(*this); }
+        void revokePlugins() { plugins.revoke(*this); }
 
         /**
-         * @brief Gets the number of loaded plugins.
-         * @return The number of loaded plugins.
+         * @brief Checks whether a plugin declaration has been submitted.
+         * @param id The plugin ID to check.
+         * @return True if the plugin exists, false otherwise.
+         */
+        b8 checkPlugin(Plugin::ID id) const noexcept { return plugins.check(id); }
+
+        /**
+         * @brief Gets a submitted plugin ID by path.
+         * @param path The plugin path to look up.
+         * @return The plugin ID, or Plugin::INVALID_ID if it has not been submitted.
+         */
+        Plugin::ID getPluginID(const std::string& path) const { return plugins.get(path); }
+
+        /**
+         * @brief Gets the number of submitted plugins.
+         * @return The number of submitted plugins.
          */
         u32 getPluginCount() const noexcept { return plugins.getSize(); }
 

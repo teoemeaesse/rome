@@ -27,7 +27,7 @@ TEST(ECS, RunSystem_GroupView_MatchesGroup) {
     u32 iterations = 0;
 
     System::ID id =
-        ecs.registerSystem(ecs.createSystem("movement").reads<Velocity>().writes<Position>().requireFull().build([&](System::Context& ctx) {
+        ecs.submitSystem(ecs.createSystem("movement").reads<Velocity>().writes<Position>().requireFull().build([&](System::Context& ctx) {
             System::View<Position, Velocity> view(ctx);
             for (auto&& [position, velocity] : view) {
                 position.x += velocity.dx;
@@ -52,7 +52,7 @@ TEST(ECS, RunSystem_GroupView_MatchesGroup) {
     EXPECT_FLOAT_EQ(ecs.getComponent<Position>(stationary).y, 20.0f);
 }
 
-TEST(ECS, RegisterSystem_ExistingEntity_MatchesGroup) {
+TEST(ECS, SubmitSystem_ExistingEntity_MatchesGroup) {
     ECS ecs;
     u32 iterations = 0;
 
@@ -61,7 +61,7 @@ TEST(ECS, RegisterSystem_ExistingEntity_MatchesGroup) {
     ecs.addComponent<Velocity>(entity, 3.0f, 4.0f);
 
     System::ID id =
-        ecs.registerSystem(ecs.createSystem("movement").reads<Velocity>().writes<Position>().requireFull().build([&](System::Context& ctx) {
+        ecs.submitSystem(ecs.createSystem("movement").reads<Velocity>().writes<Position>().requireFull().build([&](System::Context& ctx) {
             System::View<Position, Velocity> view(ctx);
             for (auto&& [position, velocity] : view) {
                 position.x += velocity.dx;
@@ -75,4 +75,21 @@ TEST(ECS, RegisterSystem_ExistingEntity_MatchesGroup) {
     EXPECT_EQ(iterations, 1);
     EXPECT_FLOAT_EQ(ecs.getComponent<Position>(entity).x, 4.0f);
     EXPECT_FLOAT_EQ(ecs.getComponent<Position>(entity).y, 6.0f);
+}
+
+TEST(ECS, Check_SubmitRevokeDeclarations_OK) {
+    ECS ecs;
+
+    EXPECT_FALSE(ecs.checkComponent<Position>());
+    ecs.submitComponent<Position>();
+    EXPECT_TRUE(ecs.checkComponent<Position>());
+    EXPECT_TRUE(ecs.revokeComponent<Position>());
+    EXPECT_FALSE(ecs.checkComponent<Position>());
+
+    EXPECT_TRUE(ecs.submitSystem(ecs.createSystem("movement").writes<Velocity>().requireFull().build([](System::Context&) {})));
+    System::ID system = ecs.getSystemID("movement");
+    ASSERT_NE(system, System::INVALID_ID);
+    EXPECT_TRUE(ecs.checkSystem(system));
+    EXPECT_TRUE(ecs.revokeSystem(system));
+    EXPECT_FALSE(ecs.checkSystem(system));
 }

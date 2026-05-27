@@ -20,6 +20,8 @@ namespace rome::core {
         inline u64 getIndex() const noexcept { return getIndex(id); }
         inline u64 getVersion() const noexcept { return getVersion(id); }
 
+        inline ID getID() const noexcept { return id; }
+
         class Registry;
 
         private:

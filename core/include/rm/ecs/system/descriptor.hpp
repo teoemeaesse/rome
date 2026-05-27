@@ -39,7 +39,7 @@ namespace rome::core {
              */
             template <Component::Component... Args>
             Builder& reads() {
-                descriptor.reads = BitSet<>::create<Component::ID>({world.components.submit<Args>()...});
+                descriptor.reads = BitSet<>::create<Component::ID>({submitComponent<Args>()...});
                 return *this;
             }
 
@@ -50,7 +50,7 @@ namespace rome::core {
              */
             template <Component::Component... Args>
             Builder& writes() {
-                descriptor.writes = BitSet<>::create<Component::ID>({world.components.submit<Args>()...});
+                descriptor.writes = BitSet<>::create<Component::ID>({submitComponent<Args>()...});
                 return *this;
             }
 
@@ -81,7 +81,7 @@ namespace rome::core {
             Builder& allowPartial();
 
             /**
-             * @brief Creates a ready-to-register system descriptor.
+             * @brief Creates a ready-to-submit system descriptor.
              * @tparam Lambda The type of the user‑supplied lambda or functor.
              * @param callback The user‑supplied lambda or functor.
              * @return A fully‑populated Descriptor.
@@ -95,6 +95,12 @@ namespace rome::core {
             }
 
             private:
+            template <Component::Component T>
+            Component::ID submitComponent() {
+                world.components.submit<T>();
+                return world.components.getID<T>();
+            }
+
             Descriptor descriptor;  ///< The system's descriptor being built.
             World& world;           ///< Reference to the world instance.
         };

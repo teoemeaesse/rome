@@ -2,6 +2,12 @@
 
 #include "rm/prelude.hpp"
 
+#ifdef _MSC_VER
+#define RM_PLUGIN_API __declspec(dllexport)
+#else
+#define RM_PLUGIN_API __attribute__((visibility("default")))
+#endif
+
 namespace rome::core {
     class ECS;
 

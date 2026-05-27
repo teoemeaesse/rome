@@ -15,57 +15,78 @@ struct HostPluginState {
 };
 RM_REFLECT_IMPL(HostPluginState, "HostPluginState", Fields().with("value", &HostPluginState::value));
 
-TEST(Plugin, Load_ValidDylib_RegistersSystem) {
+TEST(Plugin, Submit_ValidDylib_SubmitsSystem) {
     ECS ecs;
 
-    Plugin::ID plugin = ecs.loadPlugin(RM_TEST_PLUGIN_PATH);
+    EXPECT_TRUE(ecs.submitPlugin(RM_TEST_PLUGIN_PATH));
+    Plugin::ID plugin = ecs.getPluginID(RM_TEST_PLUGIN_PATH);
 
     EXPECT_NE(plugin, Plugin::INVALID_ID);
+    EXPECT_TRUE(ecs.checkPlugin(plugin));
     EXPECT_EQ(ecs.getPluginCount(), 1);
-    EXPECT_EQ(ecs.registerSystem(ecs.createSystem("test.plugin").build([](System::Context&) {})), System::INVALID_ID);
+    EXPECT_FALSE(ecs.submitSystem(ecs.createSystem("test.plugin").build([](System::Context&) {})));
 }
 
-TEST(Plugin, Unload_ValidDylib_RemovesSystem) {
+TEST(Plugin, Revoke_ValidDylib_RevokesSystem) {
     ECS ecs;
-    Plugin::ID plugin = ecs.loadPlugin(RM_TEST_PLUGIN_PATH);
+    EXPECT_TRUE(ecs.submitPlugin(RM_TEST_PLUGIN_PATH));
+    Plugin::ID plugin = ecs.getPluginID(RM_TEST_PLUGIN_PATH);
 
     ASSERT_NE(plugin, Plugin::INVALID_ID);
 
-    EXPECT_TRUE(ecs.unloadPlugin(plugin));
+    EXPECT_TRUE(ecs.revokePlugin(plugin));
+    EXPECT_FALSE(ecs.checkPlugin(plugin));
     EXPECT_EQ(ecs.getPluginCount(), 0);
-    EXPECT_NE(ecs.registerSystem(ecs.createSystem("test.plugin").writes<HostPluginState>().requireFull().build([](System::Context&) {})),
-              System::INVALID_ID);
+    EXPECT_TRUE(ecs.submitSystem(ecs.createSystem("test.plugin").writes<HostPluginState>().requireFull().build([](System::Context&) {})));
 }
 
-TEST(Plugin, Load_MissingDylib_Fails) {
+TEST(Plugin, Reload_ValidDylib_AfterRevoke_OK) {
+    ECS ecs;
+    EXPECT_TRUE(ecs.submitPlugin(RM_TEST_PLUGIN_PATH));
+    Plugin::ID first = ecs.getPluginID(RM_TEST_PLUGIN_PATH);
+
+    ASSERT_NE(first, Plugin::INVALID_ID);
+    EXPECT_TRUE(ecs.revokePlugin(first));
+    EXPECT_EQ(ecs.getPluginCount(), 0);
+
+    EXPECT_TRUE(ecs.submitPlugin(RM_TEST_PLUGIN_PATH));
+    Plugin::ID second = ecs.getPluginID(RM_TEST_PLUGIN_PATH);
+
+    EXPECT_NE(second, Plugin::INVALID_ID);
+    EXPECT_EQ(ecs.getPluginCount(), 1);
+}
+
+TEST(Plugin, Submit_MissingDylib_Fails) {
     ECS ecs;
 
-    EXPECT_EQ(ecs.loadPlugin("/missing/plugin.dylib"), Plugin::INVALID_ID);
+    EXPECT_FALSE(ecs.submitPlugin("/missing/plugin.dylib"));
     EXPECT_EQ(ecs.getPluginCount(), 0);
 }
 
-TEST(Plugin, Load_PluginDependency_LoadsRelativeDependency) {
+TEST(Plugin, Submit_PluginDependency_SubmitsRelativeDependency) {
     ECS ecs;
 
-    Plugin::ID plugin = ecs.loadPlugin(RM_TEST_DEPENDENT_PLUGIN_PATH);
+    EXPECT_TRUE(ecs.submitPlugin(RM_TEST_DEPENDENT_PLUGIN_PATH));
+    Plugin::ID plugin = ecs.getPluginID(RM_TEST_DEPENDENT_PLUGIN_PATH);
 
     EXPECT_NE(plugin, Plugin::INVALID_ID);
     EXPECT_EQ(ecs.getPluginCount(), 2);
-    EXPECT_EQ(ecs.registerSystem(ecs.createSystem("test.plugin.dependency").build([](System::Context&) {})), System::INVALID_ID);
-    EXPECT_EQ(ecs.registerSystem(ecs.createSystem("test.plugin.dependent").build([](System::Context&) {})), System::INVALID_ID);
+    EXPECT_FALSE(ecs.submitSystem(ecs.createSystem("test.plugin.dependency").build([](System::Context&) {})));
+    EXPECT_FALSE(ecs.submitSystem(ecs.createSystem("test.plugin.dependent").build([](System::Context&) {})));
 }
 
-TEST(Plugin, Unload_PluginDependency_RemovesDependency) {
+TEST(Plugin, Revoke_PluginDependency_RevokesDependency) {
     ECS ecs;
-    Plugin::ID plugin = ecs.loadPlugin(RM_TEST_DEPENDENT_PLUGIN_PATH);
+    EXPECT_TRUE(ecs.submitPlugin(RM_TEST_DEPENDENT_PLUGIN_PATH));
+    Plugin::ID plugin = ecs.getPluginID(RM_TEST_DEPENDENT_PLUGIN_PATH);
 
     ASSERT_NE(plugin, Plugin::INVALID_ID);
 
-    EXPECT_TRUE(ecs.unloadPlugin(plugin));
+    EXPECT_TRUE(ecs.revokePlugin(plugin));
     EXPECT_EQ(ecs.getPluginCount(), 0);
-    ecs.registerComponent<HostPluginState>();
-    EXPECT_NE(ecs.registerSystem(ecs.createSystem("test.plugin.dependency").writes<HostPluginState>().requireFull().build([](System::Context&) {})),
-              System::INVALID_ID);
-    EXPECT_NE(ecs.registerSystem(ecs.createSystem("test.plugin.dependent").writes<HostPluginState>().requireFull().build([](System::Context&) {})),
-              System::INVALID_ID);
+    ecs.submitComponent<HostPluginState>();
+    EXPECT_TRUE(
+        ecs.submitSystem(ecs.createSystem("test.plugin.dependency").writes<HostPluginState>().requireFull().build([](System::Context&) {})));
+    EXPECT_TRUE(
+        ecs.submitSystem(ecs.createSystem("test.plugin.dependent").writes<HostPluginState>().requireFull().build([](System::Context&) {})));
 }
