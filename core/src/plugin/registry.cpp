@@ -72,8 +72,10 @@ namespace rome::core {
             return resolved.string();
         }
 
-        b8 Registry::submit(const std::string_view path, ECS& ecs) {
-            const std::string resolvedPath = resolvePath(path);
+        b8 Registry::submit(Descriptor&& descriptor, ECS& ecs) {
+            const std::string resolvedPath = resolvePath(descriptor.path);
+            if (resolvedPath.empty()) return false;
+
             {
                 std::unique_lock lock(pluginsLock);
                 for (auto& [id, library] : libraries) {
@@ -100,7 +102,7 @@ namespace rome::core {
             auto* loadSymbol = findSymbol(handle, LOAD_SYMBOL);
             if (!loadSymbol) {
                 RM_ERROR("Plugin '%s' is missing '%s': %s", resolvedPath.c_str(), LOAD_SYMBOL, getLibraryError());
-                Library{INVALID_ID, resolvedPath, handle, nullptr};
+                Library{INVALID_ID, Descriptor{resolvedPath}, handle, nullptr};
                 return false;
             }
 
@@ -113,7 +115,8 @@ namespace rome::core {
 
             std::unique_lock lock(pluginsLock);
             ID id = nextId++;
-            libraries.try_emplace(id, id, resolvedPath, handle, unload);
+            descriptor.path = resolvedPath;
+            libraries.try_emplace(id, id, std::move(descriptor), handle, unload);
             return true;
         }
 

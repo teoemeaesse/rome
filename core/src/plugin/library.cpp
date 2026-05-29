@@ -15,13 +15,13 @@ namespace rome::core {
 #endif
         }
 
-        Library::Library(ID id, const std::string_view loadingPath, void* handle, UnloadFn unload)
-            : id(id), loadingPath(loadingPath), handle(handle), unload(unload) {}
+        Library::Library(ID id, Descriptor&& descriptor, void* handle, UnloadFn unload)
+            : id(id), descriptor(std::move(descriptor)), handle(handle), unload(unload) {}
 
         Library::~Library() { close(); }
 
         Library::Library(Library&& other) noexcept
-            : id(other.id), loadingPath(std::move(other.loadingPath)), handle(other.handle), unload(other.unload), references(other.references) {
+            : id(other.id), descriptor(std::move(other.descriptor)), handle(other.handle), unload(other.unload), references(other.references) {
             other.id = INVALID_ID;
             other.handle = nullptr;
             other.unload = nullptr;
@@ -33,7 +33,7 @@ namespace rome::core {
 
             close();
             id = other.id;
-            loadingPath = std::move(other.loadingPath);
+            descriptor = std::move(other.descriptor);
             handle = other.handle;
             unload = other.unload;
             references = other.references;

@@ -15,7 +15,7 @@ class SandboxApplication final : public Application {
         : Application(Application::Builder().setTitle("Rome Sandbox").setTickRate(60).setRenderRate(60).enableMemoryLogging().build()) {}
 
     void setup() override {
-        ecs.submitPlugin(RM_NEWTON_PLUGIN_PATH);
+        ecs.submitPlugin(ecs.createPlugin(RM_NEWTON_PLUGIN_PATH).build());
         plugin = ecs.getPluginID(RM_NEWTON_PLUGIN_PATH);
         if (plugin == Plugin::INVALID_ID) {
             RM_ERROR("Failed to load Newton physics plugin: %s", RM_NEWTON_PLUGIN_PATH);

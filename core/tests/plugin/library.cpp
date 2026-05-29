@@ -16,7 +16,7 @@ namespace {
 }  // namespace
 
 TEST(PluginLibrary, Construct_Always_StoresMetadata) {
-    Plugin::Library library(12, "/tmp/test-plugin.dylib", nullptr, nullptr);
+    Plugin::Library library(12, Plugin::Descriptor{"/tmp/test-plugin.dylib"}, nullptr, nullptr);
 
     EXPECT_EQ(library.getID(), 12);
     EXPECT_EQ(library.getLoadingPath(), "/tmp/test-plugin.dylib");
@@ -26,7 +26,7 @@ TEST(PluginLibrary, Construct_Always_StoresMetadata) {
 TEST(PluginLibrary, UnloadFrom_WithUnloadFunction_OK) {
     ECS ecs;
     unloadCalls = 0;
-    Plugin::Library library(1, "/tmp/test-plugin.dylib", nullptr, countUnload);
+    Plugin::Library library(1, Plugin::Descriptor{"/tmp/test-plugin.dylib"}, nullptr, countUnload);
 
     library.unloadFrom(ecs);
 
@@ -35,7 +35,7 @@ TEST(PluginLibrary, UnloadFrom_WithUnloadFunction_OK) {
 
 TEST(PluginLibrary, UnloadFrom_WithoutUnloadFunction_OK) {
     ECS ecs;
-    Plugin::Library library(1, "/tmp/test-plugin.dylib", nullptr, nullptr);
+    Plugin::Library library(1, Plugin::Descriptor{"/tmp/test-plugin.dylib"}, nullptr, nullptr);
 
     library.unloadFrom(ecs);
 
@@ -43,7 +43,7 @@ TEST(PluginLibrary, UnloadFrom_WithoutUnloadFunction_OK) {
 }
 
 TEST(PluginLibrary, MoveConstructor_TransfersMetadata) {
-    Plugin::Library source(4, "/tmp/test-plugin.dylib", nullptr, countUnload);
+    Plugin::Library source(4, Plugin::Descriptor{"/tmp/test-plugin.dylib"}, nullptr, countUnload);
     source.addReference();
 
     Plugin::Library moved(std::move(source));
@@ -56,9 +56,9 @@ TEST(PluginLibrary, MoveConstructor_TransfersMetadata) {
 }
 
 TEST(PluginLibrary, MoveAssignment_TransfersMetadata) {
-    Plugin::Library source(7, "/tmp/source-plugin.dylib", nullptr, countUnload);
+    Plugin::Library source(7, Plugin::Descriptor{"/tmp/source-plugin.dylib"}, nullptr, countUnload);
     source.addReference();
-    Plugin::Library target(8, "/tmp/target-plugin.dylib", nullptr, nullptr);
+    Plugin::Library target(8, Plugin::Descriptor{"/tmp/target-plugin.dylib"}, nullptr, nullptr);
 
     target = std::move(source);
 

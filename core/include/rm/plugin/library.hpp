@@ -2,6 +2,7 @@
 
 #include <string>
 
+#include "rm/plugin/descriptor.hpp"
 #include "rm/plugin/plugin.hpp"
 
 namespace rome::core {
@@ -11,16 +12,16 @@ namespace rome::core {
          */
         class Library final {
             public:
-            Library(ID id, const std::string_view loadingPath, void* handle, UnloadFn unload);
+            Library(ID id, Descriptor&& descriptor, void* handle, UnloadFn unload);
             ~Library();
-            Library(const Library&) = delete;
+            Library(const Library& other) = delete;
             Library(Library&& other) noexcept;
 
-            Library& operator=(const Library&) = delete;
+            Library& operator=(const Library& other) = delete;
             Library& operator=(Library&& other) noexcept;
 
             inline ID getID() const noexcept { return id; }
-            inline std::string_view getLoadingPath() const noexcept { return loadingPath; }
+            inline std::string_view getLoadingPath() const noexcept { return descriptor.path; }
             inline u32 getReferences() const noexcept { return references; }
             inline void addReference() noexcept { references++; }
             inline void removeReference() noexcept { references--; }
@@ -34,11 +35,11 @@ namespace rome::core {
             private:
             void close() noexcept;
 
-            ID id = INVALID_ID;         ///< The plugin ID assigned to this loaded library.
-            std::string loadingPath;    ///< The resolved path used to load this library.
-            void* handle = nullptr;     ///< The native dynamic library handle.
-            UnloadFn unload = nullptr;  ///< Optional plugin unload entry point.
-            u32 references = 1;         ///< Number of active load requests for this library.
+            ID id = INVALID_ID;          ///< The plugin ID assigned to this loaded library.
+            Descriptor descriptor;       ///< The submitted plugin descriptor.
+            void* handle = nullptr;      ///< The native dynamic library handle.
+            UnloadFn unload = nullptr;   ///< Optional plugin unload entry point.
+            u32 references = 1;          ///< Number of active load requests for this library.
         };
     }  // namespace Plugin
 }  // namespace rome::core

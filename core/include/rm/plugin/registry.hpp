@@ -2,6 +2,7 @@
 
 #include <shared_mutex>
 
+#include "rm/plugin/descriptor.hpp"
 #include "rm/plugin/library.hpp"
 #include "rm/plugin/plugin.hpp"
 
@@ -21,11 +22,11 @@ namespace rome::core {
 
             /**
              * @brief Submits a plugin declaration and runs its load entry point.
-             * @param path The plugin library path.
+             * @param descriptor The plugin descriptor.
              * @param ecs The ECS instance exposed to the plugin.
              * @return True if the plugin does not exist in the registry, false otherwise.
              */
-            b8 submit(const std::string_view path, ECS& ecs);
+            b8 submit(Descriptor&& descriptor, ECS& ecs);
 
             /**
              * @brief Revokes a plugin declaration and runs its unload entry point.

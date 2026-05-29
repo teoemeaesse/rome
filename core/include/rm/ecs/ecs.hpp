@@ -122,15 +122,22 @@ namespace rome::core {
 
         /**
          * @brief Submits a plugin dynamic library declaration.
-         * @param path The plugin library path.
-         * @return True if the plugin was newly submitted, false otherwise.
+         * @param descriptor The descriptor for the plugin.
+         * @return True if the plugin is not in the registry, false otherwise.
          */
-        b8 submitPlugin(const std::string_view path) { return plugins.submit(path, *this); }
+        b8 submitPlugin(Plugin::Descriptor&& descriptor) { return plugins.submit(std::move(descriptor), *this); }
+
+        /**
+         * @brief Creates a plugin builder.
+         * @param path The plugin library path.
+         * @return A builder ready to describe and build the plugin.
+         */
+        Plugin::Builder createPlugin(const std::string_view path) { return Plugin::Builder(path); }
 
         /**
          * @brief Revokes a submitted plugin dynamic library declaration.
          * @param id The submitted plugin ID.
-         * @return True if the plugin existed and was revoked.
+         * @return True if the plugin is in the registry, false otherwise.
          */
         b8 revokePlugin(Plugin::ID id) { return plugins.revoke(id, *this); }
 
@@ -142,7 +149,7 @@ namespace rome::core {
         /**
          * @brief Checks whether a plugin declaration has been submitted.
          * @param id The plugin ID to check.
-         * @return True if the plugin exists, false otherwise.
+         * @return True if the plugin exists in the registry, false otherwise.
          */
         b8 checkPlugin(Plugin::ID id) const noexcept { return plugins.check(id); }
 
