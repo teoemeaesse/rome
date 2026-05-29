@@ -14,6 +14,7 @@ namespace rome::core {
             store.erase(id);
             names.erase(id);
             ids.erase(idIt);
+            freeIDs.push(id);
 
             for (auto& [entity, archetype] : archetypes) {
                 archetype.reset(id);
@@ -30,7 +31,7 @@ namespace rome::core {
         }
 
         b8 Registry::contains(Entity entity, const BitSet<>& components) noexcept {
-            auto it = archetypes.find(entity.getIndex());
+            auto it = archetypes.find(entity.getID());
             if (it == archetypes.end()) return false;
             return (it->second & components) == components;
         }

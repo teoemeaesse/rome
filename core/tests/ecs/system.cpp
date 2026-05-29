@@ -100,7 +100,7 @@ TEST(SystemRegistry, Revoke_InBounds_RevokesSystem) {
     EXPECT_TRUE(systems.revoke(id));
 
     EXPECT_FALSE(systems.check(id));
-    EXPECT_THROW(systems.get(id), Exception);
+    EXPECT_THROW(auto _ = systems.get(id), Exception);
     EXPECT_THROW(systems.getGroup(id), Exception);
 }
 
@@ -118,8 +118,7 @@ TEST(SystemRegistry, UpdateEntity_FullMatch_TracksEntity) {
     Event::Registry events;
     World world = makeWorld(systems, components, entities, events);
 
-    EXPECT_TRUE(
-        systems.submit(System::Builder("movement", world).reads<Velocity>().writes<Position>().requireFull().build([](System::Context&) {})));
+    EXPECT_TRUE(systems.submit(System::Builder("movement", world).reads<Velocity>().writes<Position>().requireFull().build([](System::Context&) {})));
     System::ID id = systems.getID("movement");
     Entity entity = entities.create();
 

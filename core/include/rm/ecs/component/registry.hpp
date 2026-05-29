@@ -29,7 +29,14 @@ namespace rome::core {
                 auto existing = ids.find(getName<C>());
                 if (existing != ids.end()) return false;
 
-                ID id = nextId++;
+                ID id;
+                if (!freeIDs.empty()) {
+                    id = freeIDs.front();
+                    freeIDs.pop();
+                } else {
+                    id = nextId++;
+                }
+
                 ids.emplace(getName<C>(), id);
                 names.emplace(id, std::string(getName<C>()));
                 store.emplace(id, MakeUnique<Pool<C>>());
@@ -96,9 +103,10 @@ namespace rome::core {
              */
             template <Component C>
             [[nodiscard]] C* insert(Entity entity, const C& component) {
-                if (!check<C>()) return nullptr;
+                if (!check<C>()) submit<C>();
                 ID id = getID<C>();
                 Pool<C>* pool = getPool<C>();
+                if (!pool) return nullptr;
                 pool->insert(entity, component);
                 archetypes[entity.getID()].set(id);
                 return pool->get(entity);
@@ -113,9 +121,10 @@ namespace rome::core {
              */
             template <Component C, typename... Args>
             [[nodiscard]] C* emplace(Entity entity, Args&&... args) {
-                if (!check<C>()) return nullptr;
+                if (!check<C>()) submit<C>();
                 ID id = getID<C>();
                 Pool<C>* pool = getPool<C>();
+                if (!pool) return nullptr;
                 pool->emplace(entity, std::forward<Args>(args)...);
                 archetypes[entity.getID()].set(id);
                 return pool->get(entity);
