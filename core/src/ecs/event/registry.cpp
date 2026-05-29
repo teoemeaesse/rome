@@ -5,32 +5,24 @@
 namespace rome::core {
     namespace Event {
         b8 Registry::submit(const std::string_view name) {
-            if (name.empty()) return false;
+            if (name.empty() || !check(name)) return false;
 
-            std::unique_lock lock(eventsLock);
-            if (!check(name)) return false;
-
-            if (ids.contains(name)) {
-                return false;
+            ID id;
+            if (!freeIDs.empty()) {
+                id = freeIDs.front();
+                freeIDs.pop();
             } else {
-                ID id;
-                if (!freeIDs.empty()) {
-                    id = freeIDs.front();
-                    freeIDs.pop();
-                } else {
-                    id = nextId++;
-                }
-
-                ids.emplace(std::string(name), id);
-                names.emplace(id, name);
-                return true;
+                id = nextId++;
             }
+
+            ids.emplace(std::string(name), id);
+            names.emplace(id, name);
+            return true;
         }
 
         b8 Registry::revoke(const std::string_view name) {
             if (name.empty()) return false;
 
-            std::unique_lock lock(eventsLock);
             const ID id = getID(name);
             if (id == INVALID_ID) return false;
 

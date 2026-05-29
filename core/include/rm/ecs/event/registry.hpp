@@ -1,14 +1,11 @@
 #pragma once
 
-#include <shared_mutex>
-
 #include "rm/ecs/event/event.hpp"
 
 namespace rome::core {
     namespace Event {
         /**
-         * @brief A registry for managing events and their unique runtime IDs.
-         * @warning This registry is not thread-safe outside event submission and revoking.
+         * @brief A registry for managing the lifetime of events.
          */
         class Registry final {
             public:
@@ -20,18 +17,16 @@ namespace rome::core {
             Registry& operator=(Registry&&) = delete;
 
             /**
-             * @brief Submits a new event to the registry.
+             * @brief Submits an event to the registry by name.
              * @param name The name of the event.
-             * @return True if the event did not exist in the registry, false otherwise.
-             * @note This function is thread-safe.
+             * @return True if the event does not exist in the registry, false otherwise.
              */
-            b8 submit(const std::string_view name);
+            b8 submit(std::string_view name);
 
             /**
              * @brief Submits a new event to the registry by type.
              * @tparam E The type of the event.
-             * @return True if the event did not exist in the registry, false otherwise.
-             * @note This function is thread-safe.
+             * @return True if the event does not exist in the registry, false otherwise.
              */
             template <Event E>
             b8 submit() {
@@ -39,18 +34,16 @@ namespace rome::core {
             }
 
             /**
-             * @brief Revokes an event from the registry.
+             * @brief Revokes an event from the registry by name.
              * @param name The name of the event.
-             * @return True if the event existed in the registry, false otherwise.
-             * @note This function is thread-safe.
+             * @return True if the event exists in the registry, false otherwise.
              */
-            b8 revoke(const std::string_view name);
+            b8 revoke(std::string_view name);
 
             /**
              * @brief Revokes an event from the registry by type.
              * @tparam E The type of the event.
-             * @return True if the event existed in the registry, false otherwise.
-             * @note This function is thread-safe.
+             * @return True if the event exists in the registry, false otherwise.
              */
             template <Event E>
             b8 revoke() {
@@ -58,37 +51,33 @@ namespace rome::core {
             }
 
             /**
-             * @brief Checks whether an event exists in the registry.
+             * @brief Checks whether an event exists in the registry by name.
              * @param name The name of the event.
              * @return True if the event exists in the registry, false otherwise.
-             * @warning This function is not thread-safe.
              */
-            b8 check(const std::string_view name) const;
+            [[nodiscard]] b8 check(std::string_view name) const;
 
             /**
              * @brief Checks whether an event exists in the registry by type.
              * @tparam E The type of the event.
              * @return True if the event exists in the registry, false otherwise.
-             * @warning This function is not thread-safe.
              */
             template <Event E>
-            b8 check() const {
+            [[nodiscard]] b8 check() const {
                 return check(getName<E>());
             }
 
             /**
-             * @brief Retrieves the unique ID of an event by its name.
-             * @param name The name of the event.
-             * @return The unique ID of the event, or INVALID_ID if the event does not exist.
-             * @warning This function is not thread-safe.
+             * @brief Retrieves the unique ID of an event by name.
+             * @param name The name of an event.
+             * @return The unique ID of the event, or INVALID_ID if not found.
              */
-            [[nodiscard]] ID getID(const std::string_view name) const;
+            [[nodiscard]] ID getID(std::string_view name) const;
 
             /**
-             * @brief Retrieves the unique ID of an event by its type.
+             * @brief Retrieves the unique ID of an event by type.
              * @tparam E The type of the event.
-             * @return The unique ID of the event, or INVALID_ID if the event does not exist.
-             * @warning This function is not thread-safe.
+             * @return The unique ID of the event, or INVALID_ID if not found.
              */
             template <Event E>
             [[nodiscard]] ID getID() const {
@@ -96,7 +85,6 @@ namespace rome::core {
             }
 
             private:
-            mutable std::shared_mutex eventsLock;                                         ///< Mutex to protect the events map.
             std::unordered_map<std::string, ID, TransparentSVHash, std::equal_to<>> ids;  ///< Maps event names to their IDs.
             std::unordered_map<ID, std::string> names;                                    ///< Reverse lookup.
             std::queue<ID> freeIDs;                                                       ///< Queue of free IDs for reuse.

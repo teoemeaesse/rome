@@ -11,31 +11,29 @@
 namespace rome::core {
     namespace Plugin {
         struct LoadingContext {
-            const std::string& path;
+            std::string_view path;
             const LoadingContext* parent = nullptr;
         };
 
         static thread_local const LoadingContext* activeLoadingContext = nullptr;
 
         struct ScopedLoadingContext {
-            explicit ScopedLoadingContext(const std::string& path) : context{path, activeLoadingContext} {
-                activeLoadingContext = &context;
-            }
+            explicit ScopedLoadingContext(std::string_view path) : context{path, activeLoadingContext} { activeLoadingContext = &context; }
 
             ~ScopedLoadingContext() { activeLoadingContext = context.parent; }
 
             LoadingContext context;
         };
 
-        static void* openLibrary([[maybe_unused]] const std::string& path) {
+        static void* openLibrary(std::string_view path) {
 #if defined(RM_MACOS) || defined(RM_LINUX) || defined(RM_UNIX)
-            return dlopen(path.c_str(), RTLD_NOW | RTLD_LOCAL);
+            return dlopen(std::string(path).c_str(), RTLD_NOW | RTLD_LOCAL);
 #else
             return nullptr;
 #endif
         }
 
-        static void* findSymbol([[maybe_unused]] void* handle, [[maybe_unused]] const char* name) {
+        static void* findSymbol(void* handle, const char* name) {
             if (!handle) return nullptr;
 #if defined(RM_MACOS) || defined(RM_LINUX) || defined(RM_UNIX)
             dlerror();
@@ -56,7 +54,7 @@ namespace rome::core {
 
         Registry::~Registry() = default;
 
-        std::string Registry::resolvePath(const std::string& path) const {
+        std::string Registry::resolvePath(std::string_view path) const {
             namespace fs = std::filesystem;
 
             fs::path requested(path);
@@ -74,7 +72,7 @@ namespace rome::core {
             return resolved.string();
         }
 
-        b8 Registry::submit(const std::string& path, ECS& ecs) {
+        b8 Registry::submit(std::string_view path, ECS& ecs) {
             const std::string resolvedPath = resolvePath(path);
             {
                 std::unique_lock lock(pluginsLock);
@@ -139,7 +137,7 @@ namespace rome::core {
             return true;
         }
 
-        void Registry::revoke(ECS& ecs) {
+        void Registry::revokeAll(ECS& ecs) {
             while (true) {
                 ID id = INVALID_ID;
                 {
@@ -158,7 +156,7 @@ namespace rome::core {
             return libraries.find(id) != libraries.end();
         }
 
-        ID Registry::get(const std::string& path) const {
+        ID Registry::get(std::string_view path) const {
             const std::string resolvedPath = resolvePath(path);
             std::shared_lock lock(pluginsLock);
             for (const auto& [id, library] : libraries) {

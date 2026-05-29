@@ -11,15 +11,16 @@ namespace rome::core {
          */
         class Library final {
             public:
-            Library(ID id, std::string loadingPath, void* handle, UnloadFn unload);
+            Library(ID id, std::string_view loadingPath, void* handle, UnloadFn unload);
             ~Library();
             Library(const Library&) = delete;
-            Library& operator=(const Library&) = delete;
             Library(Library&& other) noexcept;
+
+            Library& operator=(const Library&) = delete;
             Library& operator=(Library&& other) noexcept;
 
             inline ID getID() const noexcept { return id; }
-            inline const std::string& getLoadingPath() const noexcept { return loadingPath; }
+            inline std::string_view getLoadingPath() const noexcept { return loadingPath; }
             inline u32 getReferences() const noexcept { return references; }
             inline void addReference() noexcept { references++; }
             inline void removeReference() noexcept { references--; }

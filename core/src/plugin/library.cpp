@@ -8,24 +8,20 @@
 
 namespace rome::core {
     namespace Plugin {
-        static void closeLibrary([[maybe_unused]] void* handle) {
+        static void closeLibrary(void* handle) {
             if (!handle) return;
 #if defined(RM_MACOS) || defined(RM_LINUX) || defined(RM_UNIX)
             dlclose(handle);
 #endif
         }
 
-        Library::Library(ID id, std::string loadingPath, void* handle, UnloadFn unload)
-            : id(id), loadingPath(std::move(loadingPath)), handle(handle), unload(unload) {}
+        Library::Library(ID id, std::string_view loadingPath, void* handle, UnloadFn unload)
+            : id(id), loadingPath(loadingPath), handle(handle), unload(unload) {}
 
         Library::~Library() { close(); }
 
         Library::Library(Library&& other) noexcept
-            : id(other.id),
-              loadingPath(std::move(other.loadingPath)),
-              handle(other.handle),
-              unload(other.unload),
-              references(other.references) {
+            : id(other.id), loadingPath(std::move(other.loadingPath)), handle(other.handle), unload(other.unload), references(other.references) {
             other.id = INVALID_ID;
             other.handle = nullptr;
             other.unload = nullptr;

@@ -1,13 +1,13 @@
 #include "rm/ecs/system/registry.hpp"
 
+#include <string_view>
+
 #include "rm/ecs/system/descriptor.hpp"
 #include "rm/ecs/system/view.hpp"
 
 namespace rome::core {
     namespace System {
         b8 Registry::submit(Descriptor&& descriptor) {
-            std::unique_lock lock(systemsLock);
-
             if (descriptor.name.empty() || ids.find(descriptor.name) != ids.end()) {
                 return false;
             }
@@ -38,16 +38,29 @@ namespace rome::core {
             return true;
         }
 
-        b8 Registry::check(ID id) const noexcept {
-            std::shared_lock lock(systemsLock);
-            return descriptors.find(id) != descriptors.end();
+        b8 Registry::revoke(ID id) {
+            auto it = descriptors.find(id);
+            if (it == descriptors.end()) return false;
+            descriptors.erase(it);
+            ids.erase(names[id]);
+            names.erase(id);
+            groups.erase(id);
+            freeIDs.push(id);
+            return true;
         }
 
-        ID Registry::get(const std::string& name) const noexcept {
-            std::shared_lock lock(systemsLock);
+        b8 Registry::check(std::string_view name) const noexcept { return descriptors.find(getID(name)) != descriptors.end(); }
+
+        b8 Registry::check(ID id) const noexcept { return descriptors.find(id) != descriptors.end(); }
+
+        ID Registry::getID(std::string_view name) const noexcept {
             auto it = ids.find(name);
             return it != ids.end() ? it->second : INVALID_ID;
         }
+
+        Descriptor& Registry::get(std::string_view name) { return get(getID(name)); }
+
+        const Descriptor& Registry::get(std::string_view name) const { return get(getID(name)); }
 
         Descriptor& Registry::get(ID id) {
             auto it = descriptors.find(id);
@@ -65,6 +78,10 @@ namespace rome::core {
             THROW_CORE_EXCEPTION(Exception::Type::NotFound, msg.c_str());
         }
 
+        Group& Registry::getGroup(std::string_view name) { return getGroup(getID(name)); }
+
+        const Group& Registry::getGroup(std::string_view name) const { return getGroup(getID(name)); }
+
         Group& Registry::getGroup(ID id) {
             auto it = groups.find(id);
             if (it != groups.end()) return it->second;
@@ -81,9 +98,7 @@ namespace rome::core {
             THROW_CORE_EXCEPTION(Exception::Type::NotFound, msg.c_str());
         }
 
-        void Registry::updateEntity(const Entity& entity) {
-            std::unique_lock lock(systemsLock);
-
+        void Registry::updateEntity(Entity entity) {
             for (auto& [id, group] : groups) {
                 const b8 matched = group.matches(entity);
                 const b8 tracked = group.contains(entity);
@@ -96,11 +111,9 @@ namespace rome::core {
             }
         }
 
-        void Registry::removeEntity(const Entity& entity) {
-            std::unique_lock lock(systemsLock);
-
+        void Registry::removeEntity(Entity entity) {
             for (auto& [id, group] : groups) {
-                if (group.contains(entity)) group.removeEntity(entity);
+                group.removeEntity(entity);
             }
         }
 
@@ -110,27 +123,6 @@ namespace rome::core {
 
             Context context{getGroup(id), descriptor.world};
             descriptor.callback(context);
-        }
-
-        void Registry::run() {
-            for (auto& [id, descriptor] : descriptors) {
-                if (!descriptor.active) continue;
-
-                Context context{getGroup(id), descriptor.world};
-                descriptor.callback(context);
-            }
-        }
-
-        b8 Registry::revoke(ID id) {
-            std::unique_lock lock(systemsLock);
-            auto it = descriptors.find(id);
-            if (it == descriptors.end()) return false;
-            ids.erase(names[id]);
-            names.erase(id);
-            groups.erase(id);
-            descriptors.erase(it);
-            freeIDs.push(id);
-            return true;
         }
     }  // namespace System
 }  // namespace rome::core

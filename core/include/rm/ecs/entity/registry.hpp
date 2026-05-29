@@ -4,8 +4,7 @@
 
 namespace rome::core {
     /**
-     * @brief A registry to manage the creation and destruction of entities.
-     * @warning This registry is not thread-safe.
+     * @brief A registry to manage the lifecycle of entities.
      */
     class Entity::Registry final {
         public:
@@ -20,30 +19,30 @@ namespace rome::core {
         Entity create();
 
         /**
-         * @brief Returns the number of slots in the entity pool.
-         * @return The number of slots in the entity pool, including reusable holes.
-         */
-        u64 getCapacity() const noexcept;
-
-        /**
-         * @brief Gets the live entity stored at a slot.
-         * @param index The entity slot index.
-         * @return The entity stored at the slot.
-         */
-        Entity get(u64 index) const;
-
-        /**
          * @brief Destroys an entity.
          * @param entity The entity to destroy.
          */
         void destroy(Entity entity);
 
         /**
+         * @brief Gets the live entity stored at a slot.
+         * @param index The entity slot index.
+         * @return The entity stored at the slot.
+         */
+        [[nodiscard]] Entity get(u64 index) const;
+
+        /**
          * @brief Checks if an entity is alive.
          * @param entity The entity to check.
          * @return True if the entity is alive, false otherwise.
          */
-        b8 isAlive(Entity entity) const;
+        [[nodiscard]] b8 isAlive(Entity entity) const;
+
+        /**
+         * @brief Returns the number of slots in the entity pool.
+         * @return The number of slots in the entity pool, including reusable holes.
+         */
+        u64 getCapacity() const noexcept;
 
         /* Non-const iterator interfaces */
         Iterator begin() const;

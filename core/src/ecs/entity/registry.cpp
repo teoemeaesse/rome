@@ -3,7 +3,7 @@
 #include "rm/debug/exception.hpp"
 
 namespace rome::core {
-    Entity::Registry::Registry() : entities{Entity::INVALID_ID} {}
+    Entity::Registry::Registry() : entities{INVALID_ID} {}
 
     Entity Entity::Registry::create() {
         if (available == 0) {
@@ -22,16 +22,12 @@ namespace rome::core {
     u64 Entity::Registry::getCapacity() const noexcept { return entities.size(); }
 
     Entity Entity::Registry::get(u64 index) const {
-        if (index >= entities.size()) {
-            std::string msg = "Entity at index " + std::to_string(index) + " not found";
-            THROW_CORE_EXCEPTION(Exception::Type::NotFound, msg.c_str());
-        }
+        if (index >= entities.size()) return INVALID_ID;
 
         Entity entity(entities[index]);
         if (isAlive(entity)) return entity;
 
-        std::string msg = "Entity at index " + std::to_string(index) + " not found";
-        THROW_CORE_EXCEPTION(Exception::Type::NotFound, msg.c_str());
+        return INVALID_ID;
     }
 
     Entity::Registry::Iterator Entity::Registry::begin() const { return Iterator{*this, 0}; }
