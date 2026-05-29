@@ -11,7 +11,7 @@ namespace rome::core {
          */
         class Library final {
             public:
-            Library(ID id, std::string_view loadingPath, void* handle, UnloadFn unload);
+            Library(ID id, const std::string_view loadingPath, void* handle, UnloadFn unload);
             ~Library();
             Library(const Library&) = delete;
             Library(Library&& other) noexcept;

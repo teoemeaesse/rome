@@ -18,14 +18,14 @@ namespace rome::core {
         static thread_local const LoadingContext* activeLoadingContext = nullptr;
 
         struct ScopedLoadingContext {
-            explicit ScopedLoadingContext(std::string_view path) : context{path, activeLoadingContext} { activeLoadingContext = &context; }
+            explicit ScopedLoadingContext(const std::string_view path) : context{path, activeLoadingContext} { activeLoadingContext = &context; }
 
             ~ScopedLoadingContext() { activeLoadingContext = context.parent; }
 
             LoadingContext context;
         };
 
-        static void* openLibrary(std::string_view path) {
+        static void* openLibrary(const std::string_view path) {
 #if defined(RM_MACOS) || defined(RM_LINUX) || defined(RM_UNIX)
             return dlopen(std::string(path).c_str(), RTLD_NOW | RTLD_LOCAL);
 #else
@@ -54,7 +54,7 @@ namespace rome::core {
 
         Registry::~Registry() = default;
 
-        std::string Registry::resolvePath(std::string_view path) const {
+        std::string Registry::resolvePath(const std::string_view path) const {
             namespace fs = std::filesystem;
 
             fs::path requested(path);
@@ -72,7 +72,7 @@ namespace rome::core {
             return resolved.string();
         }
 
-        b8 Registry::submit(std::string_view path, ECS& ecs) {
+        b8 Registry::submit(const std::string_view path, ECS& ecs) {
             const std::string resolvedPath = resolvePath(path);
             {
                 std::unique_lock lock(pluginsLock);
@@ -156,7 +156,7 @@ namespace rome::core {
             return libraries.find(id) != libraries.end();
         }
 
-        ID Registry::get(std::string_view path) const {
+        ID Registry::get(const std::string_view path) const {
             const std::string resolvedPath = resolvePath(path);
             std::shared_lock lock(pluginsLock);
             for (const auto& [id, library] : libraries) {

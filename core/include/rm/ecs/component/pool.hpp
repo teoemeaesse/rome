@@ -18,6 +18,7 @@ namespace rome::core {
         /**
          * @brief Manages the pool of a component type.
          * @tparam C The component type to manage.
+         * @warning This class is not thread-safe.
          */
         template <Component C>
         class Pool final : public Storage {
@@ -34,23 +35,23 @@ namespace rome::core {
              * @param entity The entity to get the component.
              * @return A pointer to the component.
              */
-            [[nodiscard]] C* get(const Entity& entity) noexcept { return entities[entity.getID()]; }
+            [[nodiscard]] C* get(Entity entity) noexcept { return entities[entity.getID()]; }
 
             /**
              * @brief Gets the component for an entity.
              * @param entity The entity to get the component.
              * @return A const pointer to the component.
              */
-            [[nodiscard]] const C* get(const Entity& entity) const noexcept { return entities[entity.getID()]; }
+            [[nodiscard]] const C* get(Entity entity) const noexcept { return entities[entity.getID()]; }
 
             /**
              * @brief Inserts a component for an entity.
              * @param entity The entity to insert a component.
              * @param component The component to insert.
              */
-            void insert(const Entity& entity, const C& component) {
+            void insert(Entity entity, const C& component) {
                 if (entities.contains(entity.getID())) {
-                    RM_WARN("Entity already has component of type: %s", getType().getName().c_str());
+                    RM_WARN("Entity already has component of type: %s", std::string(Reflect::getName<C>()).c_str());
                     return;
                 }
                 entities.insert(entity.getID(), component);
@@ -63,9 +64,9 @@ namespace rome::core {
              * @param component The component to insert.
              */
             template <typename... Args>
-            void emplace(const Entity& entity, Args&&... args) {
+            void emplace(Entity entity, Args&&... args) {
                 if (entities.contains(entity.getID())) {
-                    RM_WARN("Entity already has component of type: %s", getType().getName().c_str());
+                    RM_WARN("Entity already has component of type: %s", std::string(Reflect::getName<C>()).c_str());
                     return;
                 }
                 entities.emplace(entity.getID(), C(std::forward<Args>(args)...));
@@ -75,9 +76,9 @@ namespace rome::core {
              * @brief Removes a component from an entity.
              * @param entity The entity to remove the component.
              */
-            void remove(const Entity& entity) {
+            void remove(Entity entity) {
                 if (!entities.contains(entity.getID())) {
-                    RM_WARN("Entity does not have component of type: %s", getType().getName().c_str());
+                    RM_WARN("Entity does not have component of type: %s", std::string(Reflect::getName<C>()).c_str());
                     return;
                 }
                 entities.erase(entity.getID());
@@ -88,7 +89,7 @@ namespace rome::core {
              * @param entity The entity to check.
              * @return True if the entity has this component, false otherwise.
              */
-            [[nodiscard]] b8 contains(const Entity& entity) const noexcept { return entities.contains(entity.getID()); }
+            [[nodiscard]] b8 contains(Entity entity) const noexcept { return entities.contains(entity.getID()); }
 
             /**
              * @brief Retrieves a contiguous data pointer and the size of the pool.

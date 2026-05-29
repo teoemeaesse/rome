@@ -47,12 +47,12 @@ namespace rome::core {
          * @return The new type.
          */
         template <typename T, typename... Traits>
-        static inline Type make(const std::string& name, Traits&&... traits) {
+        static inline Type make(const std::string_view name, Traits&&... traits) {
             STATIC_ASSERT((std::is_base_of_v<Trait, std::remove_reference_t<Traits>> && ...), "Traits must inherit from Trait");
             return Type(Type::getUUID<T>(), name, std::forward<Traits>(traits)...);
         }
 
-        inline const std::string& getName() const noexcept { return name; }
+        inline std::string_view getName() const noexcept { return name; }
         inline const UUID& getUUID() const noexcept { return uuid; }
 
         /**
@@ -122,7 +122,7 @@ namespace rome::core {
          * @param traits The traits of the type.
          */
         template <typename... Traits>
-        Type(UUID uuid, const std::string& name, Traits&&... traits) : uuid(uuid), name(name) {
+        Type(UUID uuid, const std::string_view name, Traits&&... traits) : uuid(uuid), name(std::string(name)) {
             STATIC_ASSERT((std::is_base_of_v<Trait, std::remove_reference_t<Traits>> && ...), "Traits must inherit from Trait");
             (this->traits.push_back(MakeUnique<std::remove_reference_t<Traits>>(std::forward<Traits>(traits))), ...);
         }

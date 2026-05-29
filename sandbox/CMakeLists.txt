@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 file(GLOB_RECURSE SANDBOX_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
+list(APPEND SANDBOX_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../core/src/entry/entry.cpp)
 add_executable(sandbox ${SANDBOX_SOURCES})
 
 target_compile_definitions(sandbox PRIVATE RM_EXPORT_ON RM_ASSERTS_ON)

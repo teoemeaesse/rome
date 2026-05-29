@@ -14,8 +14,8 @@ namespace rome::core {
 
         ~Entity() = default;
 
-        inline b8 operator==(const Entity& other) const noexcept { return id == other.id; }
-        inline b8 operator!=(const Entity& other) const noexcept { return id != other.id; }
+        inline b8 operator==(Entity other) const noexcept { return id == other.id; }
+        inline b8 operator!=(Entity other) const noexcept { return id != other.id; }
 
         inline u64 getIndex() const noexcept { return getIndex(id); }
         inline u64 getVersion() const noexcept { return getVersion(id); }

@@ -10,10 +10,7 @@ option(BUILD_SHARED_CORE "Build core as a shared library" ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 file(GLOB_RECURSE CORE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
-
-if(BUILD_TESTS)
-  list(REMOVE_ITEM CORE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/entry/entry.cpp)
-endif()
+list(REMOVE_ITEM CORE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/entry/entry.cpp)
 
 if(BUILD_SHARED_CORE)
   add_library(core SHARED ${CORE_SOURCES})
@@ -55,7 +52,7 @@ set_target_properties(
 if(BUILD_SHARED_CORE)
   set_target_properties(core PROPERTIES
                         MACOSX_RPATH ON
-                        BUILD_RPATH "@loader_path;@executable_path"
+                        BUILD_RPATH "@loader_path"
                         INSTALL_RPATH "@loader_path")
 endif()
 

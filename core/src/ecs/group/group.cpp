@@ -34,17 +34,17 @@ namespace rome::core {
         return debug;
     }
 
-    void Group::addEntity(const Entity& entity) {
+    void Group::addEntity(Entity entity) {
         RM_ASSERT_MSG(!contains(entity), "Entity is already in the group");
         entities.insert(entity.getIndex(), entity);
     }
 
-    void Group::removeEntity(const Entity& entity) {
+    void Group::removeEntity(Entity entity) {
         RM_ASSERT_MSG(contains(entity), "Entity is not in the group");
         entities.erase(entity.getIndex());
     }
 
-    void Group::addEntityOwned(const Entity& entity) {
+    void Group::addEntityOwned(Entity entity) {
         RM_ASSERT_MSG(!contains(entity), "Entity is already in the group");
         RM_ASSERT_MSG(matches(entity), "Entity archetype does not match the group");
 
@@ -52,19 +52,19 @@ namespace rome::core {
         head++;
     }
 
-    void Group::removeEntityOwned(const Entity& entity) {
+    void Group::removeEntityOwned(Entity entity) {
         RM_ASSERT_MSG(contains(entity), "Entity is not in the group");
 
         entities.erase(entity.getIndex());
         head--;
     }
 
-    b8 Group::contains(const Entity& entity) const noexcept {
+    b8 Group::contains(Entity entity) const noexcept {
         const Entity* stored = entities[entity.getIndex()];
         return stored != nullptr && *stored == entity;
     }
 
-    b8 Group::matches(const Entity& entity) const noexcept { return world.components.contains(entity, owning | partial); }
+    b8 Group::matches(Entity entity) const noexcept { return world.components.contains(entity, owning | partial); }
 
     const SparseSet<Entity>& Group::getEntities() const noexcept { return entities; }
 

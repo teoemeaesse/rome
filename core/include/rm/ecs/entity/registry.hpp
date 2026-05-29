@@ -5,6 +5,7 @@
 namespace rome::core {
     /**
      * @brief A registry to manage the lifecycle of entities.
+     * @warning This class is not thread-safe.
      */
     class Entity::Registry final {
         public:

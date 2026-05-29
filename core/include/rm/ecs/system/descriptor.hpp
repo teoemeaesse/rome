@@ -25,7 +25,7 @@ namespace rome::core {
 
         class Builder {
             public:
-            Builder(const std::string& name, World& world);
+            Builder(const std::string_view name, World& world);
             ~Builder() = default;
             Builder(const Builder&) = delete;
             Builder& operator=(const Builder&) = delete;

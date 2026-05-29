@@ -2,8 +2,8 @@
 
 namespace rome::core {
     namespace System {
-        Builder::Builder(const std::string& name, World& world)
-            : descriptor{world, name, nullptr, {}, {}, {}, {}, false, false, true}, world(world) {}
+        Builder::Builder(const std::string_view name, World& world)
+            : descriptor{world, std::string(name), nullptr, {}, {}, {}, {}, false, false, true}, world(world) {}
 
         Builder& Builder::emits(std::initializer_list<Event::ID> events) {
             descriptor.emits = BitSet<>::create(events);

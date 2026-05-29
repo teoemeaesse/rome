@@ -69,7 +69,7 @@ namespace rome::core {
          * @brief Destroys an entity, removing it from every group.
          * @param entity The entity to destroy.
          */
-        void destroyEntity(const Entity& entity) {
+        void destroyEntity(Entity entity) {
             systems.removeEntity(entity);
             entities.destroy(entity);
         }
@@ -100,14 +100,14 @@ namespace rome::core {
          * @param name The system name to look up.
          * @return The system ID, or System::INVALID_ID if it has not been submitted.
          */
-        System::ID getSystemID(const std::string& name) const noexcept { return systems.getID(name); }
+        System::ID getSystemID(const std::string_view name) const noexcept { return systems.getID(name); }
 
         /**
          * @brief Creates a system builder bound to this ECS world.
          * @param name The unique name of the system.
          * @return A builder ready to describe and build the system.
          */
-        System::Builder createSystem(const std::string& name) { return System::Builder(name, world); }
+        System::Builder createSystem(const std::string_view name) { return System::Builder(name, world); }
 
         /**
          * @brief Executes one active system.
@@ -125,7 +125,7 @@ namespace rome::core {
          * @param path The plugin library path.
          * @return True if the plugin was newly submitted, false otherwise.
          */
-        b8 submitPlugin(const std::string& path) { return plugins.submit(path, *this); }
+        b8 submitPlugin(const std::string_view path) { return plugins.submit(path, *this); }
 
         /**
          * @brief Revokes a submitted plugin dynamic library declaration.
@@ -151,7 +151,7 @@ namespace rome::core {
          * @param path The plugin path to look up.
          * @return The plugin ID, or Plugin::INVALID_ID if it has not been submitted.
          */
-        Plugin::ID getPluginID(const std::string& path) const { return plugins.get(path); }
+        Plugin::ID getPluginID(const std::string_view path) const { return plugins.get(path); }
 
         /**
          * @brief Gets the number of submitted plugins.
@@ -166,7 +166,7 @@ namespace rome::core {
          * @return The created component.
          */
         template <Component::Component T>
-        T& addComponent(const Entity& entity) {
+        T& addComponent(Entity entity) {
             T* component = components.emplace<T>(entity);
             systems.updateEntity(entity);
             return *component;
@@ -181,7 +181,7 @@ namespace rome::core {
          * @return The created component.
          */
         template <Component::Component T, typename... Args>
-        T& addComponent(const Entity& entity, Args&&... args) {
+        T& addComponent(Entity entity, Args&&... args) {
             T* component = components.emplace<T>(entity, std::forward<Args>(args)...);
             systems.updateEntity(entity);
             return *component;
@@ -193,7 +193,7 @@ namespace rome::core {
          * @param entity The entity to remove the component from.
          */
         template <Component::Component T>
-        void removeComponent(const Entity& entity) {
+        void removeComponent(Entity entity) {
             components.remove<T>(entity);
             systems.updateEntity(entity);
         }
@@ -205,7 +205,7 @@ namespace rome::core {
          * @return The component for the given entity.
          */
         template <Component::Component T>
-        T& getComponent(const Entity& entity) {
+        T& getComponent(Entity entity) {
             return *components.get<T>(entity);
         }
 
@@ -216,7 +216,7 @@ namespace rome::core {
          * @return The component for the given entity.
          */
         template <Component::Component T>
-        const T& getComponent(const Entity& entity) const {
+        const T& getComponent(Entity entity) const {
             return *components.get<T>(entity);
         }
 

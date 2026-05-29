@@ -25,7 +25,7 @@ namespace rome::core {
              * @param ecs The ECS instance exposed to the plugin.
              * @return True if the plugin does not exist in the registry, false otherwise.
              */
-            b8 submit(std::string_view path, ECS& ecs);
+            b8 submit(const std::string_view path, ECS& ecs);
 
             /**
              * @brief Revokes a plugin declaration and runs its unload entry point.
@@ -53,7 +53,7 @@ namespace rome::core {
              * @param path The plugin library path.
              * @return The plugin ID, or Plugin::INVALID_ID if not found.
              */
-            ID get(std::string_view path) const;
+            ID get(const std::string_view path) const;
 
             /**
              * @brief Gets the number of plugins in the registry.
@@ -66,7 +66,7 @@ namespace rome::core {
             std::unordered_map<ID, Library> libraries;  ///< Maps plugin IDs to submitted libraries.
             ID nextId = 1;                              ///< Next plugin ID to assign.
 
-            std::string resolvePath(std::string_view path) const;
+            std::string resolvePath(const std::string_view path) const;
         };
     }  // namespace Plugin
 }  // namespace rome::core

@@ -15,7 +15,7 @@ namespace rome::core {
 #endif
         }
 
-        Library::Library(ID id, std::string_view loadingPath, void* handle, UnloadFn unload)
+        Library::Library(ID id, const std::string_view loadingPath, void* handle, UnloadFn unload)
             : id(id), loadingPath(loadingPath), handle(handle), unload(unload) {}
 
         Library::~Library() { close(); }

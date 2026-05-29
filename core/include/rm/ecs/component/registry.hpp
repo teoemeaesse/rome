@@ -7,6 +7,7 @@ namespace rome::core {
     namespace Component {
         /**
          * @brief Manages the lifecycle of components within the ECS.
+         * @warning This class is not thread-safe.
          * @warning Components must implement reflection and a copy-constructor to be submitted.
          */
         class Registry final {
@@ -57,7 +58,7 @@ namespace rome::core {
              * @param name The name of the component.
              * @return True if the component exists in the registry, false otherwise.
              */
-            [[nodiscard]] b8 check(const std::string_view name);
+            [[nodiscard]] b8 check(const std::string_view name) const;
 
             /**
              * @brief Checks whether a component exists in the registry by type.
@@ -216,7 +217,7 @@ namespace rome::core {
              * @param id The id of the component.
              * @return The name of the component.
              */
-            [[nodiscard]] const std::string_view getName(ID id) const;
+            [[nodiscard]] std::string_view getName(ID id) const;
 
             /**
              * @brief Retrieves the name of an component by type at compile time.
@@ -225,7 +226,7 @@ namespace rome::core {
              * @note The component does not need to exist in the registry.
              */
             template <Component C>
-            [[nodiscard]] constexpr const std::string_view getName() const {
+            [[nodiscard]] static consteval std::string_view getName() noexcept {
                 return Reflect::getName<C>();
             }
 

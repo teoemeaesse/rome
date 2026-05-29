@@ -22,7 +22,7 @@ namespace rome::core {
             return true;
         }
 
-        b8 Registry::check(const std::string_view name) { return getID(name) != INVALID_ID; }
+        b8 Registry::check(const std::string_view name) const { return getID(name) != INVALID_ID; }
 
         ID Registry::getID(const std::string_view name) const {
             auto it = ids.find(name);
@@ -35,7 +35,7 @@ namespace rome::core {
             return (it->second & components) == components;
         }
 
-        const std::string_view Registry::getName(ID id) const {
+        std::string_view Registry::getName(ID id) const {
             auto it = names.find(id);
             return it != names.end() ? it->second : INVALID_NAME;
         }

@@ -6,6 +6,7 @@ namespace rome::core {
     namespace Event {
         /**
          * @brief A registry for managing the lifetime of events.
+         * @warning This class is not thread-safe.
          */
         class Registry final {
             public:
@@ -21,7 +22,7 @@ namespace rome::core {
              * @param name The name of the event.
              * @return True if the event does not exist in the registry, false otherwise.
              */
-            b8 submit(std::string_view name);
+            b8 submit(const std::string_view name);
 
             /**
              * @brief Submits a new event to the registry by type.
@@ -38,7 +39,7 @@ namespace rome::core {
              * @param name The name of the event.
              * @return True if the event exists in the registry, false otherwise.
              */
-            b8 revoke(std::string_view name);
+            b8 revoke(const std::string_view name);
 
             /**
              * @brief Revokes an event from the registry by type.
@@ -55,7 +56,7 @@ namespace rome::core {
              * @param name The name of the event.
              * @return True if the event exists in the registry, false otherwise.
              */
-            [[nodiscard]] b8 check(std::string_view name) const;
+            [[nodiscard]] b8 check(const std::string_view name) const;
 
             /**
              * @brief Checks whether an event exists in the registry by type.
@@ -72,7 +73,7 @@ namespace rome::core {
              * @param name The name of an event.
              * @return The unique ID of the event, or INVALID_ID if not found.
              */
-            [[nodiscard]] ID getID(std::string_view name) const;
+            [[nodiscard]] ID getID(const std::string_view name) const;
 
             /**
              * @brief Retrieves the unique ID of an event by type.
@@ -97,8 +98,8 @@ namespace rome::core {
              * @note The event does not need to exist in the registry.
              */
             template <Event E>
-            constexpr const std::string_view getName() const {
-                return Reflect::reflect<E>().getType().getName();
+            static consteval std::string_view getName() noexcept {
+                return Reflect::getName<E>();
             }
         };
     }  // namespace Event

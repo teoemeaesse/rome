@@ -1,7 +1,5 @@
 #pragma once
 
-#include <shared_mutex>
-
 #include "rm/ecs/group/group.hpp"
 #include "rm/ecs/system/descriptor.hpp"
 
@@ -10,6 +8,10 @@ namespace rome::core {
         using ID = u32;
         inline constexpr ID INVALID_ID = 0;
 
+        /**
+         * @brief Manages submitted systems and their groups.
+         * @warning This class is not thread-safe.
+         */
         class Registry final {
             public:
             Registry() = default;
@@ -31,7 +33,7 @@ namespace rome::core {
              * @param name The name of the system.
              * @return True if the system exists in the registry, false otherwise.
              */
-            b8 revoke(std::string_view name);
+            b8 revoke(const std::string_view name);
 
             /**
              * @brief Revokes a system from the registry by ID.
@@ -45,7 +47,7 @@ namespace rome::core {
              * @param name The name of a system.
              * @return True if the system exists in the registry, false otherwise.
              */
-            [[nodiscard]] b8 check(std::string_view name) const noexcept;
+            [[nodiscard]] b8 check(const std::string_view name) const noexcept;
 
             /**
              * @brief Checks if a system exists in the registry by ID.
@@ -59,7 +61,7 @@ namespace rome::core {
              * @param name The name of a system.
              * @return The system ID, or INVALID_ID if not found.
              */
-            [[nodiscard]] ID getID(std::string_view name) const noexcept;
+            [[nodiscard]] ID getID(const std::string_view name) const noexcept;
 
             /**
              * @brief Retrieves a system descriptor by name.
@@ -67,7 +69,7 @@ namespace rome::core {
              * @return A system descriptor.
              * @throws Exception::Type::NotFound if not found.
              */
-            [[nodiscard]] Descriptor& get(std::string_view name);
+            [[nodiscard]] Descriptor& get(const std::string_view name);
 
             /**
              * @brief Retrieves a const system descriptor by name.
@@ -75,7 +77,7 @@ namespace rome::core {
              * @return A const system descriptor.
              * @throws Exception::Type::NotFound if not found.
              */
-            [[nodiscard]] const Descriptor& get(std::string_view name) const;
+            [[nodiscard]] const Descriptor& get(const std::string_view name) const;
 
             /**
              * @brief Retrieves a system descriptor by ID.
@@ -99,7 +101,7 @@ namespace rome::core {
              * @return The system's group.
              * @throws Exception::Type::NotFound if not found.
              */
-            Group& getGroup(std::string_view name);
+            Group& getGroup(const std::string_view name);
 
             /**
              * @brief Retrieves the group owned by a system by name.
@@ -107,7 +109,7 @@ namespace rome::core {
              * @return The system's group.
              * @throws Exception::Type::NotFound if not found.
              */
-            const Group& getGroup(std::string_view name) const;
+            const Group& getGroup(const std::string_view name) const;
 
             /**
              * @brief Retrieves the group owned by a system by ID.
@@ -140,14 +142,12 @@ namespace rome::core {
             /**
              * @brief Executes an active system against its group.
              * @param id The ID of the system to run.
-             * @warning This function is not thread-safe.
              * @throws Exception::Type::NotFound if not found.
              */
             void run(ID id);
 
             /**
              * @brief Executes every active system against its group.
-             * @warning This function is not thread-safe.
              */
             void run();
             // TODO: System scheduler for system concurrency

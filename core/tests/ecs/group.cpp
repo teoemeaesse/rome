@@ -54,12 +54,12 @@ static World makeGroupWorld(System::Registry& systems, Component::Registry& comp
 
 static void expectContains(const Group& group, std::initializer_list<Entity> present, std::initializer_list<Entity> absent) {
     EXPECT_EQ(group.getSize(), present.size());
-    for (const Entity& entity : present) EXPECT_TRUE(group.contains(entity));
-    for (const Entity& entity : absent) EXPECT_FALSE(group.contains(entity));
+    for (const Entity entity : present) EXPECT_TRUE(group.contains(entity));
+    for (const Entity entity : absent) EXPECT_FALSE(group.contains(entity));
 }
 
 template <Component::Component T, typename... Args>
-static void addGroupComponent(Component::Registry& components, const Entity& entity, Args&&... args) {
+static void addGroupComponent(Component::Registry& components, Entity entity, Args&&... args) {
     ASSERT_NE(components.emplace<T>(entity, std::forward<Args>(args)...), nullptr);
 }
 

@@ -47,39 +47,39 @@ namespace rome::core {
          * @brief Adds an entity to this group.
          * @param entity The entity to add.
          */
-        void addEntity(const Entity& entity);
+        void addEntity(Entity entity);
 
         /**
          * @brief Removes an entity from this group.
          * @param entity The entity to remove.
          */
-        void removeEntity(const Entity& entity);
+        void removeEntity(Entity entity);
 
         /**
          * @brief Adds an entity to this group, assuming it fully owns the entity.
          * @param entity The entity to add.
          */
-        void addEntityOwned(const Entity& entity);
+        void addEntityOwned(Entity entity);
 
         /**
          * @brief Removes an entity from this group, assuming it fully owns the entity.
          * @param entity The entity to remove.
          */
-        void removeEntityOwned(const Entity& entity);
+        void removeEntityOwned(Entity entity);
 
         /**
          * @brief Checks whether an entity's archetype matches this group.
          * @param entity The entity to check.
          * @return True if the entity has every owned and partial component.
          */
-        b8 matches(const Entity& entity) const noexcept;
+        b8 matches(Entity entity) const noexcept;
 
         /**
          * @brief Checks if an entity is in this group.
          * @param entity The entity to check.
          * @return True if the entity is in this group, false otherwise.
          */
-        b8 contains(const Entity& entity) const noexcept;
+        b8 contains(Entity entity) const noexcept;
 
         /**
          * @brief Returns the entities currently in this group.

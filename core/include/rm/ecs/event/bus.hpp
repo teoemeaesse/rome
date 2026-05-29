@@ -1,7 +1,5 @@
 #pragma once
 
-#include <shared_mutex>
-
 #include "rm/ecs/world.hpp"
 
 namespace rome::core {
@@ -22,6 +20,7 @@ namespace rome::core {
         /**
          * @brief A storage for every event of this type.
          * @tparam E The event type to store.
+         * @warning This class is not thread-safe.
          */
         template <Event E>
         class Storage final : public Queue {
@@ -74,6 +73,10 @@ namespace rome::core {
             std::vector<E> back;   ///< Producers write to this vector.
         };
 
+        /**
+         * @brief Manages event queues for a world.
+         * @warning This class is not thread-safe.
+         */
         class Bus final {
             public:
             Bus(World& world);
@@ -87,15 +90,13 @@ namespace rome::core {
              * @brief Enters a new event queue into the bus.
              * @tparam E The event type to enter.
              * @throws Exception::Type::InvalidArgument if the event queue already exists.
-             * @note This function is thread-safe.
              */
             template <Event E>
             void enter() {
-                std::unique_lock lock(queuesLock);
                 const ID id = world.events.getID<E>();
                 auto it = queues.find(id);
                 if (it != queues.end()) {
-                    std::string msg = "Event queue for '" + Reflect::reflect<E>().getType().getName() + "' already exists";
+                    std::string msg = "Event queue for '" + std::string(Reflect::getName<E>()) + "' already exists";
                     THROW_CORE_EXCEPTION(Exception::Type::InvalidArgument, msg.c_str());
                 }
                 queues.emplace(id, MakeUnique<Storage<E>>());
@@ -106,7 +107,6 @@ namespace rome::core {
              * @tparam E The event type to retrieve.
              * @return A reference to the event queue.
              * @throws Exception::Type::InvalidArgument if the event queue does not exist.
-             * @warning This function is not thread-safe.
              */
             template <Event E>
             Storage<E>& queue() {
@@ -114,7 +114,7 @@ namespace rome::core {
 
                 auto it = queues.find(id);
                 if (it == queues.end()) {
-                    std::string msg = "Event queue for '" + Reflect::reflect<E>().getType().getName() + "' does not exist";
+                    std::string msg = "Event queue for '" + std::string(Reflect::getName<E>()) + "' does not exist";
                     THROW_CORE_EXCEPTION(Exception::Type::InvalidArgument, msg.c_str());
                 }
                 return *static_cast<Storage<E>*>(it->second.get());
@@ -126,7 +126,6 @@ namespace rome::core {
             void swap();
 
             private:
-            std::shared_mutex queuesLock;                  ///< Mutex to protect the queues map.
             std::unordered_map<ID, Unique<Queue>> queues;  ///< The queues for each event type.
             World& world;                                  ///< The world feeding this bus.
         };

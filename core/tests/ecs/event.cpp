@@ -98,7 +98,7 @@ TEST(EventBus, Queue_Always_OK) {
     Entity::Registry entities;
     Event::Registry events;
     World world{systems, components, entities, events};
-    events.submit(Reflect::reflect<TestEvent>().getType().getName());
+    events.submit(Reflect::getName<TestEvent>());
     Event::Bus bus(world);
 
     bus.enter<TestEvent>();
@@ -118,7 +118,7 @@ TEST(EventBus, Submit_Duplicate_Throws) {
     Entity::Registry entities;
     Event::Registry events;
     World world{systems, components, entities, events};
-    events.submit(Reflect::reflect<TestEvent>().getType().getName());
+    events.submit(Reflect::getName<TestEvent>());
     Event::Bus bus(world);
 
     bus.enter<TestEvent>();
@@ -132,7 +132,7 @@ TEST(EventBus, Queue_MissingQueue_Throws) {
     Entity::Registry entities;
     Event::Registry events;
     World world{systems, components, entities, events};
-    events.submit(Reflect::reflect<TestEvent>().getType().getName());
+    events.submit(Reflect::getName<TestEvent>());
     Event::Bus bus(world);
 
     EXPECT_THROW(bus.queue<TestEvent>(), Exception);

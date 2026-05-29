@@ -49,18 +49,18 @@ namespace rome::core {
             return true;
         }
 
-        b8 Registry::check(std::string_view name) const noexcept { return descriptors.find(getID(name)) != descriptors.end(); }
+        b8 Registry::check(const std::string_view name) const noexcept { return descriptors.find(getID(name)) != descriptors.end(); }
 
         b8 Registry::check(ID id) const noexcept { return descriptors.find(id) != descriptors.end(); }
 
-        ID Registry::getID(std::string_view name) const noexcept {
+        ID Registry::getID(const std::string_view name) const noexcept {
             auto it = ids.find(name);
             return it != ids.end() ? it->second : INVALID_ID;
         }
 
-        Descriptor& Registry::get(std::string_view name) { return get(getID(name)); }
+        Descriptor& Registry::get(const std::string_view name) { return get(getID(name)); }
 
-        const Descriptor& Registry::get(std::string_view name) const { return get(getID(name)); }
+        const Descriptor& Registry::get(const std::string_view name) const { return get(getID(name)); }
 
         Descriptor& Registry::get(ID id) {
             auto it = descriptors.find(id);
@@ -78,9 +78,9 @@ namespace rome::core {
             THROW_CORE_EXCEPTION(Exception::Type::NotFound, msg.c_str());
         }
 
-        Group& Registry::getGroup(std::string_view name) { return getGroup(getID(name)); }
+        Group& Registry::getGroup(const std::string_view name) { return getGroup(getID(name)); }
 
-        const Group& Registry::getGroup(std::string_view name) const { return getGroup(getID(name)); }
+        const Group& Registry::getGroup(const std::string_view name) const { return getGroup(getID(name)); }
 
         Group& Registry::getGroup(ID id) {
             auto it = groups.find(id);
