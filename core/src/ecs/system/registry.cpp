@@ -124,5 +124,11 @@ namespace rome::core {
             Context context{getGroup(id), descriptor.world};
             descriptor.callback(context);
         }
+
+        void Registry::run() {
+            for (const auto& [id, name] : names) {
+                run(id);
+            }
+        }
     }  // namespace System
 }  // namespace rome::core

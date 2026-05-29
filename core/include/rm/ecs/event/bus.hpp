@@ -1,5 +1,7 @@
 #pragma once
 
+#include <shared_mutex>
+
 #include "rm/ecs/world.hpp"
 
 namespace rome::core {
@@ -90,12 +92,13 @@ namespace rome::core {
             template <Event E>
             void enter() {
                 std::unique_lock lock(queuesLock);
-                auto it = queues.find(world.events.get<E>());
+                const ID id = world.events.getID<E>();
+                auto it = queues.find(id);
                 if (it != queues.end()) {
                     std::string msg = "Event queue for '" + Reflect::reflect<E>().getType().getName() + "' already exists";
                     THROW_CORE_EXCEPTION(Exception::Type::InvalidArgument, msg.c_str());
                 }
-                queues.emplace(world.events.get<E>(), MakeUnique<Storage<E>>());
+                queues.emplace(id, MakeUnique<Storage<E>>());
             }
 
             /**
@@ -107,7 +110,7 @@ namespace rome::core {
              */
             template <Event E>
             Storage<E>& queue() {
-                const ID id = world.events.get<E>();
+                const ID id = world.events.getID<E>();
 
                 auto it = queues.find(id);
                 if (it == queues.end()) {

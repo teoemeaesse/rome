@@ -100,7 +100,7 @@ namespace rome::core {
          * @param name The system name to look up.
          * @return The system ID, or System::INVALID_ID if it has not been submitted.
          */
-        System::ID getSystemID(const std::string& name) const noexcept { return systems.get(name); }
+        System::ID getSystemID(const std::string& name) const noexcept { return systems.getID(name); }
 
         /**
          * @brief Creates a system builder bound to this ECS world.
@@ -137,7 +137,7 @@ namespace rome::core {
         /**
          * @brief Revokes every submitted plugin dynamic library declaration.
          */
-        void revokePlugins() { plugins.revoke(*this); }
+        void revokePlugins() { plugins.revokeAll(*this); }
 
         /**
          * @brief Checks whether a plugin declaration has been submitted.

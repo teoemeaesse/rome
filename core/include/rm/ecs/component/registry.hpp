@@ -225,7 +225,7 @@ namespace rome::core {
              * @note The component does not need to exist in the registry.
              */
             template <Component C>
-            [[nodiscard]] constexpr const std::string_view getName() {
+            [[nodiscard]] constexpr const std::string_view getName() const {
                 return Reflect::getName<C>();
             }
 

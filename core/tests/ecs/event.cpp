@@ -29,9 +29,9 @@ TEST(EventRegistry, Submit_DuplicateEvent_OK) {
     Event::Registry registry;
 
     EXPECT_TRUE(registry.submit("TestEvent"));
-    Event::ID id0 = registry.get("TestEvent");
+    Event::ID id0 = registry.getID("TestEvent");
     EXPECT_FALSE(registry.submit("TestEvent"));
-    Event::ID id1 = registry.get("TestEvent");
+    Event::ID id1 = registry.getID("TestEvent");
 
     EXPECT_NE(id0, Event::INVALID_ID);
     EXPECT_EQ(id0, id1);
@@ -43,8 +43,8 @@ TEST(EventRegistry, Submit_DifferentEvents_DifferentIDs) {
 
     EXPECT_TRUE(registry.submit("TestEvent"));
     EXPECT_TRUE(registry.submit("OtherTestEvent"));
-    Event::ID first = registry.get("TestEvent");
-    Event::ID second = registry.get("OtherTestEvent");
+    Event::ID first = registry.getID("TestEvent");
+    Event::ID second = registry.getID("OtherTestEvent");
 
     EXPECT_NE(first, Event::INVALID_ID);
     EXPECT_NE(second, Event::INVALID_ID);
@@ -54,20 +54,20 @@ TEST(EventRegistry, Submit_DifferentEvents_DifferentIDs) {
 TEST(EventRegistry, Get_OutOfBounds_ReturnsNullID) {
     Event::Registry registry;
 
-    EXPECT_EQ(registry.get("MissingEvent"), Event::INVALID_ID);
+    EXPECT_EQ(registry.getID("MissingEvent"), Event::INVALID_ID);
 }
 
 TEST(EventRegistry, Revoke_SubmittedEvent_OK) {
     Event::Registry registry;
 
     EXPECT_TRUE(registry.submit("TestEvent"));
-    Event::ID id = registry.get("TestEvent");
+    Event::ID id = registry.getID("TestEvent");
     ASSERT_NE(id, Event::INVALID_ID);
     EXPECT_TRUE(registry.check("TestEvent"));
 
     EXPECT_TRUE(registry.revoke("TestEvent"));
     EXPECT_FALSE(registry.check("TestEvent"));
-    EXPECT_EQ(registry.get("TestEvent"), Event::INVALID_ID);
+    EXPECT_EQ(registry.getID("TestEvent"), Event::INVALID_ID);
     EXPECT_FALSE(registry.revoke("TestEvent"));
 }
 

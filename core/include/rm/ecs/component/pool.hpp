@@ -68,7 +68,7 @@ namespace rome::core {
                     RM_WARN("Entity already has component of type: %s", getType().getName().c_str());
                     return;
                 }
-                entities.emplace(entity.getID(), T(std::forward<Args>(args)...));
+                entities.emplace(entity.getID(), C(std::forward<Args>(args)...));
             }
 
             /**
@@ -94,13 +94,13 @@ namespace rome::core {
              * @brief Retrieves a contiguous data pointer and the size of the pool.
              * @return A pair containing a pointer to the start of the block and the size of the pool.
              */
-            [[nodiscard]] std::pair<C*, u64> getData() noexcept { return entities.getData(); }
+            [[nodiscard]] std::pair<C*, u64> getData() noexcept { return entities.getData(); }
 
             /**
              * @brief Retrieves a contiguous data pointer and the size of the pool.
              * @return A pair containing a const pointer to the start of the block and the size of the pool.
              */
-            [[nodiscard]] const std::pair<const C*, u64> getData() const noexcept { return entities.getData(); }
+            [[nodiscard]] const std::pair<const C*, u64> getData() const noexcept { return entities.getData(); }
 
             /**
              * @brief Gets the reflected type for this pool's component type.

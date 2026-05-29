@@ -75,7 +75,7 @@ namespace rome::core {
              * @return A const system descriptor.
              * @throws Exception::Type::NotFound if not found.
              */
-            [[nodiscard]] const Descriptor& get(std::string_view name) const;
+            [[nodiscard]] const Descriptor& get(std::string_view name) const;
 
             /**
              * @brief Retrieves a system descriptor by ID.
@@ -91,7 +91,7 @@ namespace rome::core {
              * @return The const system descriptor.
              * @throws Exception::Type::NotFound if not found.
              */
-            [[nodiscard]] const Descriptor& get(ID id) const;
+            [[nodiscard]] const Descriptor& get(ID id) const;
 
             /**
              * @brief Retrieves the group owned by a system by name.
@@ -144,6 +144,12 @@ namespace rome::core {
              * @throws Exception::Type::NotFound if not found.
              */
             void run(ID id);
+
+            /**
+             * @brief Executes every active system against its group.
+             * @warning This function is not thread-safe.
+             */
+            void run();
             // TODO: System scheduler for system concurrency
 
             private:

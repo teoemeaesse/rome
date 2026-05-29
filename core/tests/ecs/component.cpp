@@ -230,12 +230,14 @@ TEST(ComponentRegistry, GetPool_OutOfBounds_ReturnsNullptr) {
     EXPECT_EQ(registry.getPool<Position>(), nullptr);
 }
 
-TEST(ComponentRegistry, Create_Always_OK) {
+TEST(ComponentRegistry, Insert_Always_OK) {
     Component::Registry registry;
     e1 = er.create();
     e2 = er.create();
 
-    Position* pos0 = registry.create<Position>(e1, Position{1.0f, -2.0f});
+    ASSERT_TRUE(registry.submit<Position>());
+
+    Position* pos0 = registry.insert<Position>(e1, Position{1.0f, -2.0f});
     ASSERT_NE(pos0, nullptr);
     EXPECT_FLOAT_EQ(pos0->x, 1.0f);
     EXPECT_FLOAT_EQ(pos0->y, -2.0f);
@@ -252,6 +254,8 @@ TEST(ComponentRegistry, Emplace_Always_OK) {
     Component::Registry registry;
     e1 = er.create();
     e2 = er.create();
+
+    ASSERT_TRUE(registry.submit<Position>());
 
     Position* pos0 = registry.emplace<Position>(e1, 3.0f, 4.0f);
     ASSERT_NE(pos0, nullptr);

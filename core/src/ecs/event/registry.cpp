@@ -5,7 +5,7 @@
 namespace rome::core {
     namespace Event {
         b8 Registry::submit(const std::string_view name) {
-            if (name.empty() || !check(name)) return false;
+            if (name.empty() || check(name)) return false;
 
             ID id;
             if (!freeIDs.empty()) {

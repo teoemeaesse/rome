@@ -55,7 +55,7 @@ namespace rome::core {
              * @param name The name of the event.
              * @return True if the event exists in the registry, false otherwise.
              */
-            [[nodiscard]] b8 check(std::string_view name) const;
+            [[nodiscard]] b8 check(std::string_view name) const;
 
             /**
              * @brief Checks whether an event exists in the registry by type.
@@ -63,7 +63,7 @@ namespace rome::core {
              * @return True if the event exists in the registry, false otherwise.
              */
             template <Event E>
-            [[nodiscard]] b8 check() const {
+            [[nodiscard]] b8 check() const {
                 return check(getName<E>());
             }
 
@@ -97,7 +97,7 @@ namespace rome::core {
              * @note The event does not need to exist in the registry.
              */
             template <Event E>
-            constexpr const std::string_view getName() {
+            constexpr const std::string_view getName() const {
                 return Reflect::reflect<E>().getType().getName();
             }
         };

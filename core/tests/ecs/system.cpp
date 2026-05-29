@@ -38,8 +38,8 @@ TEST(SystemBuilder, Build_WithMasks_OK) {
 
     EXPECT_TRUE(events.submit("Emitted"));
     EXPECT_TRUE(events.submit("Listened"));
-    Event::ID emitted = events.get("Emitted");
-    Event::ID listened = events.get("Listened");
+    Event::ID emitted = events.getID("Emitted");
+    Event::ID listened = events.getID("Listened");
 
     System::Descriptor descriptor = System::Builder("movement", world)
                                         .reads<Position>()
@@ -67,7 +67,7 @@ TEST(SystemRegistry, Submit_ValidDescriptor_OK) {
     World world = makeWorld(systems, components, entities, events);
 
     EXPECT_TRUE(systems.submit(System::Builder("movement", world).writes<Position>().build([](System::Context&) {})));
-    System::ID id = systems.get("movement");
+    System::ID id = systems.getID("movement");
 
     EXPECT_NE(id, System::INVALID_ID);
     EXPECT_TRUE(systems.check(id));
@@ -95,7 +95,7 @@ TEST(SystemRegistry, Revoke_InBounds_RevokesSystem) {
     World world = makeWorld(systems, components, entities, events);
 
     EXPECT_TRUE(systems.submit(System::Builder("movement", world).writes<Position>().build([](System::Context&) {})));
-    System::ID id = systems.get("movement");
+    System::ID id = systems.getID("movement");
 
     EXPECT_TRUE(systems.revoke(id));
 
@@ -120,7 +120,7 @@ TEST(SystemRegistry, UpdateEntity_FullMatch_TracksEntity) {
 
     EXPECT_TRUE(
         systems.submit(System::Builder("movement", world).reads<Velocity>().writes<Position>().requireFull().build([](System::Context&) {})));
-    System::ID id = systems.get("movement");
+    System::ID id = systems.getID("movement");
     Entity entity = entities.create();
 
     ASSERT_NE(components.emplace<Position>(entity, 1.0f, 2.0f), nullptr);
@@ -145,7 +145,7 @@ TEST(SystemRegistry, UpdateEntity_PartialMatch_TracksEntity) {
 
     EXPECT_TRUE(
         systems.submit(System::Builder("movement", world).reads<Velocity>().writes<Position>().allowPartial().build([](System::Context&) {})));
-    System::ID id = systems.get("movement");
+    System::ID id = systems.getID("movement");
     Entity entity = entities.create();
 
     ASSERT_NE(components.emplace<Position>(entity, 1.0f, 2.0f), nullptr);
