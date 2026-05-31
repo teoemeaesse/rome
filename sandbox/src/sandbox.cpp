@@ -1,12 +1,12 @@
+#include <string_view>
+#include <vector>
+
 #include "rm/app/app.hpp"
 #include "rm/debug/log.hpp"
 #include "rm/debug/metrics.hpp"
 #include "rm/ecs/ecs.hpp"
 #include "rm/entry/entry.hpp"
 #include "rm/newton.hpp"
-
-#include <string_view>
-#include <vector>
 
 #ifndef RM_ENGINE_PLUGIN_PATHS
 #define RM_ENGINE_PLUGIN_PATHS ""
@@ -32,7 +32,7 @@ namespace {
 
         return result;
     }
-}
+}  // namespace
 
 class SandboxApplication final : public Application {
     public:
