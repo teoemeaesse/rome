@@ -440,6 +440,7 @@ Engine plugin.
 - \`plugin.json\` - plugin metadata
 - \`CMakeLists.txt\` - standardized plugin build file
 - \`build.sh\` - standalone plugin build helper
+- \`clean.sh\` - standalone plugin clean helper
 - \`src/plugin.cpp\` - required plugin entrypoints
 - \`src/\` - plugin source files
 - \`include/\` - plugin header files
@@ -447,10 +448,16 @@ Engine plugin.
 ## Build
 
 \`\`\`sh
-./build.sh --core-dir /path/to/rome/core
+./build.sh --core /path/to/rome/core
 \`\`\`
 
 The build script writes the plugin binary to \`bin/\`.
+
+## Clean
+
+\`\`\`sh
+./clean.sh
+\`\`\`
 EOF
 
 cat > "${PLUGIN_ROOT}/build.sh" <<'EOF'
@@ -463,11 +470,11 @@ YELLOW='\033[0;33m'
 NC='\033[0m'
 
 usage() {
-    echo "Usage: $0 --core-dir <path-to-core> [--debug|--release]"
+    echo "Usage: $0 --core <path-to-core> [--debug|--release]"
     echo
     echo "Examples:"
-    echo "  $0 --core-dir ../../core"
-    echo "  $0 --core-dir /Users/me/rome/core --release"
+    echo "  $0 --core ../../core"
+    echo "  $0 -c /Users/me/rome/core --release"
 }
 
 fail() {
@@ -707,9 +714,10 @@ CORE_DIR=""
 
 while [ "$#" -gt 0 ]; do
     case "$1" in
-        --core-dir)
+        -c|--core)
+            option="$1"
             shift
-            [ "$#" -gt 0 ] || fail "--core-dir requires a path."
+            [ "$#" -gt 0 ] || fail "${option} requires a path."
             CORE_DIR="$1"
             ;;
         --debug)
@@ -737,7 +745,7 @@ done
 CORE_DIR="$(resolve_dir "$CORE_DIR")" || fail "Core directory does not exist: ${CORE_DIR}"
 
 if [ ! -f "${CORE_DIR}/CMakeLists.txt" ] || [ ! -d "${CORE_DIR}/include/rm" ]; then
-    fail "Expected --core-dir to point at the core source directory."
+    fail "Expected --core/-c to point at the core source directory."
 fi
 
 CORE_PREFIX="$(cd "${CORE_DIR}/.." && pwd)/dist"
@@ -763,6 +771,38 @@ cmake --build "$BUILD_DIR"
 echo -e "${GREEN}Built plugin:${NC} ${OUTPUT_DIR}"
 EOF
 chmod +x "${PLUGIN_ROOT}/build.sh"
+
+cat > "${PLUGIN_ROOT}/clean.sh" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
+remove_path() {
+    local path="$1"
+
+    if [ -e "$path" ] || [ -L "$path" ]; then
+        echo -e "${GREEN}Removing ${path}...${NC}"
+        rm -rf "$path"
+    else
+        echo -e "${YELLOW}${path} does not exist. Skipping...${NC}"
+    fi
+}
+
+echo -e "${GREEN}Cleaning plugin build artifacts...${NC}"
+
+remove_path "build"
+remove_path "bin"
+remove_path ".cache"
+
+echo -e "${GREEN}Plugin clean completed.${NC}"
+EOF
+chmod +x "${PLUGIN_ROOT}/clean.sh"
 
 cat > "${PLUGIN_SRC}/plugin.cpp" <<'EOF'
 #include "rm/ecs/ecs.hpp"
@@ -815,4 +855,4 @@ print(json.dumps(data, indent=2))
 PY
 
 echo -e "${GREEN}Created plugin template:${NC} ${PLUGIN_ROOT}"
-echo -e "${YELLOW}Next:${NC} build it with ${PLUGIN_ROOT}/build.sh --core-dir /path/to/rome/core"
+echo -e "${YELLOW}Next:${NC} build it with ${PLUGIN_ROOT}/build.sh --core /path/to/rome/core"

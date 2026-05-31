@@ -7,11 +7,11 @@ YELLOW='\033[0;33m'
 NC='\033[0m'
 
 usage() {
-    echo "Usage: $0 --core-dir <path-to-core> [--debug|--release]"
+    echo "Usage: $0 --core <path-to-core> [--debug|--release]"
     echo
     echo "Examples:"
-    echo "  $0 --core-dir ../../core"
-    echo "  $0 --core-dir /Users/me/rome/core --release"
+    echo "  $0 --core ../../core"
+    echo "  $0 -c /Users/me/rome/core --release"
 }
 
 fail() {
@@ -250,9 +250,10 @@ CORE_DIR=""
 
 while [ "$#" -gt 0 ]; do
     case "$1" in
-        --core-dir)
+        -c|--core)
+            option="$1"
             shift
-            [ "$#" -gt 0 ] || fail "--core-dir requires a path."
+            [ "$#" -gt 0 ] || fail "${option} requires a path."
             CORE_DIR="$1"
             ;;
         --debug)
@@ -280,7 +281,7 @@ done
 CORE_DIR="$(resolve_dir "$CORE_DIR")" || fail "Core directory does not exist: ${CORE_DIR}"
 
 if [ ! -f "${CORE_DIR}/CMakeLists.txt" ] || [ ! -d "${CORE_DIR}/include/rm" ]; then
-    fail "Expected --core-dir to point at the core source directory."
+    fail "Expected --core/-c to point at the core source directory."
 fi
 
 CORE_PREFIX="$(cd "${CORE_DIR}/.." && pwd)/dist"
