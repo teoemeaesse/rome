@@ -1,3 +1,6 @@
 [submodule "core/lib/SDL"]
 	path = core/lib/SDL
 	url = https://github.com/libsdl-org/SDL.git
+[submodule "core/lib/json"]
+	path = core/lib/json
+	url = https://github.com/nlohmann/json.git

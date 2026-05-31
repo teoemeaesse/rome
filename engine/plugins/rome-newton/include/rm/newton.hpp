@@ -41,8 +41,7 @@ RM_REFLECT_IMPL(rome::engine::physics::Velocity, "rome::engine::physics::Velocit
                 rome::core::Fields().with("x", &rome::engine::physics::Velocity::x).with("y", &rome::engine::physics::Velocity::y));
 
 RM_REFLECT_IMPL(rome::engine::physics::Acceleration, "rome::engine::physics::Acceleration",
-                rome::core::Fields().with("x", &rome::engine::physics::Acceleration::x)
-                    .with("y", &rome::engine::physics::Acceleration::y));
+                rome::core::Fields().with("x", &rome::engine::physics::Acceleration::x).with("y", &rome::engine::physics::Acceleration::y));
 
 RM_REFLECT_IMPL(rome::engine::physics::NewtonIntegrator, "rome::engine::physics::NewtonIntegrator",
                 rome::core::Fields().with("dt", &rome::engine::physics::NewtonIntegrator::dt));

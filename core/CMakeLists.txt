@@ -23,6 +23,11 @@ set_target_properties(core PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 target_compile_definitions(core PRIVATE RM_EXPORT_ON RM_ASSERTS_ON)
 
+set(JSON_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/json/include)
+if(NOT EXISTS ${JSON_INCLUDE_DIR}/nlohmann/json.hpp)
+  message(FATAL_ERROR "nlohmann/json headers not found. Run ./configure.sh from the repository root.")
+endif()
+
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -DNDEBUG")
 else()
@@ -33,6 +38,7 @@ endif()
 target_include_directories(
   core
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+         $<BUILD_INTERFACE:${JSON_INCLUDE_DIR}>
          $<INSTALL_INTERFACE:include>
   PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src
           ${CMAKE_CURRENT_SOURCE_DIR}/lib/SDL/include)
@@ -87,6 +93,7 @@ install(
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(DIRECTORY ${JSON_INCLUDE_DIR}/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 install(
   EXPORT coreTargets

@@ -1,0 +1,13 @@
+{
+  "name": "rome-newton",
+  "uuid": "c0a3b3ac-23d7-11b2-b81b-310915aec564",
+  "version": {
+    "major": 0,
+    "minor": 1,
+    "patch": 0
+  },
+  "author": "tomasmarques",
+  "date": "2026-05-31",
+  "description": "newton integration plugin",
+  "digest": "8d8820d2a200198a4ba936a3f300056a"
+}

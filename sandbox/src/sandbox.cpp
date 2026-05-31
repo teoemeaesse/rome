@@ -3,11 +3,36 @@
 #include "rm/debug/metrics.hpp"
 #include "rm/ecs/ecs.hpp"
 #include "rm/entry/entry.hpp"
-#include "rm/physics/newton.hpp"
+#include "rm/newton.hpp"
+
+#include <string_view>
+#include <vector>
+
+#ifndef RM_ENGINE_PLUGIN_PATHS
+#define RM_ENGINE_PLUGIN_PATHS ""
+#endif
 
 using namespace rome;
 using namespace rome::core;
 using namespace rome::engine::physics;
+
+namespace {
+    std::vector<std::string_view> getPluginPaths() {
+        constexpr std::string_view paths = RM_ENGINE_PLUGIN_PATHS;
+        std::vector<std::string_view> result;
+
+        std::size_t start = 0;
+        while (start < paths.size()) {
+            const std::size_t end = paths.find('|', start);
+            const std::string_view path = paths.substr(start, end == std::string_view::npos ? paths.size() - start : end - start);
+            if (!path.empty()) result.push_back(path);
+            if (end == std::string_view::npos) break;
+            start = end + 1;
+        }
+
+        return result;
+    }
+}
 
 class SandboxApplication final : public Application {
     public:
@@ -15,12 +40,14 @@ class SandboxApplication final : public Application {
         : Application(Application::Builder().setTitle("Rome Sandbox").setTickRate(60).setRenderRate(60).enableMemoryLogging().build()) {}
 
     void setup() override {
-        ecs.submitPlugin(ecs.createPlugin(RM_NEWTON_PLUGIN_PATH).build());
-        plugin = ecs.getPluginID(RM_NEWTON_PLUGIN_PATH);
-        if (plugin == Plugin::INVALID_ID) {
-            RM_ERROR("Failed to load Newton physics plugin: %s", RM_NEWTON_PLUGIN_PATH);
-            stop();
-            return;
+        for (const std::string_view path : getPluginPaths()) {
+            ecs.submitPlugin(ecs.createPlugin(path).build());
+            const Plugin::ID plugin = ecs.getPluginID(path);
+            if (plugin == Plugin::INVALID_ID) {
+                RM_ERROR("Failed to load engine plugin: %.*s", static_cast<int>(path.size()), path.data());
+                stop();
+                return;
+            }
         }
 
         body.emplace(ecs.createEntity());
@@ -51,7 +78,6 @@ class SandboxApplication final : public Application {
 
     private:
     ECS ecs;
-    Plugin::ID plugin = Plugin::INVALID_ID;
     std::optional<Entity> body;
     u32 ticks = 0;
 };

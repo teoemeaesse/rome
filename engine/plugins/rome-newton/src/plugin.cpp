@@ -1,8 +1,8 @@
-#include "rm/physics/newton.hpp"
+#include "rm/plugin/plugin.hpp"
 
 #include "rm/ecs/ecs.hpp"
 #include "rm/ecs/system/view.hpp"
-#include "rm/plugin/plugin.hpp"
+#include "rm/newton.hpp"
 
 using namespace rome;
 using namespace rome::core;
@@ -10,7 +10,7 @@ using namespace rome::engine::physics;
 
 static System::ID newtonIntegrationSystem = System::INVALID_ID;
 
-extern "C" RM_API void rome_load_plugin(ECS& ecs) {
+extern "C" RM_PLUGIN_API void rome_load_plugin(ECS& ecs) {
     ecs.submitComponent<Position>();
     ecs.submitComponent<Velocity>();
     ecs.submitComponent<Acceleration>();
@@ -34,7 +34,7 @@ extern "C" RM_API void rome_load_plugin(ECS& ecs) {
     newtonIntegrationSystem = ecs.getSystemID("engine.physics.newton.integrate");
 }
 
-extern "C" RM_API void rome_unload_plugin(ECS& ecs) {
+extern "C" RM_PLUGIN_API void rome_unload_plugin(ECS& ecs) {
     if (ecs.revokeSystem(newtonIntegrationSystem)) newtonIntegrationSystem = System::INVALID_ID;
     ecs.revokeComponent<NewtonIntegrator>();
     ecs.revokeComponent<Acceleration>();

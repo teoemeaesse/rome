@@ -30,10 +30,21 @@ find_package(core CONFIG REQUIRED PATHS "${CORE_PREFIX}")
 add_subdirectory(../engine ${CMAKE_CURRENT_BINARY_DIR}/engine_build)
 
 target_link_libraries(sandbox PRIVATE core::core)
-target_include_directories(sandbox PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../engine/include)
-target_compile_definitions(sandbox
-                           PRIVATE RM_NEWTON_PLUGIN_PATH="$<TARGET_FILE:engine_physics_newton>")
-add_dependencies(sandbox engine_physics_newton)
+
+get_property(ENGINE_PLUGIN_TARGETS GLOBAL PROPERTY ROME_ENGINE_PLUGIN_TARGETS)
+set(ENGINE_PLUGIN_PATHS "")
+foreach(plugin_target IN LISTS ENGINE_PLUGIN_TARGETS)
+  add_dependencies(sandbox ${plugin_target})
+  target_include_directories(
+    sandbox PRIVATE "$<TARGET_PROPERTY:${plugin_target},INTERFACE_INCLUDE_DIRECTORIES>")
+
+  if(ENGINE_PLUGIN_PATHS)
+    string(APPEND ENGINE_PLUGIN_PATHS "|")
+  endif()
+  string(APPEND ENGINE_PLUGIN_PATHS "$<TARGET_FILE:${plugin_target}>")
+endforeach()
+
+target_compile_definitions(sandbox PRIVATE RM_ENGINE_PLUGIN_PATHS="${ENGINE_PLUGIN_PATHS}")
 
 set_target_properties(
   sandbox

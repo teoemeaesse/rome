@@ -16,10 +16,25 @@ endif()
 
 find_package(core CONFIG REQUIRED PATHS "${CORE_PREFIX}")
 
-function(add_rome_engine_plugin target)
-  add_library(${target} SHARED ${ARGN})
+set(ENGINE_PLUGINS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/plugins")
+set_property(GLOBAL PROPERTY ROME_ENGINE_PLUGIN_TARGETS "")
 
-  target_compile_definitions(${target} PRIVATE RM_EXPORT_ON RM_ASSERTS_ON)
+function(add_engine_plugin plugin_dir)
+  get_filename_component(target "${plugin_dir}" NAME)
+
+  file(GLOB_RECURSE plugin_sources CONFIGURE_DEPENDS "${plugin_dir}/src/*.cpp"
+       "${plugin_dir}/src/*.cxx" "${plugin_dir}/src/*.cc")
+  file(GLOB_RECURSE plugin_headers CONFIGURE_DEPENDS
+       "${plugin_dir}/include/*.hpp" "${plugin_dir}/include/*.h")
+
+  list(FIND plugin_sources "${plugin_dir}/src/plugin.cpp" plugin_entrypoint_index)
+  if(plugin_entrypoint_index EQUAL -1)
+    message(FATAL_ERROR "Plugin ${target} must define src/plugin.cpp")
+  endif()
+
+  add_library(${target} SHARED ${plugin_sources} ${plugin_headers})
+
+  target_compile_definitions(${target} PRIVATE RM_ASSERTS_ON)
 
   if(CMAKE_BUILD_TYPE STREQUAL "Release")
     target_compile_options(${target} PRIVATE -O3)
@@ -29,16 +44,24 @@ function(add_rome_engine_plugin target)
     target_compile_definitions(${target} PRIVATE RM_DEBUG_ON)
   endif()
 
-  target_include_directories(${target}
-                             PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
+  target_include_directories(${target} PUBLIC "${plugin_dir}/include")
   target_link_libraries(${target} PUBLIC core::core)
 
   set_target_properties(
     ${target}
-    PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin"
-               LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin"
-               ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
+    PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${plugin_dir}/bin"
+               LIBRARY_OUTPUT_DIRECTORY "${plugin_dir}/bin"
+               ARCHIVE_OUTPUT_DIRECTORY "${plugin_dir}/bin")
+
+  set_property(GLOBAL APPEND PROPERTY ROME_ENGINE_PLUGIN_TARGETS "${target}")
 endfunction()
 
-add_rome_engine_plugin(engine_physics_newton
-                       "${CMAKE_CURRENT_SOURCE_DIR}/src/physics/newton.cpp")
+if(EXISTS "${ENGINE_PLUGINS_DIR}")
+  file(GLOB engine_plugin_dirs CONFIGURE_DEPENDS LIST_DIRECTORIES true
+       "${ENGINE_PLUGINS_DIR}/*")
+  foreach(plugin_dir IN LISTS engine_plugin_dirs)
+    if(IS_DIRECTORY "${plugin_dir}" AND EXISTS "${plugin_dir}/src/plugin.cpp")
+      add_engine_plugin("${plugin_dir}")
+    endif()
+  endforeach()
+endif()

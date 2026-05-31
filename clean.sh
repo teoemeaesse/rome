@@ -11,6 +11,7 @@ if [ -d "core/build" ]; then
     echo -e "${GREEN}Removing core/build...${NC}"
     rm -rf core/build
     rm -rf core/bin
+	rm -rf core/.cache
 else
     echo -e "${RED}core/build does not exist. Skipping...${NC}"
 fi
