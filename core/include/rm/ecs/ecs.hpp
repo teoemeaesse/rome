@@ -10,8 +10,8 @@ namespace rome::core {
      */
     class ECS {
         public:
-        ECS() : systems(), components(), entities(), events(), world{systems, components, entities, events} {}
-        ~ECS() { revokePlugins(); }
+        ECS();
+        ~ECS();
         ECS(const ECS&) = delete;
         ECS& operator=(const ECS&) = delete;
         ECS(ECS&&) = delete;
@@ -21,7 +21,6 @@ namespace rome::core {
          * @brief Submits a new component type declaration with the ECS.
          * @tparam T The component type to submit.
          * @return True if the component type was newly submitted, false otherwise.
-         * @note This should be used by plugins on load.
          */
         template <Component::Component T>
         b8 submitComponent() {
@@ -32,12 +31,18 @@ namespace rome::core {
          * @brief Revokes a component type declaration and destroys all of its component instances.
          * @tparam T The component type to revoke.
          * @return True if the component type existed and was removed.
-         * @note This should be used by plugins on unload for plugin-defined component types.
          */
         template <Component::Component T>
         b8 revokeComponent() {
             return components.revoke<T>();
         }
+
+        /**
+         * @brief Revokes a component type declaration by name and destroys all of its component instances.
+         * @param name The component type name to revoke.
+         * @return True if the component type existed and was removed.
+         */
+        b8 revokeComponent(const std::string_view name);
 
         /**
          * @brief Checks whether a component type declaration has been submitted.
@@ -50,9 +55,16 @@ namespace rome::core {
         }
 
         /**
+         * @brief Checks whether a component type declaration has been submitted by name.
+         * @param name The component type name to check.
+         * @return True if the component type has been submitted, false otherwise.
+         */
+        b8 checkComponent(const std::string_view name) const;
+
+        /**
          * @brief Gets the ID for a submitted component type declaration.
          * @tparam T The component type to look up.
-         * @return The component ID, or Component::INVALID_ID if it has not been submitted.
+         * @return The component ID, or Component::INVALID_ID if not found.
          */
         template <Component::Component T>
         Component::ID getComponentID() const {
@@ -60,116 +72,166 @@ namespace rome::core {
         }
 
         /**
+         * @brief Gets the ID for a submitted component type declaration by name.
+         * @param name The component type name to look up.
+         * @return The component ID, or Component::INVALID_ID if not found.
+         */
+        Component::ID getComponentID(const std::string_view name) const;
+
+        /**
+         * @brief Gets the name for a submitted component type declaration by ID.
+         * @param id The component ID to look up.
+         * @return The component type name, or an empty string view if not found.
+         */
+        std::string_view getComponentName(Component::ID id) const;
+
+        /**
+         * @brief Gets the name for a component type declaration.
+         * @tparam T The component type to look up.
+         * @return The component type name.
+         * @note The component does not need to be submitted.
+         */
+        template <Component::Component T>
+        static consteval std::string_view getComponentName() noexcept {
+            return Component::Registry::getName<T>();
+        }
+
+        /**
          * @brief Creates a new entity.
          * @return The created entity.
          */
-        Entity createEntity() { return entities.create(); }
+        Entity createEntity();
 
         /**
          * @brief Destroys an entity, removing it from every group.
          * @param entity The entity to destroy.
          */
-        void destroyEntity(Entity entity) {
-            systems.removeEntity(entity);
-            entities.destroy(entity);
-        }
+        void destroyEntity(Entity entity);
 
         /**
          * @brief Submits a new system declaration.
          * @param descriptor The descriptor for the system.
-         * @return True if the system was newly submitted, false otherwise.
+         * @return True if the system does not exist in the registry, false otherwise.
          */
-        b8 submitSystem(System::Descriptor&& descriptor) { return systems.submit(std::move(descriptor)); }
+        b8 submitSystem(System::Descriptor&& descriptor);
 
         /**
          * @brief Revokes a submitted system declaration.
          * @param id The system ID to remove.
-         * @return True if the system existed and was removed, false otherwise.
+         * @return True if the system exists in the registry, false otherwise.
          */
-        b8 revokeSystem(System::ID id) { return systems.revoke(id); }
+        b8 revokeSystem(System::ID id);
+
+        /**
+         * @brief Revokes a submitted system declaration by name.
+         * @param name The system name to remove.
+         * @return True if the system exists in the registry, false otherwise.
+         */
+        b8 revokeSystem(const std::string_view name);
 
         /**
          * @brief Checks whether a system declaration has been submitted.
          * @param id The system ID to check.
-         * @return True if the system exists, false otherwise.
+         * @return True if the system exists in the registry, false otherwise.
          */
-        b8 checkSystem(System::ID id) const noexcept { return systems.check(id); }
+        b8 checkSystem(System::ID id) const noexcept;
+
+        /**
+         * @brief Checks whether a system declaration has been submitted by name.
+         * @param name The system name to check.
+         * @return True if the system exists in the registry, false otherwise.
+         */
+        b8 checkSystem(const std::string_view name) const noexcept;
 
         /**
          * @brief Gets a submitted system ID by name.
          * @param name The system name to look up.
-         * @return The system ID, or System::INVALID_ID if it has not been submitted.
+         * @return The system ID, or System::INVALID_ID if not found.
          */
-        System::ID getSystemID(const std::string_view name) const noexcept { return systems.getID(name); }
+        System::ID getSystemID(const std::string_view name) const noexcept;
 
         /**
          * @brief Creates a system builder bound to this ECS world.
          * @param name The unique name of the system.
-         * @return A builder ready to describe and build the system.
+         * @return A builder to describe the system.
          */
-        System::Builder createSystem(const std::string_view name) { return System::Builder(name, world); }
+        System::Builder createSystem(const std::string_view name);
 
         /**
          * @brief Executes one active system.
          * @param id The ID of the system to execute.
          */
-        void runSystem(System::ID id) { systems.run(id); }
+        void runSystem(System::ID id);
 
         /**
          * @brief Executes every active system.
          */
-        void runSystems() { systems.run(); }
+        void runSystems();
 
         /**
          * @brief Submits a plugin dynamic library declaration.
          * @param descriptor The descriptor for the plugin.
-         * @return True if the plugin is not in the registry, false otherwise.
+         * @return True if the plugin does not exist in the registry, false otherwise.
          */
-        b8 submitPlugin(Plugin::Descriptor&& descriptor) { return plugins.submit(std::move(descriptor), *this); }
+        b8 submitPlugin(Plugin::Descriptor&& descriptor);
 
         /**
          * @brief Creates a plugin builder.
          * @param path The plugin library path.
-         * @return A builder ready to describe and build the plugin.
+         * @return A builder to describe the plugin.
          */
-        Plugin::Builder createPlugin(const std::string_view path) { return Plugin::Builder(path); }
+        Plugin::Builder createPlugin(const std::string_view path);
 
         /**
          * @brief Revokes a submitted plugin dynamic library declaration.
          * @param id The submitted plugin ID.
-         * @return True if the plugin is in the registry, false otherwise.
+         * @return True if the plugin exists in the registry, false otherwise.
          */
-        b8 revokePlugin(Plugin::ID id) { return plugins.revoke(id, *this); }
+        b8 revokePlugin(Plugin::ID id);
 
         /**
-         * @brief Revokes every submitted plugin dynamic library declaration.
+         * @brief Revokes a submitted plugin dynamic library declaration by path.
+         * @param path The plugin library path.
+         * @return True if the plugin exists in the registry, false otherwise.
          */
-        void revokePlugins() { plugins.revokeAll(*this); }
+        b8 revokePlugin(const std::string_view path);
+
+        /**
+         * @brief Revokes every plugin dynamic library.
+         */
+        void revokePlugins();
 
         /**
          * @brief Checks whether a plugin declaration has been submitted.
          * @param id The plugin ID to check.
          * @return True if the plugin exists in the registry, false otherwise.
          */
-        b8 checkPlugin(Plugin::ID id) const noexcept { return plugins.check(id); }
+        b8 checkPlugin(Plugin::ID id) const noexcept;
+
+        /**
+         * @brief Checks whether a plugin declaration has been submitted by path.
+         * @param path The plugin library path to check.
+         * @return True if the plugin exists in the registry, false otherwise.
+         */
+        b8 checkPlugin(const std::string_view path) const;
 
         /**
          * @brief Gets a submitted plugin ID by path.
          * @param path The plugin path to look up.
-         * @return The plugin ID, or Plugin::INVALID_ID if it has not been submitted.
+         * @return The plugin ID, or Plugin::INVALID_ID if not found.
          */
-        Plugin::ID getPluginID(const std::string_view path) const { return plugins.get(path); }
+        Plugin::ID getPluginID(const std::string_view path) const;
 
         /**
          * @brief Gets the number of submitted plugins.
          * @return The number of submitted plugins.
          */
-        u32 getPluginCount() const noexcept { return plugins.getSize(); }
+        u32 getPluginCount() const noexcept;
 
         /**
-         * @brief Adds a component to the given entity.
-         * @tparam T The component type to add.
-         * @param entity The entity to add the component to.
+         * @brief Adds a component to the given entity by type.
+         * @tparam T The component type.
+         * @param entity The entity to add.
          * @return The created component.
          */
         template <Component::Component T>
@@ -180,8 +242,8 @@ namespace rome::core {
         }
 
         /**
-         * @brief Adds a component to the given entity.
-         * @tparam T The component type to add.
+         * @brief Adds a component to the given entity by type.
+         * @tparam T The component type.
          * @tparam Args The types of the arguments to forward to the component constructor.
          * @param entity The entity to add the component to.
          * @param ...args The arguments to forward to the component constructor.
@@ -226,12 +288,6 @@ namespace rome::core {
         const T& getComponent(Entity entity) const {
             return *components.get<T>(entity);
         }
-
-        /**
-         * @brief Gets the current state of the ECS.
-         * @return The current state of the ECS.
-         */
-        World& getWorld() { return world; }
 
         private:
         System::Registry systems;        ///< The registry for all systems in the ECS.

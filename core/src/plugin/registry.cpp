@@ -52,8 +52,6 @@ namespace rome::core {
 #endif
         }
 
-        Registry::~Registry() = default;
-
         std::string Registry::resolvePath(const std::string_view path) const {
             namespace fs = std::filesystem;
 
@@ -140,6 +138,8 @@ namespace rome::core {
             return true;
         }
 
+        b8 Registry::revoke(const std::string_view path, ECS& ecs) { return revoke(get(path), ecs); }
+
         void Registry::revokeAll(ECS& ecs) {
             while (true) {
                 ID id = INVALID_ID;
@@ -158,6 +158,8 @@ namespace rome::core {
             std::shared_lock lock(pluginsLock);
             return libraries.find(id) != libraries.end();
         }
+
+        b8 Registry::check(const std::string_view path) const { return get(path) != INVALID_ID; }
 
         ID Registry::get(const std::string_view path) const {
             const std::string resolvedPath = resolvePath(path);

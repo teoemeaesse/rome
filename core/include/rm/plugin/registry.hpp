@@ -14,7 +14,7 @@ namespace rome::core {
         class Registry final {
             public:
             Registry() = default;
-            ~Registry();
+            ~Registry() = default;
             Registry(const Registry&) = delete;
             Registry& operator=(const Registry&) = delete;
             Registry(Registry&&) = delete;
@@ -37,11 +37,26 @@ namespace rome::core {
             b8 revoke(ID id, ECS& ecs);
 
             /**
+             * @brief Revokes a plugin declaration by path and runs its unload entry point.
+             * @param path The plugin library path.
+             * @param ecs The ECS instance exposed to the plugin.
+             * @return True if the plugin exists in the registry, false otherwise.
+             */
+            b8 revoke(const std::string_view path, ECS& ecs);
+
+            /**
              * @brief Checks whether a plugin declaration with the given ID exists.
              * @param id The plugin ID.
              * @return True if the plugin exists in the registry, false otherwise.
              */
             b8 check(ID id) const noexcept;
+
+            /**
+             * @brief Checks whether a plugin declaration with the given path exists.
+             * @param path The plugin library path.
+             * @return True if the plugin exists in the registry, false otherwise.
+             */
+            b8 check(const std::string_view path) const;
 
             /**
              * @brief Revokes every submitted plugin declaration.

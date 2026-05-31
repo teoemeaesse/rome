@@ -83,13 +83,18 @@ TEST(ECS, Check_SubmitRevokeDeclarations_OK) {
     EXPECT_FALSE(ecs.checkComponent<Position>());
     ecs.submitComponent<Position>();
     EXPECT_TRUE(ecs.checkComponent<Position>());
-    EXPECT_TRUE(ecs.revokeComponent<Position>());
+    EXPECT_TRUE(ecs.checkComponent("Position"));
+    EXPECT_EQ(ecs.getComponentID("Position"), ecs.getComponentID<Position>());
+    EXPECT_EQ(ecs.getComponentName<Position>(), "Position");
+    EXPECT_EQ(ecs.getComponentName(ecs.getComponentID<Position>()), "Position");
+    EXPECT_TRUE(ecs.revokeComponent("Position"));
     EXPECT_FALSE(ecs.checkComponent<Position>());
 
     EXPECT_TRUE(ecs.submitSystem(ecs.createSystem("movement").writes<Velocity>().requireFull().build([](System::Context&) {})));
     System::ID system = ecs.getSystemID("movement");
     ASSERT_NE(system, System::INVALID_ID);
     EXPECT_TRUE(ecs.checkSystem(system));
-    EXPECT_TRUE(ecs.revokeSystem(system));
+    EXPECT_TRUE(ecs.checkSystem("movement"));
+    EXPECT_TRUE(ecs.revokeSystem("movement"));
     EXPECT_FALSE(ecs.checkSystem(system));
 }

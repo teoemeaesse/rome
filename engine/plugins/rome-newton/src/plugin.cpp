@@ -8,8 +8,6 @@ using namespace rome;
 using namespace rome::core;
 using namespace rome::engine::physics;
 
-static System::ID newtonIntegrationSystem = System::INVALID_ID;
-
 extern "C" RM_PLUGIN_API void rome_load_plugin(ECS& ecs) {
     ecs.submitComponent<Position>();
     ecs.submitComponent<Velocity>();
@@ -31,11 +29,10 @@ extern "C" RM_PLUGIN_API void rome_load_plugin(ECS& ecs) {
                                  position.y += velocity.y * dt;
                              }
                          }));
-    newtonIntegrationSystem = ecs.getSystemID("engine.physics.newton.integrate");
 }
 
 extern "C" RM_PLUGIN_API void rome_unload_plugin(ECS& ecs) {
-    if (ecs.revokeSystem(newtonIntegrationSystem)) newtonIntegrationSystem = System::INVALID_ID;
+    ecs.revokeSystem("engine.physics.newton.integrate");
     ecs.revokeComponent<NewtonIntegrator>();
     ecs.revokeComponent<Acceleration>();
     ecs.revokeComponent<Velocity>();

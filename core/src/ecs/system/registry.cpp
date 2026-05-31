@@ -38,6 +38,8 @@ namespace rome::core {
             return true;
         }
 
+        b8 Registry::revoke(const std::string_view name) { return revoke(getID(name)); }
+
         b8 Registry::revoke(ID id) {
             auto it = descriptors.find(id);
             if (it == descriptors.end()) return false;

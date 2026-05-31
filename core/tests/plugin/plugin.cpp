@@ -34,6 +34,7 @@ TEST(Plugin, Submit_ValidDylib_SubmitsSystem) {
 
     EXPECT_NE(plugin, Plugin::INVALID_ID);
     EXPECT_TRUE(ecs.checkPlugin(plugin));
+    EXPECT_TRUE(ecs.checkPlugin(RM_TEST_PLUGIN_PATH));
     EXPECT_EQ(ecs.getPluginCount(), 1);
     EXPECT_FALSE(ecs.submitSystem(ecs.createSystem("test.plugin").build([](System::Context&) {})));
 }
@@ -47,8 +48,9 @@ TEST(Plugin, Revoke_ValidDylib_RevokesSystem) {
 
     ASSERT_NE(plugin, Plugin::INVALID_ID);
 
-    EXPECT_TRUE(ecs.revokePlugin(plugin));
+    EXPECT_TRUE(ecs.revokePlugin(RM_TEST_PLUGIN_PATH));
     EXPECT_FALSE(ecs.checkPlugin(plugin));
+    EXPECT_FALSE(ecs.checkPlugin(RM_TEST_PLUGIN_PATH));
     EXPECT_EQ(ecs.getPluginCount(), 0);
     EXPECT_TRUE(ecs.submitSystem(ecs.createSystem("test.plugin").writes<HostPluginState>().requireFull().build([](System::Context&) {})));
 }
