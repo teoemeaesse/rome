@@ -169,11 +169,11 @@ namespace rome::core {
         void runSystems();
 
         /**
-         * @brief Submits a plugin dynamic library declaration.
+         * @brief Loads a plugin dynamic library.
          * @param descriptor The descriptor for the plugin.
-         * @return True if the plugin does not exist in the registry, false otherwise.
+         * @return True if the plugin loaded or was already loaded, false otherwise.
          */
-        b8 submitPlugin(Plugin::Descriptor&& descriptor);
+        b8 loadPlugin(Plugin::Descriptor&& descriptor);
 
         /**
          * @brief Creates a plugin builder.
@@ -183,48 +183,48 @@ namespace rome::core {
         Plugin::Builder createPlugin(const std::string_view path);
 
         /**
-         * @brief Revokes a submitted plugin dynamic library declaration.
-         * @param id The submitted plugin ID.
+         * @brief Unloads a plugin dynamic library.
+         * @param id The loaded plugin ID.
          * @return True if the plugin exists in the registry, false otherwise.
          */
-        b8 revokePlugin(Plugin::ID id);
+        b8 unloadPlugin(Plugin::ID id);
 
         /**
-         * @brief Revokes a submitted plugin dynamic library declaration by path.
+         * @brief Unloads a plugin dynamic library by path.
          * @param path The plugin library path.
          * @return True if the plugin exists in the registry, false otherwise.
          */
-        b8 revokePlugin(const std::string_view path);
+        b8 unloadPlugin(const std::string_view path);
 
         /**
-         * @brief Revokes every plugin dynamic library.
+         * @brief Unloads every plugin dynamic library.
          */
-        void revokePlugins();
+        void unloadPlugins();
 
         /**
-         * @brief Checks whether a plugin declaration has been submitted.
+         * @brief Checks whether a plugin dynamic library has been loaded.
          * @param id The plugin ID to check.
          * @return True if the plugin exists in the registry, false otherwise.
          */
         b8 checkPlugin(Plugin::ID id) const noexcept;
 
         /**
-         * @brief Checks whether a plugin declaration has been submitted by path.
+         * @brief Checks whether a plugin dynamic library has been loaded by path.
          * @param path The plugin library path to check.
          * @return True if the plugin exists in the registry, false otherwise.
          */
         b8 checkPlugin(const std::string_view path) const;
 
         /**
-         * @brief Gets a submitted plugin ID by path.
+         * @brief Gets a loaded plugin ID by path.
          * @param path The plugin path to look up.
          * @return The plugin ID, or Plugin::INVALID_ID if not found.
          */
         Plugin::ID getPluginID(const std::string_view path) const;
 
         /**
-         * @brief Gets the number of submitted plugins.
-         * @return The number of submitted plugins.
+         * @brief Gets the number of loaded plugins.
+         * @return The number of loaded plugins.
          */
         u32 getPluginCount() const noexcept;
 
@@ -294,7 +294,7 @@ namespace rome::core {
         Component::Registry components;  ///< The registry for all components in the ECS.
         Entity::Registry entities;       ///< The registry for all entities in the ECS.
         Event::Registry events;          ///< The registry for all events in the ECS.
-        World world;                     ///< A reference to the ECS state.
         Plugin::Registry plugins;        ///< Loaded plugin dynamic libraries.
+        World world;                     ///< A reference to the ECS state.
     };
 }  // namespace rome::core

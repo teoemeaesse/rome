@@ -21,7 +21,7 @@ static System::ID dependentSystemId = System::INVALID_ID;
 extern "C" RM_PLUGIN_API void rome_load_plugin(ECS& ecs) {
     Plugin::Descriptor dependency = ecs.createPlugin(RM_TEST_DEPENDENCY_PLUGIN_FILE).build();
 
-    ecs.submitPlugin(std::move(dependency));
+    ecs.loadPlugin(std::move(dependency));
     dependencyPluginId = ecs.getPluginID(RM_TEST_DEPENDENCY_PLUGIN_FILE);
     ecs.submitComponent<DependentPluginState>();
     ecs.submitSystem(ecs.createSystem("test.plugin.dependent").writes<DependentPluginState>().requireFull().build([](System::Context&) {}));
@@ -32,5 +32,5 @@ extern "C" RM_PLUGIN_API void rome_unload_plugin(ECS& ecs) {
     if (ecs.revokeSystem(dependentSystemId)) dependentSystemId = System::INVALID_ID;
     ecs.revokeComponent<DependentPluginState>();
 
-    if (ecs.revokePlugin(dependencyPluginId)) dependencyPluginId = Plugin::INVALID_ID;
+    if (ecs.unloadPlugin(dependencyPluginId)) dependencyPluginId = Plugin::INVALID_ID;
 }

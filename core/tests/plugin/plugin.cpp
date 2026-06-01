@@ -25,11 +25,11 @@ TEST(PluginBuilder, Build_WithPath_OK) {
     EXPECT_EQ(descriptor.path, "/tmp/test-plugin.dylib");
 }
 
-TEST(Plugin, Submit_ValidDylib_SubmitsSystem) {
+TEST(Plugin, Load_ValidDylib_LoadsSystem) {
     ECS ecs;
     Plugin::Descriptor descriptor = ecs.createPlugin(RM_TEST_PLUGIN_PATH).build();
 
-    EXPECT_TRUE(ecs.submitPlugin(std::move(descriptor)));
+    EXPECT_TRUE(ecs.loadPlugin(std::move(descriptor)));
     Plugin::ID plugin = ecs.getPluginID(RM_TEST_PLUGIN_PATH);
 
     EXPECT_NE(plugin, Plugin::INVALID_ID);
@@ -39,55 +39,67 @@ TEST(Plugin, Submit_ValidDylib_SubmitsSystem) {
     EXPECT_FALSE(ecs.submitSystem(ecs.createSystem("test.plugin").build([](System::Context&) {})));
 }
 
-TEST(Plugin, Revoke_ValidDylib_RevokesSystem) {
+TEST(Plugin, Load_AlreadyLoadedDylib_ReturnsTrue) {
+    ECS ecs;
+
+    EXPECT_TRUE(ecs.loadPlugin(ecs.createPlugin(RM_TEST_PLUGIN_PATH).build()));
+    const Plugin::ID plugin = ecs.getPluginID(RM_TEST_PLUGIN_PATH);
+
+    ASSERT_NE(plugin, Plugin::INVALID_ID);
+    EXPECT_TRUE(ecs.loadPlugin(ecs.createPlugin(RM_TEST_PLUGIN_PATH).build()));
+    EXPECT_EQ(ecs.getPluginID(RM_TEST_PLUGIN_PATH), plugin);
+    EXPECT_EQ(ecs.getPluginCount(), 1);
+}
+
+TEST(Plugin, Unload_ValidDylib_UnloadsSystem) {
     ECS ecs;
     Plugin::Descriptor descriptor = ecs.createPlugin(RM_TEST_PLUGIN_PATH).build();
 
-    EXPECT_TRUE(ecs.submitPlugin(std::move(descriptor)));
+    EXPECT_TRUE(ecs.loadPlugin(std::move(descriptor)));
     Plugin::ID plugin = ecs.getPluginID(RM_TEST_PLUGIN_PATH);
 
     ASSERT_NE(plugin, Plugin::INVALID_ID);
 
-    EXPECT_TRUE(ecs.revokePlugin(RM_TEST_PLUGIN_PATH));
+    EXPECT_TRUE(ecs.unloadPlugin(RM_TEST_PLUGIN_PATH));
     EXPECT_FALSE(ecs.checkPlugin(plugin));
     EXPECT_FALSE(ecs.checkPlugin(RM_TEST_PLUGIN_PATH));
     EXPECT_EQ(ecs.getPluginCount(), 0);
     EXPECT_TRUE(ecs.submitSystem(ecs.createSystem("test.plugin").writes<HostPluginState>().requireFull().build([](System::Context&) {})));
 }
 
-TEST(Plugin, Reload_ValidDylib_AfterRevoke_OK) {
+TEST(Plugin, Reload_ValidDylib_AfterUnload_OK) {
     ECS ecs;
     Plugin::Descriptor firstDescriptor = ecs.createPlugin(RM_TEST_PLUGIN_PATH).build();
 
-    EXPECT_TRUE(ecs.submitPlugin(std::move(firstDescriptor)));
+    EXPECT_TRUE(ecs.loadPlugin(std::move(firstDescriptor)));
     Plugin::ID first = ecs.getPluginID(RM_TEST_PLUGIN_PATH);
 
     ASSERT_NE(first, Plugin::INVALID_ID);
-    EXPECT_TRUE(ecs.revokePlugin(first));
+    EXPECT_TRUE(ecs.unloadPlugin(first));
     EXPECT_EQ(ecs.getPluginCount(), 0);
 
     Plugin::Descriptor secondDescriptor = ecs.createPlugin(RM_TEST_PLUGIN_PATH).build();
 
-    EXPECT_TRUE(ecs.submitPlugin(std::move(secondDescriptor)));
+    EXPECT_TRUE(ecs.loadPlugin(std::move(secondDescriptor)));
     Plugin::ID second = ecs.getPluginID(RM_TEST_PLUGIN_PATH);
 
     EXPECT_NE(second, Plugin::INVALID_ID);
     EXPECT_EQ(ecs.getPluginCount(), 1);
 }
 
-TEST(Plugin, Submit_MissingDylib_Fails) {
+TEST(Plugin, Load_MissingDylib_Fails) {
     ECS ecs;
     Plugin::Descriptor descriptor = ecs.createPlugin("/missing/plugin.dylib").build();
 
-    EXPECT_FALSE(ecs.submitPlugin(std::move(descriptor)));
+    EXPECT_FALSE(ecs.loadPlugin(std::move(descriptor)));
     EXPECT_EQ(ecs.getPluginCount(), 0);
 }
 
-TEST(Plugin, Submit_PluginDependency_SubmitsRelativeDependency) {
+TEST(Plugin, Load_PluginDependency_LoadsRelativeDependency) {
     ECS ecs;
     Plugin::Descriptor descriptor = ecs.createPlugin(RM_TEST_DEPENDENT_PLUGIN_PATH).build();
 
-    EXPECT_TRUE(ecs.submitPlugin(std::move(descriptor)));
+    EXPECT_TRUE(ecs.loadPlugin(std::move(descriptor)));
     Plugin::ID plugin = ecs.getPluginID(RM_TEST_DEPENDENT_PLUGIN_PATH);
 
     EXPECT_NE(plugin, Plugin::INVALID_ID);
@@ -96,16 +108,16 @@ TEST(Plugin, Submit_PluginDependency_SubmitsRelativeDependency) {
     EXPECT_FALSE(ecs.submitSystem(ecs.createSystem("test.plugin.dependent").build([](System::Context&) {})));
 }
 
-TEST(Plugin, Revoke_PluginDependency_RevokesDependency) {
+TEST(Plugin, Unload_PluginDependency_UnloadsDependency) {
     ECS ecs;
     Plugin::Descriptor descriptor = ecs.createPlugin(RM_TEST_DEPENDENT_PLUGIN_PATH).build();
 
-    EXPECT_TRUE(ecs.submitPlugin(std::move(descriptor)));
+    EXPECT_TRUE(ecs.loadPlugin(std::move(descriptor)));
     Plugin::ID plugin = ecs.getPluginID(RM_TEST_DEPENDENT_PLUGIN_PATH);
 
     ASSERT_NE(plugin, Plugin::INVALID_ID);
 
-    EXPECT_TRUE(ecs.revokePlugin(plugin));
+    EXPECT_TRUE(ecs.unloadPlugin(plugin));
     EXPECT_EQ(ecs.getPluginCount(), 0);
     ecs.submitComponent<HostPluginState>();
     EXPECT_TRUE(

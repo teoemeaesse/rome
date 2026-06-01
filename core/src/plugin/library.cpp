@@ -8,6 +8,16 @@
 
 namespace rome::core {
     namespace Plugin {
+        static void* findSymbol(void* handle, const char* name) {
+            if (!handle) return nullptr;
+#if defined(RM_MACOS) || defined(RM_LINUX) || defined(RM_UNIX)
+            dlerror();
+            return dlsym(handle, name);
+#else
+            return nullptr;
+#endif
+        }
+
         static void closeLibrary(void* handle) {
             if (!handle) return;
 #if defined(RM_MACOS) || defined(RM_LINUX) || defined(RM_UNIX)
@@ -15,17 +25,14 @@ namespace rome::core {
 #endif
         }
 
-        Library::Library(ID id, Descriptor&& descriptor, void* handle, UnloadFn unload)
-            : id(id), descriptor(std::move(descriptor)), handle(handle), unload(unload) {}
+        Library::Library(ID id, Descriptor&& descriptor, void* handle) : id(id), descriptor(std::move(descriptor)), handle(handle) {}
 
         Library::~Library() { close(); }
 
         Library::Library(Library&& other) noexcept
-            : id(other.id), descriptor(std::move(other.descriptor)), handle(other.handle), unload(other.unload), references(other.references) {
+            : id(other.id), descriptor(std::move(other.descriptor)), handle(other.handle) {
             other.id = INVALID_ID;
             other.handle = nullptr;
-            other.unload = nullptr;
-            other.references = 0;
         }
 
         Library& Library::operator=(Library&& other) noexcept {
@@ -35,17 +42,14 @@ namespace rome::core {
             id = other.id;
             descriptor = std::move(other.descriptor);
             handle = other.handle;
-            unload = other.unload;
-            references = other.references;
 
             other.id = INVALID_ID;
             other.handle = nullptr;
-            other.unload = nullptr;
-            other.references = 0;
             return *this;
         }
 
-        void Library::unloadFrom(ECS& ecs) {
+        void Library::unload(ECS& ecs) {
+            auto unload = reinterpret_cast<UnloadFn>(findSymbol(handle, UNLOAD_SYMBOL));
             if (unload) unload(ecs);
         }
 

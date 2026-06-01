@@ -4,7 +4,7 @@ namespace rome::core {
     ECS::ECS() : systems(), components(), entities(), events(), world{systems, components, entities, events} {}
 
     ECS::~ECS() {
-        revokePlugins();
+        unloadPlugins();
     }
 
     b8 ECS::revokeComponent(const std::string_view name) {
@@ -68,24 +68,24 @@ namespace rome::core {
         systems.run();
     }
 
-    b8 ECS::submitPlugin(Plugin::Descriptor&& descriptor) {
-        return plugins.submit(std::move(descriptor), *this);
+    b8 ECS::loadPlugin(Plugin::Descriptor&& descriptor) {
+        return plugins.load(std::move(descriptor), *this);
     }
 
     Plugin::Builder ECS::createPlugin(const std::string_view path) {
         return Plugin::Builder(path);
     }
 
-    b8 ECS::revokePlugin(Plugin::ID id) {
-        return plugins.revoke(id, *this);
+    b8 ECS::unloadPlugin(Plugin::ID id) {
+        return plugins.unload(id, *this);
     }
 
-    b8 ECS::revokePlugin(const std::string_view path) {
-        return plugins.revoke(path, *this);
+    b8 ECS::unloadPlugin(const std::string_view path) {
+        return plugins.unload(path, *this);
     }
 
-    void ECS::revokePlugins() {
-        plugins.revokeAll(*this);
+    void ECS::unloadPlugins() {
+        plugins.unloadAll(*this);
     }
 
     b8 ECS::checkPlugin(Plugin::ID id) const noexcept {

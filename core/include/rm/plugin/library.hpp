@@ -12,7 +12,7 @@ namespace rome::core {
          */
         class Library final {
             public:
-            Library(ID id, Descriptor&& descriptor, void* handle, UnloadFn unload);
+            Library(ID id, Descriptor&& descriptor, void* handle);
             ~Library();
             Library(const Library& other) = delete;
             Library(Library&& other) noexcept;
@@ -22,24 +22,19 @@ namespace rome::core {
 
             inline ID getID() const noexcept { return id; }
             inline std::string_view getLoadingPath() const noexcept { return descriptor.path; }
-            inline u32 getReferences() const noexcept { return references; }
-            inline void addReference() noexcept { references++; }
-            inline void removeReference() noexcept { references--; }
 
             /**
              * @brief Runs the plugin unload hook if one was exported.
-             * @param ecs The ECS instance exposed to the plugin.
+             * @param ecs The ECS instance.
              */
-            void unloadFrom(ECS& ecs);
+            void unload(ECS& ecs);
 
             private:
             void close() noexcept;
 
-            ID id = INVALID_ID;          ///< The plugin ID assigned to this loaded library.
-            Descriptor descriptor;       ///< The submitted plugin descriptor.
-            void* handle = nullptr;      ///< The native dynamic library handle.
-            UnloadFn unload = nullptr;   ///< Optional plugin unload entry point.
-            u32 references = 1;          ///< Number of active load requests for this library.
+            ID id = INVALID_ID;      ///< The plugin ID assigned to this loaded library.
+            Descriptor descriptor;   ///< The loaded plugin descriptor.
+            void* handle = nullptr;  ///< The native dynamic library handle.
         };
     }  // namespace Plugin
 }  // namespace rome::core

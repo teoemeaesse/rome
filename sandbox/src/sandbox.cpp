@@ -41,7 +41,7 @@ class SandboxApplication final : public Application {
 
     void setup() override {
         for (const std::string_view path : getPluginPaths()) {
-            ecs.submitPlugin(ecs.createPlugin(path).build());
+            ecs.loadPlugin(ecs.createPlugin(path).build());
             const Plugin::ID plugin = ecs.getPluginID(path);
             if (plugin == Plugin::INVALID_ID) {
                 RM_ERROR("Failed to load engine plugin: %.*s", static_cast<int>(path.size()), path.data());
@@ -58,7 +58,7 @@ class SandboxApplication final : public Application {
     }
 
     void shutdown() override {
-        ecs.revokePlugins();
+        ecs.unloadPlugins();
         Metrics::getInstance().report();
     }
 

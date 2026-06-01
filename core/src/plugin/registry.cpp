@@ -70,16 +70,16 @@ namespace rome::core {
             return resolved.string();
         }
 
-        b8 Registry::submit(Descriptor&& descriptor, ECS& ecs) {
+        b8 Registry::load(Descriptor&& descriptor, ECS& ecs) {
             const std::string resolvedPath = resolvePath(descriptor.path);
             if (resolvedPath.empty()) return false;
 
             {
                 std::unique_lock lock(pluginsLock);
-                for (auto& [id, library] : libraries) {
+                for (const auto& entry : libraries) {
+                    const Library& library = entry.second;
                     if (library.getLoadingPath() == resolvedPath) {
-                        library.addReference();
-                        return false;
+                        return true;
                     }
                 }
             }
@@ -100,13 +100,11 @@ namespace rome::core {
             auto* loadSymbol = findSymbol(handle, LOAD_SYMBOL);
             if (!loadSymbol) {
                 RM_ERROR("Plugin '%s' is missing '%s': %s", resolvedPath.c_str(), LOAD_SYMBOL, getLibraryError());
-                Library{INVALID_ID, Descriptor{resolvedPath}, handle, nullptr};
+                Library{INVALID_ID, Descriptor{resolvedPath}, handle};
                 return false;
             }
 
-            auto* unloadSymbol = findSymbol(handle, UNLOAD_SYMBOL);
             auto load = reinterpret_cast<LoadFn>(loadSymbol);
-            auto unload = reinterpret_cast<UnloadFn>(unloadSymbol);
 
             ScopedLoadingContext loadingContext(resolvedPath);
             load(ecs);
@@ -114,33 +112,27 @@ namespace rome::core {
             std::unique_lock lock(pluginsLock);
             ID id = nextId++;
             descriptor.path = resolvedPath;
-            libraries.try_emplace(id, id, std::move(descriptor), handle, unload);
+            libraries.try_emplace(id, id, std::move(descriptor), handle);
             return true;
         }
 
-        b8 Registry::revoke(ID id, ECS& ecs) {
+        b8 Registry::unload(ID id, ECS& ecs) {
             decltype(libraries)::node_type library;
             {
                 std::unique_lock lock(pluginsLock);
                 auto it = libraries.find(id);
                 if (it == libraries.end()) return false;
 
-                Library& stored = it->second;
-                if (stored.getReferences() > 1) {
-                    stored.removeReference();
-                    return true;
-                }
-
                 library = libraries.extract(it);
             }
 
-            library.mapped().unloadFrom(ecs);
+            library.mapped().unload(ecs);
             return true;
         }
 
-        b8 Registry::revoke(const std::string_view path, ECS& ecs) { return revoke(get(path), ecs); }
+        b8 Registry::unload(const std::string_view path, ECS& ecs) { return unload(get(path), ecs); }
 
-        void Registry::revokeAll(ECS& ecs) {
+        void Registry::unloadAll(ECS& ecs) {
             while (true) {
                 ID id = INVALID_ID;
                 {
@@ -150,7 +142,7 @@ namespace rome::core {
                         if (libraryId > id) id = libraryId;
                     }
                 }
-                revoke(id, ecs);
+                unload(id, ecs);
             }
         }
 
