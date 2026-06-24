@@ -1,5 +1,6 @@
 #pragma once
 
+#include <filesystem>
 #include <unordered_map>
 
 #include "rm/prelude.hpp"
@@ -54,34 +55,57 @@ namespace rome::core {
              * @brief Gets the segment for this node.
              * @return The segment for this node.
              */
-            std::string_view getSegment() const;
+            const std::string_view getSegment() const;
 
             /**
              * @brief Gets the path for this node.
              * @return The path for this node.
              */
-            std::string_view getPath() const;
+            const std::string_view getPath() const;
+
+            /**
+             * @brief Gets the OS path for this node.
+             * @return The OS path for this node.
+             */
+            const std::filesystem::path& getOSPath() const;
+
+            /**
+             * @brief Checks if this node is mounted.
+             * @return True if this node is mounted, false otherwise.
+             */
+            b8 isMounted() const;
+
+            /**
+             * @brief Mounts this node to an OS path.
+             * @param path The OS path to mount.
+             */
+            void mount(const std::filesystem::path& path);
+
+            /**
+             * @brief Unmounts this node.
+             */
+            void unmount();
 
             /**
              * @brief Checks if this node has a child with the given segment.
              * @param segment The segment to check.
              * @return True if this node has the child, false otherwise.
              */
-            b8 hasChild(std::string_view segment) const;
+            b8 hasChild(const std::string_view segment) const;
 
             /**
              * @brief Gets a child by segment.
              * @param segment The segment of the child.
              * @return A pointer to the child, or nullptr if not found.
              */
-            Node* getChild(std::string_view segment);
+            Node* getChild(const std::string_view segment);
 
             /**
              * @brief Gets a child by segment.
              * @param segment The segment of the child.
              * @return A const pointer to the child, or nullptr if not found.
              */
-            const Node* getChild(std::string_view segment) const;
+            const Node* getChild(const std::string_view segment) const;
 
             /**
              * @brief Visits this node.
@@ -96,8 +120,10 @@ namespace rome::core {
             private:
             friend class SyncVisitor;
 
-            std::string segment;  ///< The most basic unit of composition for a VFS path.
-            std::string path;     ///< The virtual path up to this node.
+            std::string segment;           ///< The most basic unit of composition for a VFS path.
+            std::string path;              ///< The virtual path up to this node.
+            std::filesystem::path osPath;  ///< The path to this node in the OS filesystem.
+            b8 mounted = false;            ///< Whether this node is mounted.
         };
     }  // namespace VFS
 }  // namespace rome::core
