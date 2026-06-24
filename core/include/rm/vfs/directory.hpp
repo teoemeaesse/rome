@@ -6,7 +6,7 @@ namespace rome::core {
     namespace VFS {
         class Directory : public Node {
             public:
-            b8 accept(Visitor visitor) override;
+            b8 accept(Visitor& visitor) override;
 
             private:
         };
