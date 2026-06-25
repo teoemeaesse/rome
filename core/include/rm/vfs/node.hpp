@@ -64,10 +64,10 @@ namespace rome::core {
             const std::string_view getPath() const;
 
             /**
-             * @brief Gets the OS path for this node.
-             * @return The OS path for this node.
+             * @brief Gets the mount path for this node.
+             * @return The mount path for this node.
              */
-            const std::filesystem::path& getOSPath() const;
+            const std::filesystem::path& getMountPath() const;
 
             /**
              * @brief Checks if this node is mounted.
@@ -115,15 +115,15 @@ namespace rome::core {
             virtual b8 accept(Visitor& visitor) = 0;
 
             protected:
-            std::unordered_map<std::string, Unique<Node>, TransparentSVHash, std::equal_to<>> children;  ///< This node's direct children.
+            std::unordered_map<std::string, Shared<Node>, TransparentSVHash, std::equal_to<>> children;  ///< This node's direct children.
 
             private:
             friend class SyncVisitor;
 
-            std::string segment;           ///< The most basic unit of composition for a VFS path.
-            std::string path;              ///< The virtual path up to this node.
-            std::filesystem::path osPath;  ///< The path to this node in the OS filesystem.
-            b8 mounted = false;            ///< Whether this node is mounted.
+            std::string segment;              ///< The most basic unit of composition for a VFS path.
+            std::string path;                 ///< The virtual path up to this node.
+            std::filesystem::path mountPath;  ///< The path this node is mounted to.
+            Weak<Node> parent;                ///< This node's parent.
         };
     }  // namespace VFS
 }  // namespace rome::core

@@ -10,19 +10,13 @@ namespace rome::core {
 
         const std::string_view Node::getPath() const { return path; }
 
-        const std::filesystem::path& Node::getOSPath() const { return osPath; }
+        const std::filesystem::path& Node::getMountPath() const { return mountPath; }
 
-        b8 Node::isMounted() const { return mounted; }
+        b8 Node::isMounted() const { return !mountPath.empty(); }
 
-        void Node::mount(const std::filesystem::path& path) {
-            osPath = path;
-            mounted = true;
-        }
+        void Node::mount(const std::filesystem::path& path) { mountPath = path; }
 
-        void Node::unmount() {
-            osPath.clear();
-            mounted = false;
-        }
+        void Node::unmount() { mountPath.clear(); }
 
         b8 Node::hasChild(const std::string_view segment) const { return children.contains(segment); }
 
