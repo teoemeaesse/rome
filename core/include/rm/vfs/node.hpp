@@ -44,6 +44,24 @@ namespace rome::core {
                 std::string stack;  ///< The current virtual path.
             };
 
+            class OSPathVisitor final : public Visitor {
+                public:
+                /** @inheritdoc */
+                b8 visit(Directory* directory) override;
+
+                /** @inheritdoc */
+                b8 visit(File* file) override;
+
+                /**
+                 * @brief Gets the resolved OS path.
+                 * @return The resolved OS path.
+                 */
+                const std::filesystem::path& getPath() const;
+
+                private:
+                std::filesystem::path path;  ///< The resolved OS path.
+            };
+
             Node();
             Node(const std::string_view segment);
             Node(const Node&) = default;
@@ -119,6 +137,7 @@ namespace rome::core {
 
             private:
             friend class SyncVisitor;
+            friend class OSPathVisitor;
 
             std::string segment;              ///< The most basic unit of composition for a VFS path.
             std::string path;                 ///< The virtual path up to this node.

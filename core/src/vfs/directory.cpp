@@ -20,6 +20,22 @@ namespace rome::core {
             return false;
         }
 
+        b8 Node::OSPathVisitor::visit(Directory* directory) {
+            path.clear();
+
+            if (directory->isMounted()) {
+                path = directory->mountPath;
+                return true;
+            }
+
+            Shared<Node> parent = directory->parent.lock();
+            if (parent == nullptr) return false;
+            if (!parent->accept(*this)) return false;
+
+            if (!directory->segment.empty()) path /= directory->segment;
+            return true;
+        }
+
         b8 Directory::accept(Visitor& visitor) { return visitor.visit(this); }
     }  // namespace VFS
 }  // namespace rome::core

@@ -29,5 +29,7 @@ namespace rome::core {
             auto child = children.find(segment);
             return child == children.end() ? nullptr : child->second.get();
         }
+
+        const std::filesystem::path& Node::OSPathVisitor::getPath() const { return path; }
     }  // namespace VFS
 }  // namespace rome::core
