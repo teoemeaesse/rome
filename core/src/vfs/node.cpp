@@ -18,18 +18,6 @@ namespace rome::core {
 
         void Node::unmount() { mountPath.clear(); }
 
-        b8 Node::hasChild(const std::string_view segment) const { return children.contains(segment); }
-
-        Node* Node::getChild(const std::string_view segment) {
-            auto child = children.find(segment);
-            return child == children.end() ? nullptr : child->second.get();
-        }
-
-        const Node* Node::getChild(const std::string_view segment) const {
-            auto child = children.find(segment);
-            return child == children.end() ? nullptr : child->second.get();
-        }
-
         const std::filesystem::path& Node::OSPathVisitor::getPath() const { return path; }
     }  // namespace VFS
 }  // namespace rome::core

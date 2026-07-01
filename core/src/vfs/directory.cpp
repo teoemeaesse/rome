@@ -28,11 +28,20 @@ namespace rome::core {
                 return true;
             }
 
-            Shared<Node> parent = directory->parent.lock();
-            if (parent == nullptr) return false;
-            if (!parent->accept(*this)) return false;
+            if (directory->parent == nullptr) return false;
+            if (!directory->parent->accept(*this)) return false;
 
             if (!directory->segment.empty()) path /= directory->segment;
+            return true;
+        }
+
+        b8 Directory::insert(Node* node) {
+            if (node == nullptr) return false;
+            if (node->segment.empty()) return false;
+            if (children.contains(node->segment)) return false;
+
+            node->parent = this;
+            children[node->segment] = node;
             return true;
         }
 

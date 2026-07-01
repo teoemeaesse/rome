@@ -17,13 +17,14 @@ namespace rome::core {
                 return true;
             }
 
-            Shared<Node> parent = file->parent.lock();
-            if (parent == nullptr) return false;
-            if (!parent->accept(*this)) return false;
+            if (file->parent == nullptr) return false;
+            if (!file->parent->accept(*this)) return false;
 
             if (!file->segment.empty()) path /= file->segment;
             return true;
         }
+
+        b8 File::insert(Node* node) { return false; }
 
         b8 File::accept(Visitor& visitor) { return visitor.visit(this); }
 

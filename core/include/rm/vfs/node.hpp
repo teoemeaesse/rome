@@ -105,25 +105,11 @@ namespace rome::core {
             void unmount();
 
             /**
-             * @brief Checks if this node has a child with the given segment.
-             * @param segment The segment to check.
-             * @return True if this node has the child, false otherwise.
+             * @brief Inserts a child node.
+             * @param node The node to insert.
+             * @return True if the node was inserted, false otherwise.
              */
-            b8 hasChild(const std::string_view segment) const;
-
-            /**
-             * @brief Gets a child by segment.
-             * @param segment The segment of the child.
-             * @return A pointer to the child, or nullptr if not found.
-             */
-            Node* getChild(const std::string_view segment);
-
-            /**
-             * @brief Gets a child by segment.
-             * @param segment The segment of the child.
-             * @return A const pointer to the child, or nullptr if not found.
-             */
-            const Node* getChild(const std::string_view segment) const;
+            virtual b8 insert(Node* node) = 0;
 
             /**
              * @brief Visits this node.
@@ -133,16 +119,17 @@ namespace rome::core {
             virtual b8 accept(Visitor& visitor) = 0;
 
             protected:
-            std::unordered_map<std::string, Shared<Node>, TransparentSVHash, std::equal_to<>> children;  ///< This node's direct children.
+            std::unordered_map<std::string, Node*, TransparentSVHash, std::equal_to<>> children;  ///< This node's direct children.
 
             private:
             friend class SyncVisitor;
             friend class OSPathVisitor;
+            friend class Directory;
 
             std::string segment;              ///< The most basic unit of composition for a VFS path.
             std::string path;                 ///< The virtual path up to this node.
             std::filesystem::path mountPath;  ///< The path this node is mounted to.
-            Weak<Node> parent;                ///< This node's parent.
+            Node* parent = nullptr;           ///< This node's parent.
         };
     }  // namespace VFS
 }  // namespace rome::core
