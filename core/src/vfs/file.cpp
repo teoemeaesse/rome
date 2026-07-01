@@ -2,6 +2,8 @@
 
 namespace rome::core {
     namespace VFS {
+        File::File(const std::string_view segment) : Node(segment) {}
+
         b8 Node::SyncVisitor::visit(File* file) {
             if (stack.empty()) stack = file->path;
 

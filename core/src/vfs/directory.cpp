@@ -2,6 +2,8 @@
 
 namespace rome::core {
     namespace VFS {
+        Directory::Directory(const std::string_view segment) : Node(segment) {}
+
         b8 Node::SyncVisitor::visit(Directory* directory) {
             if (stack.empty()) stack = directory->path;
 
