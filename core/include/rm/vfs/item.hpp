@@ -12,18 +12,7 @@ namespace rome::core {
         Item& operator=(const Item&) = default;
         Item& operator=(Item&&) = default;
 
-        enum class Type {
-            File = 0,
-            Directory,
-        };
-
-        /**
-         * @brief Checks the concrete type of this item.
-         * @return The concrete type of this item.
-         */
-        Type getType();
-
         private:
-        std::unordered_map<std::string, Inode, TransparentSVHash, std::equal_to<>> table;
+        std::unordered_map<std::string, u64, TransparentSVHash, std::equal_to<>> mappings;  ///< Maps item names to Inode ID's.
     };
 }  // namespace rome::core

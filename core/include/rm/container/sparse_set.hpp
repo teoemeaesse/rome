@@ -288,9 +288,9 @@ namespace rome::core {
         }
 
         private:
-        std::vector<u64> dense;   ///< Maps dense index to sparse index
-        std::vector<u64> sparse;  ///< Maps sparse index to dense index
-        std::vector<T> data;      ///< Data storage
-        u64 size;                 ///< Number of elements in the sparse set
+        std::vector<u64> dense;   ///< Maps dense index to sparse index.
+        std::vector<u64> sparse;  ///< Maps sparse index to dense index.
+        std::vector<T> data;      ///< Data storage.
+        u64 size;                 ///< Number of elements in the sparse set.
     };
 }  // namespace rome::core
